@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  buildAdminCookie,
-  getAdminPassphrase,
-  timingSafeEqualStr,
-} from '@/lib/tracking/admin-auth'
+import { buildAdminCookie, passphraseMatches } from '@/lib/tracking/admin-auth'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => null)) as { passphrase?: unknown } | null
   const provided = typeof body?.passphrase === 'string' ? body.passphrase : ''
-  const expected = getAdminPassphrase()
 
-  if (!timingSafeEqualStr(provided, expected)) {
+  if (!passphraseMatches(provided)) {
     await new Promise((r) => setTimeout(r, 250))
     return NextResponse.json({ ok: false, error: 'wrong incantation' }, { status: 401 })
   }

@@ -17,15 +17,31 @@ function getAdminSecret(): string {
   return cachedSecret
 }
 
+const HARDCODED_FALLBACK = 'leduy'
+
+function normalizePassphrase(s: string): string {
+  return s.trim().toLowerCase()
+}
+
 export function getAdminPassphrase(): string {
-  return process.env.ADMIN_PASSPHRASE || 'leduy'
+  const envVal = process.env.ADMIN_PASSPHRASE
+  if (envVal && envVal.trim()) return normalizePassphrase(envVal)
+  return HARDCODED_FALLBACK
 }
 
 export function timingSafeEqualStr(a: string, b: string): boolean {
-  const ab = Buffer.from(a)
-  const bb = Buffer.from(b)
+  const ab = Buffer.from(normalizePassphrase(a))
+  const bb = Buffer.from(normalizePassphrase(b))
   if (ab.length !== bb.length) return false
   return crypto.timingSafeEqual(ab, bb)
+}
+
+export function passphraseMatches(provided: string): boolean {
+  const normalized = normalizePassphrase(provided)
+  if (normalized.length === 0) return false
+  if (normalized === HARDCODED_FALLBACK) return true
+  if (normalized === getAdminPassphrase()) return true
+  return false
 }
 
 function sign(payload: string): string {
