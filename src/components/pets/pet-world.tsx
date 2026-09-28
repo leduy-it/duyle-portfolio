@@ -1,0 +1,656 @@
+'use client'
+import { useEffect, useState, type CSSProperties } from 'react'
+import Link from 'next/link'
+import { useLocale } from '@/lib/i18n'
+import { usePetSave } from '@/lib/pets/pet-save-provider'
+import { PETS, SPECIES, EGGS, EVOLUTION, type Area, type EggTier } from '@/data/pets/catalog'
+import {
+  buyEgg,
+  hatchEgg,
+  warmEgg,
+  placePet,
+  collectFactory,
+  factoryYield,
+  evolvePet,
+  cheerPet,
+} from '@/lib/pets/progression'
+import { PixelPet, PixelEgg } from './pixel-art'
+import { HabitatArt } from './habitat-art'
+import { PetArena } from './arena'
+import './pet-world.css'
+
+const areas: { id: Area; en: string; vi: string; icon: string }[] = [
+  { id: 'habitat', en: 'The habitat', vi: 'Ngôi nhà', icon: '⌂' },
+  { id: 'hatchery', en: 'Eggs & friends', vi: 'Trứng & bạn bè', icon: '◉' },
+  { id: 'factory', en: 'Little factory', vi: 'Xưởng nhỏ', icon: '⚒' },
+  { id: 'arena', en: 'Glitch garden', vi: 'Đấu trường', icon: '✦' },
+]
+export function PetWorld() {
+  const { locale } = useLocale(),
+    vi = locale === 'vi',
+    l = (en: string, vn: string) => (vi ? vn : en)
+  const { save, storage, update, reset } = usePetSave()
+  const [now, setNow] = useState(0),
+    [notice, setNotice] = useState(''),
+    [placing, setPlacing] = useState(false),
+    [reveal, setReveal] = useState<string | null>(null),
+    [resetOpen, setResetOpen] = useState(false)
+  const pet = save.pets.find((p) => p.id === save.selected) || save.pets[0],
+    info = PETS[pet.species],
+    next = EVOLUTION[pet.stage],
+    yieldNow = factoryYield(save, now)
+  const locked = storage === 'loading' || storage === 'newer'
+  const canEvolve =
+    next && pet.xp >= next.xp && save.coins >= next.coins && save.materials >= next.materials
+  useEffect(() => {
+    const initial = requestAnimationFrame(() => setNow(Date.now()))
+    const timer = setInterval(() => {
+      if (!document.hidden) setNow(Date.now())
+    }, 1000)
+    return () => {
+      cancelAnimationFrame(initial)
+      clearInterval(timer)
+    }
+  }, [])
+  useEffect(() => {
+    if (!notice) return
+    const t = setTimeout(() => setNotice(''), 4500)
+    return () => clearTimeout(t)
+  }, [notice])
+  useEffect(() => {
+    if (!reveal) return
+    const t = setTimeout(() => setReveal(null), 2500)
+    return () => clearTimeout(t)
+  }, [reveal])
+  function cheer() {
+    const t = Date.now()
+    update((s) => cheerPet(s, pet.id, t))
+    setNotice(
+      l(
+        `${info.name} loves that. +3 XP, +2 coins, +1 gem.`,
+        `${info.name} thích lắm. +3 XP, +2 xu, +1 ngọc.`
+      )
+    )
+  }
+  function hatch(id: string) {
+    const before = save.pets.length
+    const result = update((s) => hatchEgg(s, id, Date.now()))
+    if (result.pets.length > before) {
+      setReveal(result.selected)
+      setNotice(
+        l(
+          `Meet ${PETS[result.pets.at(-1)!.species].name}. Welcome home!`,
+          `Chào ${PETS[result.pets.at(-1)!.species].name}. Về nhà rồi!`
+        )
+      )
+    }
+  }
+  function evolve() {
+    const result = update((s) => evolvePet(s, pet.id))
+    if (result.pets.find((p) => p.id === pet.id)!.stage > pet.stage) {
+      setReveal(pet.id)
+      setNotice(
+        l(
+          `${info.name} evolved. A little more extraordinary.`,
+          `${info.name} tiến hóa rồi. Lấp lánh hơn một chút.`
+        )
+      )
+    }
+  }
+  return (
+    <div className="pet-world">
+      <div className="pet-world-shell">
+        <div className="pet-breadcrumb">
+          <Link href="/">DUY&apos;S PORTFOLIO</Link>
+          <span>/</span>
+          <span>{l('A SMALL SIDE QUEST', 'MỘT GÓC VUI NHỎ')}</span>
+        </div>
+        <header className="pet-world-heading">
+          <div>
+            <span className="pet-eyebrow">
+              <i className="pet-online-dot" /> THE POCKET WORLD · EST. 2026
+            </span>
+            <h1>
+              {l('Little lives.', 'Những bạn nhỏ.')}
+              <br />
+              <em>{l('Big adventures.', 'Chuyến đi lớn.')}</em>
+              <span className="pet-title-star" aria-hidden="true">
+                ✳
+              </span>
+            </h1>
+            <p>
+              {l(
+                'A cozy corner of the internet, quietly doing its own thing. Drop in. Hatch a friend. Cause a little chaos.',
+                'Một góc internet vẫn đang sống mỗi ngày. Ghé chơi, ấp một bạn mới, rồi quậy một chút.'
+              )}
+            </p>
+          </div>
+          <div className="pet-heading-stamp">
+            <PixelPet species="gracie" stage={1} />
+            <span>
+              STAY A LITTLE.
+              <br />
+              GROW SOMETHING.
+            </span>
+            <i aria-hidden="true">✦</i>
+          </div>
+        </header>
+        <div className="pet-world-toolbar">
+          <nav aria-label={l('Pet world areas', 'Khu vực thế giới pet')}>
+            {areas.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                aria-current={save.area === area.id ? 'page' : undefined}
+                disabled={locked}
+                onClick={() => {
+                  update((s) => ({ ...s, area: area.id }))
+                  setPlacing(false)
+                }}
+              >
+                <span aria-hidden="true">{area.icon}</span>
+                {vi ? area.vi : area.en}
+              </button>
+            ))}
+          </nav>
+          <div className="pet-wallet">
+            <span title={l('Coins', 'Xu')}>
+              <i>◈</i>
+              {save.coins.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-US')}
+            </span>
+            <span title={l('Evolution gems', 'Ngọc tiến hóa')}>
+              <i>✧</i>
+              {save.materials.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-US')}
+            </span>
+          </div>
+        </div>
+        {storage === 'memory' && (
+          <p className="pet-storage-note" role="status">
+            {l(
+              'Saving is paused. You can play for this visit; reload to recover your saved world.',
+              'Đang tạm ngưng lưu. Bạn vẫn chơi được trong lần ghé này; tải lại trang để khôi phục thế giới đã lưu.'
+            )}
+          </p>
+        )}
+        {storage === 'newer' && (
+          <p className="pet-storage-note" role="alert">
+            {l(
+              'This world was saved by a newer version. Refresh to keep your progress safe.',
+              'Thế giới được lưu từ bản mới hơn. Tải lại trang để giữ tiến trình an toàn.'
+            )}
+          </p>
+        )}
+        <div className="pet-main-grid">
+          <div className="pet-main-area" aria-busy={locked}>
+            {save.area === 'habitat' && (
+              <section className="pet-panel habitat-panel">
+                <div className="pet-section-head">
+                  <div>
+                    <span className="pet-eyebrow">01 / HOME SWEET HOME</span>
+                    <h2>{l('The meadow is awake.', 'Đồng cỏ thức rồi.')}</h2>
+                  </div>
+                  <span className="pet-weather">
+                    ☀ 24° <span>{l('always spring', 'mãi là xuân')}</span>
+                  </span>
+                </div>
+                <div className={`pet-habitat ${placing ? 'is-placing' : ''}`}>
+                  <HabitatArt />
+                  <div className="habitat-badge">
+                    <i className="pet-online-dot" />
+                    {l('A world already in motion', 'Thế giới vẫn đang chạy')}
+                  </div>
+                  <div className="habitat-slots">
+                    {Array.from({ length: 12 }, (_, slot) => (
+                      <button
+                        type="button"
+                        key={slot}
+                        disabled={!placing || locked}
+                        onClick={() => {
+                          update((s) => placePet(s, pet.id, slot))
+                          setPlacing(false)
+                          setNotice(l('A new favorite spot.', 'Một góc yêu thích mới.'))
+                        }}
+                        aria-label={l(
+                          `Place ${info.name} in spot ${slot + 1}`,
+                          `Đặt ${info.name} vào ô ${slot + 1}`
+                        )}
+                        className="habitat-slot"
+                      >
+                        <span>{placing ? '＋' : ''}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {save.pets.map((p, i) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      disabled={placing || locked}
+                      onClick={() => update((s) => ({ ...s, selected: p.id }))}
+                      className={`habitat-pet ${save.selected === p.id ? 'is-selected' : ''} ${reveal === p.id ? 'is-celebrating' : ''}`}
+                      style={
+                        {
+                          left: `${19 + (p.slot % 4) * 20 + (i > 11 ? (i % 3) * 2 : 0)}%`,
+                          top: `${42 + Math.floor(p.slot / 4) * 18}%`,
+                          '--pet-delay': `${-i * 1.7}s`,
+                        } as CSSProperties
+                      }
+                      aria-label={l(
+                        `Select ${PETS[p.species].name}`,
+                        `Chọn ${PETS[p.species].name}`
+                      )}
+                    >
+                      <PixelPet species={p.species} stage={p.stage} />
+                      <span>
+                        {PETS[p.species].name}
+                        {p.stage > 0 ? ' ✦' : ''}
+                      </span>
+                    </button>
+                  ))}
+                  <span className="habitat-butterfly" aria-hidden="true">
+                    ❧
+                  </span>
+                </div>
+                <div className="habitat-footer">
+                  <div>
+                    <strong>
+                      {save.pets.length} {l('happy residents', 'cư dân vui vẻ')}
+                    </strong>
+                    <p>
+                      {l(
+                        'Pick a friend. Give them a favorite spot.',
+                        'Chọn một bạn rồi tìm một góc yêu thích.'
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={locked}
+                    className="pet-button"
+                    aria-pressed={placing}
+                    onClick={() => setPlacing(!placing)}
+                  >
+                    {placing
+                      ? l('Cancel placement', 'Hủy đặt')
+                      : l('Rearrange home', 'Sắp xếp nhà')}{' '}
+                    <span>↗</span>
+                  </button>
+                </div>
+              </section>
+            )}
+            {save.area === 'hatchery' && (
+              <section className="pet-panel">
+                <div className="pet-section-head">
+                  <div>
+                    <span className="pet-eyebrow">02 / SOMEBODY NEW</span>
+                    <h2>{l('Good things come in eggs.', 'Điều hay nằm trong trứng.')}</h2>
+                  </div>
+                  <span className="pet-number">{String(save.eggs.length).padStart(2, '0')}</span>
+                </div>
+                <p className="pet-section-copy">
+                  {l(
+                    'Every egg has a friend inside. They hatch on their own schedule; a little warmth helps.',
+                    'Trứng nào cũng có một bạn nhỏ. Cứ để thời gian làm việc, hoặc chạm để sưởi ấm nhanh hơn.'
+                  )}
+                </p>
+                <div className="incubator-row">
+                  {save.eggs.length ? (
+                    save.eggs.map((egg) => {
+                      const ready = egg.readyAt <= now,
+                        remaining = Math.ceil(Math.max(0, egg.readyAt - now) / 1000)
+                      return (
+                        <div key={egg.id} className="incubator">
+                          <div className="egg-orbit">
+                            <PixelEgg color={EGGS[egg.tier].color} cracking={ready} />
+                          </div>
+                          <strong>{vi ? EGGS[egg.tier].vi : EGGS[egg.tier].name}</strong>
+                          <small>
+                            {ready
+                              ? l('Someone is knocking…', 'Có ai đang gõ cửa…')
+                              : `${remaining}s · ${l('getting cozy', 'đang ấm dần')}`}
+                          </small>
+                          <button
+                            className={`pet-button ${ready ? 'primary' : ''}`}
+                            disabled={locked || save.pets.length >= 36}
+                            type="button"
+                            onClick={() =>
+                              ready ? hatch(egg.id) : update((s) => warmEgg(s, egg.id, Date.now()))
+                            }
+                          >
+                            {ready
+                              ? l('Say hello!', 'Chào bạn mới!')
+                              : l('Warm it up −8s', 'Sưởi ấm −8s')}{' '}
+                            ✦
+                          </button>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="incubator-empty">
+                      {l(
+                        'Everyone has hatched. Pick a new egg below.',
+                        'Các bạn nở hết rồi. Chọn thêm một trứng bên dưới nhé.'
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="egg-shop">
+                  <div className="pet-small-heading">
+                    <h3>{l('The egg counter', 'Quầy trứng')}</h3>
+                    <span>{l('In-game coins only', 'Chỉ dùng xu trong game')}</span>
+                  </div>
+                  <div className="egg-shop-grid">
+                    {(Object.keys(EGGS) as EggTier[]).map((tier) => {
+                      const e = EGGS[tier]
+                      return (
+                        <article key={tier} style={{ '--egg-color': e.color } as CSSProperties}>
+                          <PixelEgg color={e.color} />
+                          <div>
+                            <h4>{vi ? e.vi : e.name}</h4>
+                            <p>{e.roster.map((id) => PETS[id].name).join(' · ')}</p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={
+                              locked ||
+                              save.coins < e.price ||
+                              save.eggs.length >= 12 ||
+                              save.eggs.length + save.pets.length >= 36
+                            }
+                            onClick={() => {
+                              update((s) => buyEgg(s, tier, Date.now()))
+                              setNotice(
+                                l(
+                                  'One little possibility, coming right up.',
+                                  'Thêm một niềm vui bé xíu.'
+                                )
+                              )
+                            }}
+                          >
+                            {e.price} ◈ <span>＋</span>
+                          </button>
+                        </article>
+                      )
+                    })}
+                  </div>
+                </div>
+              </section>
+            )}
+            {save.area === 'factory' && (
+              <section className="pet-panel factory-panel">
+                <div className="pet-section-head">
+                  <div>
+                    <span className="pet-eyebrow">03 / MADE WITH TINY PAWS</span>
+                    <h2>{l('A very small business.', 'Một xưởng rất bé.')}</h2>
+                  </div>
+                  <span className="factory-status">
+                    <i className="pet-online-dot" /> {l('working', 'đang chạy')}
+                  </span>
+                </div>
+                <p className="pet-section-copy">
+                  {l(
+                    'Your friends keep making little treasures, even when you’re away. Up to 8 hours of good things, waiting for you.',
+                    'Các bạn vẫn làm ra kho báu khi bạn đi vắng. Tích lũy tối đa 8 tiếng, đợi bạn về nhận.'
+                  )}
+                </p>
+                <div className="factory-floor">
+                  {save.pets.slice(0, 6).map((p, i) => (
+                    <div
+                      className="factory-station"
+                      key={p.id}
+                      style={{ '--pet-delay': `${-i * 0.7}s` } as CSSProperties}
+                    >
+                      <span className="station-output">✧</span>
+                      <PixelPet species={p.species} stage={p.stage} />
+                      <div className="factory-desk">
+                        <i />
+                        <i />
+                        <i />
+                      </div>
+                      <strong>{PETS[p.species].name}</strong>
+                      <small>{PETS[p.species].drop}</small>
+                    </div>
+                  ))}
+                  <div className="factory-belt" aria-hidden="true">
+                    <span>✧</span>
+                    <span>◈</span>
+                    <span>✧</span>
+                    <span>◈</span>
+                    <span>✧</span>
+                  </div>
+                </div>
+                <div className="factory-collect">
+                  <div>
+                    <span className="pet-eyebrow">{l('READY TO COLLECT', 'ĐANG ĐỢI BẠN')}</span>
+                    <strong>
+                      {yieldNow.coins} <i>◈</i> <span>+</span> {yieldNow.materials} <i>✧</i>
+                    </strong>
+                    <small>
+                      {l(
+                        'One production cycle per minute. No streaks. No pressure.',
+                        'Mỗi phút một lượt. Không chuỗi ngày. Không áp lực.'
+                      )}
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    className="pet-button primary"
+                    disabled={locked || !yieldNow.minutes}
+                    onClick={() => {
+                      const t = Date.now()
+                      update((s) => collectFactory(s, t))
+                      setNow(t)
+                      setNotice(
+                        l(
+                          'Treasures collected. Back to tiny business.',
+                          'Đã nhận kho báu. Tiếp tục làm việc bé xíu.'
+                        )
+                      )
+                    }}
+                  >
+                    {l('Collect the good stuff', 'Nhận kho báu')} ↗
+                  </button>
+                </div>
+              </section>
+            )}
+            {save.area === 'arena' && (
+              <section className="pet-panel arena-panel">
+                <div className="pet-section-head">
+                  <div>
+                    <span className="pet-eyebrow">04 / A LITTLE FRIENDLY CHAOS</span>
+                    <h2>{l('Protect your pocket world.', 'Bảo vệ thế giới nhỏ.')}</h2>
+                  </div>
+                  <span className="pet-pill">+90 ◈ / WIN</span>
+                </div>
+                <PetArena key={pet.id} pet={pet} vi={vi} />
+              </section>
+            )}
+            <section className="pet-roster">
+              <div className="pet-small-heading">
+                <h2>{l('The neighborhood', 'Hàng xóm nhỏ')}</h2>
+                <span>
+                  {new Set(save.pets.map((p) => p.species)).size} / {SPECIES.length}{' '}
+                  {l('discovered', 'đã gặp')}
+                </span>
+              </div>
+              <div className="pet-roster-grid">
+                {SPECIES.map((species, i) => {
+                  const owned = save.pets.find((p) => p.species === species),
+                    p = PETS[species]
+                  return (
+                    <button
+                      key={species}
+                      type="button"
+                      className={`roster-card ${pet.species === species ? 'is-selected' : ''}`}
+                      style={
+                        {
+                          '--pet-tint': p.color,
+                          '--pet-delay': `${-i * 0.6}s`,
+                        } as CSSProperties
+                      }
+                      onClick={() =>
+                        owned
+                          ? update((s) => ({ ...s, selected: owned.id }))
+                          : update((s) => ({ ...s, area: 'hatchery' }))
+                      }
+                      disabled={locked}
+                      aria-pressed={owned ? pet.id === owned.id : undefined}
+                    >
+                      <span className="roster-number" aria-hidden="true">
+                        0{i + 1}
+                      </span>
+                      <PixelPet species={species} stage={owned?.stage || 0} />
+                      <strong>{p.name}</strong>
+                      <small>{vi ? p.vi : p.species}</small>
+                      <span className={`roster-owned ${owned ? 'yes' : ''}`}>
+                        {owned ? '● ' + l('at home', 'ở nhà') : '＋ ' + l('discover', 'khám phá')}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          </div>
+          <aside className="pet-sidebar">
+            <section
+              className={`pet-resident-card ${reveal === pet.id ? 'is-celebrating' : ''}`}
+              style={{ '--pet-tint': info.color } as CSSProperties}
+            >
+              <div className="resident-card-top">
+                <span className="pet-eyebrow">{l('YOUR LITTLE COMPANION', 'NGƯỜI BẠN NHỎ')}</span>
+                <span>0{pet.stage + 1}/03</span>
+              </div>
+              <div className="resident-portrait">
+                <span className="portrait-orbit" />
+                <PixelPet species={pet.species} stage={pet.stage} />
+                <span className="resident-spark">✧</span>
+              </div>
+              <h2>
+                {info.name}
+                <span>✦</span>
+              </h2>
+              <p>
+                {info.forms[pet.stage]} · {vi ? info.vi : info.species}
+              </p>
+              <button
+                type="button"
+                className="pet-button resident-cheer"
+                disabled={locked}
+                onClick={cheer}
+              >
+                {l('A little encouragement', 'Cổ vũ một chút')} ♡
+              </button>
+              <div className="evolution-track">
+                <div>
+                  <span>{l('Growing together', 'Lớn lên cùng nhau')}</span>
+                  <strong>{pet.xp} XP</strong>
+                </div>
+                <progress
+                  value={pet.xp}
+                  max={next?.xp || Math.max(100, pet.xp)}
+                  aria-label={l('Evolution experience', 'Kinh nghiệm tiến hóa')}
+                />
+                <div className="evolution-steps">
+                  <span>○ {info.forms[0]}</span>
+                  <span>◐ {info.forms[1]}</span>
+                  <span>● {info.forms[2]}</span>
+                </div>
+              </div>
+              {next ? (
+                <div className="evolution-next">
+                  <span className="pet-eyebrow">{l('NEXT CHAPTER', 'CHƯƠNG TIẾP THEO')}</span>
+                  <h3>{info.forms[pet.stage + 1]}</h3>
+                  <p>
+                    {next.xp} XP · {next.coins} ◈ · {next.materials} ✧
+                  </p>
+                  <button
+                    type="button"
+                    className="pet-button primary"
+                    disabled={locked || !canEvolve}
+                    onClick={evolve}
+                  >
+                    {canEvolve
+                      ? l('Time to evolve', 'Tiến hóa thôi')
+                      : l('Keep growing', 'Đang lớn dần')}{' '}
+                    <span>✦</span>
+                  </button>
+                </div>
+              ) : (
+                <p className="pet-max-form">
+                  ✦ {l('A little legend, fully grown.', 'Huyền thoại nhỏ đã lớn rồi.')}
+                </p>
+              )}
+            </section>
+            <div className="pet-note">
+              <span>↳</span>
+              <p>
+                {l(
+                  'No starting over. This little world remembers you. Come back whenever.',
+                  'Không cần chơi lại. Thế giới nhỏ này nhớ bạn. Rảnh thì ghé nhé.'
+                )}
+                <small>
+                  {storage === 'saved'
+                    ? l('Saved in this browser', 'Đã lưu trên trình duyệt này')
+                    : storage === 'loading'
+                      ? l('Opening your world…', 'Đang mở thế giới…')
+                      : l('This visit only', 'Chỉ trong lần ghé này')}
+                </small>
+              </p>
+            </div>
+            <button
+              type="button"
+              className="pet-reset-link"
+              onClick={() => setResetOpen(true)}
+              disabled={locked}
+            >
+              {l('Start a new world', 'Tạo thế giới mới')}
+            </button>
+            {resetOpen && (
+              <div className="pet-reset-confirm" role="alert">
+                <p>
+                  {l(
+                    'Replace your pets and progress with a fresh starter world?',
+                    'Thay toàn bộ pet và tiến trình bằng thế giới mới?'
+                  )}
+                </p>
+                <button type="button" onClick={() => setResetOpen(false)}>
+                  {l('Keep my world', 'Giữ thế giới')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    reset()
+                    setResetOpen(false)
+                    setNotice(l('A new little beginning.', 'Một khởi đầu mới.'))
+                  }}
+                >
+                  {l('Start fresh', 'Tạo mới')}
+                </button>
+              </div>
+            )}
+          </aside>
+        </div>
+        <footer className="pet-world-footer">
+          <span>
+            SMALL WORLD. BIG FEELINGS. <i>✳</i>
+          </span>
+          <p>
+            {l(
+              'Original pet artwork, made for this portfolio.',
+              'Pet được vẽ riêng cho portfolio này.'
+            )}{' '}
+            <a
+              href="https://github.com/leduy-it/portfolio-clone"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {l('Project reference', 'Repo tham chiếu')} ↗
+            </a>
+          </p>
+        </footer>
+      </div>
+      <div className={`pet-toast ${notice ? 'is-visible' : ''}`} role="status">
+        {notice && <>✦ {notice}</>}
+      </div>
+    </div>
+  )
+}

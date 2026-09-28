@@ -145,7 +145,7 @@ export default function PhotographyHero() {
             {intro.eyebrow}
           </motion.p>
           <motion.h1
-            className="max-w-4xl text-4xl font-semibold text-white sm:text-5xl lg:text-6xl"
+            className="max-w-4xl text-4xl font-semibold text-[rgb(var(--text-primary))] sm:text-5xl lg:text-6xl"
             variants={itemVariants}
           >
             {intro.title}

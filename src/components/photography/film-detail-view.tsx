@@ -113,7 +113,7 @@ export function FilmDetailView({ film }: Props) {
           whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
         >
           <Link
-            href="/photography"
+            href="/movie"
             className="inline-flex items-center gap-2 font-mono text-xs text-[rgb(var(--text-muted))] transition-colors hover:text-[rgb(var(--accent))]"
           >
             <motion.span
@@ -176,8 +176,8 @@ export function FilmDetailView({ film }: Props) {
               {film.director}
             </motion.p>
             <motion.h1
-              className="text-3xl sm:text-4xl font-bold text-white mb-3 leading-tight"
-              style={{ textShadow: '3px 3px 0 rgb(var(--accent))' }}
+              className="text-3xl sm:text-4xl font-bold text-[rgb(var(--text-primary))] mb-3 leading-tight"
+              style={{ textShadow: '2px 2px 0 rgb(var(--accent) / 0.12)' }}
               variants={detailItemVariants}
             >
               {title}
@@ -275,7 +275,7 @@ export function FilmDetailView({ film }: Props) {
             whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
           >
             <Link
-              href="/photography"
+              href="/movie"
               className="transition-colors hover:text-[rgb(var(--accent))]"
             >
               <motion.span

@@ -3,10 +3,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale } from '@/lib/i18n'
+import { consumeChatStream } from '@/lib/chat/stream'
+import { CHAT_HANDOFF_EVENT, consumeChatHandoff } from '@/lib/chat/handoff'
 // Try the new locale-aware export; fall back to the legacy export if the data agent hasn't landed yet.
 import { CANNED_RESPONSES } from '@/data/terminal-suggestions'
 import { MagneticButton } from './magnetic-button'
-import { APPLE_EASE_OUT_EXPO, APPLE_EASE_OUT_QUART, SOFT_SPRING, useHomeMotionPreferences } from './home-motion'
+import {
+  APPLE_EASE_OUT_EXPO,
+  APPLE_EASE_OUT_QUART,
+  SOFT_SPRING,
+  useHomeMotionPreferences,
+} from './home-motion'
 
 const TIMESTAMP = '23:57:03'
 
@@ -70,12 +77,32 @@ export function TerminalChat() {
     error: null,
   })
 
-  const dragRef = useRef<{ startX: number; startY: number; baseX: number; baseY: number } | null>(null)
+  const dragRef = useRef<{
+    startX: number
+    startY: number
+    baseX: number
+    baseY: number
+  } | null>(null)
   const isDraggingRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const terminalInputRef = useRef<HTMLInputElement | null>(null)
+  const hasHandoffRef = useRef(false)
+  const deliveryAttempt = useRef({ fingerprint: '', id: '' })
+  const sendingRef = useRef(false)
+  const chatRequest = useRef<AbortController | null>(null)
+  const chatGeneration = useRef(0)
+  const chatInFlight = useRef(false)
+  useEffect(
+    () => () => {
+      chatGeneration.current += 1
+      chatRequest.current?.abort()
+    },
+    []
+  )
 
   // Reset initial messages when locale changes
   useEffect(() => {
+    if (hasHandoffRef.current) return
     setMessages([
       { time: TIMESTAMP, text: `STATUS: ${t('chat.statusOnline')}` },
       {
@@ -83,7 +110,7 @@ export function TerminalChat() {
         text: `${t('chat.agentPrefix')}\n\n${t('chat.banner')}`,
       },
     ])
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale])
 
   // Hydrate from localStorage after first render (SSR-safe)
@@ -105,6 +132,44 @@ export function TerminalChat() {
     }
     setHydrated(true)
   }, [])
+
+  // Gracie transfers a snapshot once, including an unsent draft if interrupted.
+  useEffect(() => {
+    if (!hydrated) return
+    function receive() {
+      const transfer = consumeChatHandoff()
+      if (!transfer) return
+      // Opening an unused companion simply restores this terminal, including
+      // any active reply or unsent draft. There is no new conversation to apply.
+      if (!transfer.messages.length && !transfer.draft.trim()) {
+        setWindowState('open')
+        setView('chat')
+        setDrag({ x: 0, y: 0 })
+        requestAnimationFrame(() => terminalInputRef.current?.focus({ preventScroll: true }))
+        return
+      }
+      chatGeneration.current += 1
+      chatRequest.current?.abort()
+      chatInFlight.current = false
+      setBusy(false)
+      hasHandoffRef.current = true
+      setMessages(
+        transfer.messages.map((turn) => ({
+          time: getCurrentTime(),
+          text: turn.content,
+          isUser: turn.role === 'user',
+        }))
+      )
+      setInput(transfer.draft)
+      setWindowState('open')
+      setView('chat')
+      setDrag({ x: 0, y: 0 })
+      requestAnimationFrame(() => terminalInputRef.current?.focus({ preventScroll: true }))
+    }
+    receive()
+    window.addEventListener(CHAT_HANDOFF_EVENT, receive)
+    return () => window.removeEventListener(CHAT_HANDOFF_EVENT, receive)
+  }, [hydrated])
 
   // Persist drag position and window state
   useEffect(() => {
@@ -202,16 +267,26 @@ export function TerminalChat() {
 
   function getCannedResponses(): Record<string, string> {
     if (CANNED_RESPONSES_BY_LOCALE) {
-      return CANNED_RESPONSES_BY_LOCALE[locale] ?? CANNED_RESPONSES_BY_LOCALE['en'] ?? CANNED_RESPONSES
+      return (
+        CANNED_RESPONSES_BY_LOCALE[locale] ?? CANNED_RESPONSES_BY_LOCALE['en'] ?? CANNED_RESPONSES
+      )
     }
     return CANNED_RESPONSES
   }
 
   async function sendMessage(text: string) {
     const trimmed = text.trim()
-    if (!trimmed || busy) return
+    if (!trimmed || chatInFlight.current || trimmed.length > 2000) return
+    hasHandoffRef.current = true
+    chatInFlight.current = true
+    const generation = ++chatGeneration.current
+    chatRequest.current = new AbortController()
 
-    const userMsg: Message = { time: getCurrentTime(), text: trimmed, isUser: true }
+    const userMsg: Message = {
+      time: getCurrentTime(),
+      text: trimmed,
+      isUser: true,
+    }
     setMessages((prev) => [...prev, userMsg])
     setInput('')
 
@@ -235,63 +310,42 @@ export function TerminalChat() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, stream: true }),
+        body: JSON.stringify({ messages: history.slice(-14), stream: true }),
+        signal: chatRequest.current.signal,
       })
 
       if (!res.ok || !res.body) {
         throw new Error(`http ${res.status}`)
       }
 
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-      let acc = ''
+      const acc = await consumeChatStream(res.body, (text) => {
+        if (generation !== chatGeneration.current) return
+        setMessages((prev) => {
+          const next = [...prev]
+          const last = next[next.length - 1]
+          if (last?.streaming) next[next.length - 1] = { ...last, text }
+          return next
+        })
+      })
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-
-        let idx
-        while ((idx = buffer.indexOf('\n\n')) !== -1) {
-          const event = buffer.slice(0, idx)
-          buffer = buffer.slice(idx + 2)
-          for (const line of event.split('\n')) {
-            if (line.startsWith('data:')) {
-              const payload = line.slice(5).trim()
-              if (payload === '[DONE]') continue
-              try {
-                const parsed = JSON.parse(payload) as { delta?: string }
-                if (parsed.delta) {
-                  acc += parsed.delta
-                  setMessages((prev) => {
-                    const next = [...prev]
-                    const last = next[next.length - 1]
-                    if (last && last.streaming) {
-                      next[next.length - 1] = { ...last, text: acc }
-                    }
-                    return next
-                  })
-                }
-              } catch {
-                /* skip malformed */
-              }
-            }
-          }
-        }
-      }
-
+      if (generation !== chatGeneration.current) return
       setMessages((prev) => {
         const next = [...prev]
         const last = next[next.length - 1]
         if (last && last.streaming) {
-          next[next.length - 1] = { ...last, streaming: false, text: acc || '(no reply)' }
+          next[next.length - 1] = {
+            ...last,
+            streaming: false,
+            text: acc || '(no reply)',
+          }
         }
         return next
       })
     } catch {
+      if (generation !== chatGeneration.current) return
+      setInput(trimmed)
       setMessages((prev) => {
-        const next = prev.slice(0, -1)
+        const next = prev.slice(0, -2)
         next.push({
           time: getCurrentTime(),
           text: `${t('chat.agentPrefix')}\n\n${t('chat.error')}`,
@@ -299,7 +353,10 @@ export function TerminalChat() {
         return next
       })
     } finally {
-      setBusy(false)
+      if (generation === chatGeneration.current) {
+        setBusy(false)
+        chatInFlight.current = false
+      }
     }
   }
 
@@ -331,7 +388,11 @@ export function TerminalChat() {
 
       if (!res.ok) throw new Error(`http ${res.status}`)
       const data = (await res.json()) as { reply?: string }
-      setCompose((prev) => ({ ...prev, body: data.reply ?? '', composing: false }))
+      setCompose((prev) => ({
+        ...prev,
+        body: data.reply ?? '',
+        composing: false,
+      }))
     } catch {
       setCompose((prev) => ({ ...prev, composing: false }))
     }
@@ -376,38 +437,40 @@ export function TerminalChat() {
     }
   }
 
-  async function sendToFormSubmit() {
-    if (!compose.email.trim() || compose.sending) return
+  async function sendContact() {
+    if (
+      !compose.email.trim() ||
+      !compose.body.trim() ||
+      !compose.subject.trim() ||
+      sendingRef.current
+    )
+      return
+    sendingRef.current = true
+    const fingerprint = JSON.stringify([compose.email.trim(), compose.subject, compose.body])
+    if (deliveryAttempt.current.fingerprint !== fingerprint)
+      deliveryAttempt.current = { fingerprint, id: crypto.randomUUID() }
     setCompose((prev) => ({ ...prev, sending: true, error: null }))
-
     try {
-      const res = await fetch('https://formsubmit.co/ajax/levduyit@gmail.com', {
+      const res = await fetch('/api/contact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: `${t('brand.lower')} visitor`,
           email: compose.email.trim(),
           subject: compose.subject,
-          message: `${compose.body}\n\n${t('mailto.signature')}`,
-          _captcha: 'false',
-          _template: 'table',
+          message: compose.body,
+          requestId: deliveryAttempt.current.id,
         }),
+        signal: AbortSignal.timeout(18_000),
       })
-
-      if (res.ok) {
-        setView('sent')
-      } else {
-        throw new Error(`http ${res.status}`)
-      }
+      const data = await res.json()
+      if (!res.ok || data.status !== 'accepted') throw new Error('delivery_failed')
+      setView('sent')
     } catch {
-      const sub = encodeURIComponent(compose.subject)
-      const bod = encodeURIComponent(compose.body)
-      const mailtoHref = `mailto:levduyit@gmail.com?subject=${sub}&body=${bod}`
-      setCompose((prev) => ({
-        ...prev,
-        sending: false,
-        error: mailtoHref,
-      }))
+      const mailtoHref = `mailto:levduyit@gmail.com?subject=${encodeURIComponent(compose.subject)}&body=${encodeURIComponent(compose.body)}`
+      setCompose((prev) => ({ ...prev, error: mailtoHref }))
+    } finally {
+      sendingRef.current = false
+      setCompose((prev) => ({ ...prev, sending: false }))
     }
   }
 
@@ -429,16 +492,15 @@ export function TerminalChat() {
     boxShadow: 'var(--shadow-card)',
   }
 
-  const normalTransform = reducedMotion
-    ? undefined
-    : `translate3d(${drag.x}px, ${drag.y}px, 0)`
+  const normalTransform = reducedMotion ? undefined : `translate3d(${drag.x}px, ${drag.y}px, 0)`
 
   const normalContainerStyle: React.CSSProperties = {
     ...baseContainerStyle,
     transform: normalTransform,
-    transition: dragRef.current || reducedMotion
-      ? 'none'
-      : 'transform 200ms var(--ease-out-quart), box-shadow 200ms',
+    transition:
+      dragRef.current || reducedMotion
+        ? 'none'
+        : 'transform 200ms var(--ease-out-quart), box-shadow 200ms',
   }
 
   const maximizedContainerStyle: React.CSSProperties = {
@@ -475,7 +537,11 @@ export function TerminalChat() {
     : 'w-full rounded-3xl border backdrop-blur-md overflow-hidden transition-shadow duration-200'
 
   const containerA11y = isMaximized
-    ? { role: 'dialog' as const, 'aria-modal': true, 'aria-label': "Duy's agent — maximized" }
+    ? {
+        role: 'dialog' as const,
+        'aria-modal': true,
+        'aria-label': "Duy's agent — maximized",
+      }
     : {}
 
   return (
@@ -501,11 +567,7 @@ export function TerminalChat() {
         animate={{ opacity: 1, scale: 1 }}
         transition={mountTransition}
       >
-        <div
-          className={containerClass}
-          style={containerStyle}
-          {...containerA11y}
-        >
+        <div className={containerClass} style={containerStyle} {...containerA11y}>
           {/* Title bar — draggable */}
           <div
             onMouseDown={startDrag}
@@ -520,42 +582,56 @@ export function TerminalChat() {
             }}
           >
             <motion.button
-              onClick={(event) => { event.stopPropagation(); setWindowState('closed') }}
+              onClick={(event) => {
+                event.stopPropagation()
+                setWindowState('closed')
+              }}
               aria-label="Close"
-              className="group relative h-3 w-3 rounded-full bg-[rgb(239,68,68)]"
+              className="group relative h-6 w-6 shrink-0 rounded-full bg-[radial-gradient(circle,rgb(239,68,68)_6px,transparent_6px)]"
               whileHover={reducedMotion ? undefined : { scale: 1.08 }}
               whileTap={reducedMotion ? undefined : { scale: 0.94 }}
               transition={reducedMotion ? { duration: 0.12 } : { type: 'spring', ...SOFT_SPRING }}
             >
-              <span className="invisible absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[rgba(0,0,0,0.6)] group-hover:visible">×</span>
+              <span className="invisible absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[rgba(0,0,0,0.6)] group-hover:visible">
+                ×
+              </span>
             </motion.button>
             <motion.button
-              onClick={(event) => { event.stopPropagation(); setWindowState('minimized') }}
+              onClick={(event) => {
+                event.stopPropagation()
+                setWindowState('minimized')
+              }}
               aria-label="Minimize"
-              className="group relative h-3 w-3 rounded-full bg-[rgb(234,179,8)]"
+              className="group relative h-6 w-6 shrink-0 rounded-full bg-[radial-gradient(circle,rgb(234,179,8)_6px,transparent_6px)]"
               whileHover={reducedMotion ? undefined : { scale: 1.08 }}
               whileTap={reducedMotion ? undefined : { scale: 0.94 }}
               transition={reducedMotion ? { duration: 0.12 } : { type: 'spring', ...SOFT_SPRING }}
             >
-              <span className="invisible absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[rgba(0,0,0,0.6)] group-hover:visible">−</span>
+              <span className="invisible absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[rgba(0,0,0,0.6)] group-hover:visible">
+                −
+              </span>
             </motion.button>
             <motion.button
               onClick={handleGreenClick}
               onDoubleClick={handleGreenDblClick}
               aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
               title="Click to maximize/restore · Double-click to recenter"
-              className="group relative h-3 w-3 rounded-full bg-[rgb(34,197,94)]"
+              className="group relative h-6 w-6 shrink-0 rounded-full bg-[radial-gradient(circle,rgb(34,197,94)_6px,transparent_6px)]"
               whileHover={reducedMotion ? undefined : { scale: 1.08 }}
               whileTap={reducedMotion ? undefined : { scale: 0.94 }}
               transition={reducedMotion ? { duration: 0.12 } : { type: 'spring', ...SOFT_SPRING }}
             >
-              <span className="invisible absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[rgba(0,0,0,0.6)] group-hover:visible">⤢</span>
+              <span className="invisible absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[rgba(0,0,0,0.6)] group-hover:visible">
+                ⤢
+              </span>
             </motion.button>
-            <span className="ml-3 text-xs font-mono text-[rgb(var(--text-muted))]">
+            <span className="ml-1 min-w-0 truncate text-xs font-mono text-[rgb(var(--text-muted))]">
               {t('brand.shellPrompt')}
             </span>
             <span className="ml-auto flex items-center gap-1.5 text-[10px] font-mono text-[rgb(var(--text-muted))]">
-              <span className={`h-1.5 w-1.5 rounded-full ${busy ? 'bg-[rgb(234,179,8)] animate-pulse' : 'bg-[rgb(34,197,94)]'}`} />
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${busy ? 'bg-[rgb(234,179,8)] animate-pulse' : 'bg-[rgb(34,197,94)]'}`}
+              />
               {busy ? t('chat.statusBusy') : t('chat.statusIdle')}
             </span>
           </div>
@@ -597,11 +673,15 @@ export function TerminalChat() {
                               {msg.text}
                             </p>
                           ) : (
-                            <p className="whitespace-pre-wrap leading-relaxed text-white">
-                              <span className="mr-2 text-[rgb(var(--text-muted))]">[{msg.time}]</span>
+                            <p className="whitespace-pre-wrap leading-relaxed text-[rgb(var(--text-primary))]">
+                              <span className="mr-2 text-[rgb(var(--text-muted))]">
+                                [{msg.time}]
+                              </span>
                               {isStatus ? (
                                 <>
-                                  <span className="font-semibold text-[rgb(var(--accent))]">STATUS:</span>
+                                  <span className="font-semibold text-[rgb(var(--accent))]">
+                                    STATUS:
+                                  </span>
                                   {msg.text.replace('STATUS:', '')}
                                 </>
                               ) : (
@@ -624,7 +704,9 @@ export function TerminalChat() {
                               >
                                 {t('compose.button')}
                               </MagneticButton>
-                              <span className="opacity-70">— relay this thread to Duy&apos;s inbox</span>
+                              <span className="opacity-70">
+                                — relay this thread to Duy&apos;s inbox
+                              </span>
                             </div>
                           )}
                         </motion.div>
@@ -636,32 +718,53 @@ export function TerminalChat() {
 
                 <motion.div
                   className="flex items-center gap-2 border-t px-4 py-3"
-                  style={{ borderColor: 'rgb(var(--border) / 0.5)', flexShrink: 0 }}
-                  animate={inputFocused && !reducedMotion
-                    ? { boxShadow: '0 -14px 28px rgba(102,252,241,0.08)' }
-                    : { boxShadow: '0 0 0 rgba(102,252,241,0)' }}
+                  style={{
+                    borderColor: 'rgb(var(--border) / 0.5)',
+                    flexShrink: 0,
+                  }}
+                  animate={
+                    inputFocused && !reducedMotion
+                      ? { boxShadow: '0 -14px 28px rgba(102,252,241,0.08)' }
+                      : { boxShadow: '0 0 0 rgba(102,252,241,0)' }
+                  }
                   transition={microTransition}
                 >
                   <motion.span
                     className="font-mono text-sm text-[rgb(var(--accent))]"
-                    animate={inputFocused && !reducedMotion
-                      ? {
-                        opacity: [1, 0.35, 1],
-                        textShadow: [
-                          '0 0 0 rgba(102,252,241,0)',
-                          '0 0 12px rgba(102,252,241,0.45)',
-                          '0 0 0 rgba(102,252,241,0)',
-                        ],
-                      }
-                      : { opacity: 1, textShadow: '0 0 0 rgba(102,252,241,0)' }}
-                    transition={inputFocused && !reducedMotion
-                      ? { duration: 1.1, ease: 'easeInOut', repeat: Number.POSITIVE_INFINITY }
-                      : microTransition}
+                    animate={
+                      inputFocused && !reducedMotion
+                        ? {
+                            opacity: [1, 0.35, 1],
+                            textShadow: [
+                              '0 0 0 rgba(102,252,241,0)',
+                              '0 0 12px rgba(102,252,241,0.45)',
+                              '0 0 0 rgba(102,252,241,0)',
+                            ],
+                          }
+                        : {
+                            opacity: 1,
+                            textShadow: '0 0 0 rgba(102,252,241,0)',
+                          }
+                    }
+                    transition={
+                      inputFocused && !reducedMotion
+                        ? {
+                            duration: 1.1,
+                            ease: 'easeInOut',
+                            repeat: Number.POSITIVE_INFINITY,
+                          }
+                        : microTransition
+                    }
                   >
                     &gt;
                   </motion.span>
                   <input
                     type="text"
+                    id="terminal-chat-input"
+                    name="message"
+                    aria-label={t('chat.placeholder')}
+                    ref={terminalInputRef}
+                    maxLength={2000}
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
                     onFocus={() => setInputFocused(true)}
@@ -669,7 +772,7 @@ export function TerminalChat() {
                     onKeyDown={(event) => event.key === 'Enter' && sendMessage(input)}
                     placeholder={busy ? t('chat.placeholderBusy') : t('chat.placeholder')}
                     disabled={busy}
-                    className="flex-1 bg-transparent font-mono text-sm text-white outline-none caret-[rgb(var(--accent))] placeholder-[rgb(var(--text-muted))] disabled:opacity-60"
+                    className="flex-1 bg-transparent font-mono text-sm text-[rgb(var(--text-primary))] outline-none caret-[rgb(var(--accent))] placeholder-[rgb(var(--text-muted))] disabled:opacity-60"
                   />
                   <button
                     type="button"
@@ -679,7 +782,17 @@ export function TerminalChat() {
                     title="Send chat (Enter)"
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(var(--accent))] text-[rgb(var(--surface-page))] transition-all duration-200 ease-[var(--ease-out-quart)] hover:brightness-110 active:scale-[0.94] disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
                       <line x1="22" y1="2" x2="11" y2="13" />
                       <polygon points="22 2 15 22 11 13 2 9 22 2" />
                     </svg>
@@ -696,7 +809,17 @@ export function TerminalChat() {
                   }}
                 >
                   <span className="flex items-center gap-2 font-mono text-[10px] tracking-wide text-[rgb(var(--text-muted))]">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                       <polyline points="22,6 12,13 2,6" />
                     </svg>
@@ -713,7 +836,17 @@ export function TerminalChat() {
                       backgroundColor: 'rgb(var(--accent-warm) / 0.06)',
                     }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                       <polyline points="22,6 12,13 2,6" />
                     </svg>
@@ -737,11 +870,19 @@ export function TerminalChat() {
                 </p>
 
                 <div className="flex flex-col gap-1">
-                  <label className="font-mono text-[11px] text-[rgb(var(--text-muted))]">{t('compose.subjectLabel')}</label>
+                  <label className="font-mono text-[11px] text-[rgb(var(--text-muted))]">
+                    {t('compose.subjectLabel')}
+                  </label>
                   <input
                     type="text"
+                    maxLength={160}
                     value={compose.subject}
-                    onChange={(event) => setCompose((prev) => ({ ...prev, subject: event.target.value }))}
+                    onChange={(event) =>
+                      setCompose((prev) => ({
+                        ...prev,
+                        subject: event.target.value,
+                      }))
+                    }
                     className="rounded-lg border px-3 py-2 font-mono text-sm text-[rgb(var(--text-primary))] outline-none transition-all duration-200 focus:ring-2"
                     style={{
                       backgroundColor: 'rgb(var(--surface-overlay))',
@@ -753,11 +894,19 @@ export function TerminalChat() {
                 </div>
 
                 <div className="relative flex flex-col gap-1">
-                  <label className="font-mono text-[11px] text-[rgb(var(--text-muted))]">{t('compose.bodyLabel')}</label>
+                  <label className="font-mono text-[11px] text-[rgb(var(--text-muted))]">
+                    {t('compose.bodyLabel')}
+                  </label>
                   <textarea
                     rows={8}
+                    maxLength={8000}
                     value={compose.body}
-                    onChange={(event) => setCompose((prev) => ({ ...prev, body: event.target.value }))}
+                    onChange={(event) =>
+                      setCompose((prev) => ({
+                        ...prev,
+                        body: event.target.value,
+                      }))
+                    }
                     placeholder={t('compose.bodyPlaceholder')}
                     className="resize-y rounded-lg border px-3 py-2 font-mono text-sm text-[rgb(var(--text-primary))] outline-none transition-all duration-200 focus:ring-2"
                     style={{
@@ -776,18 +925,28 @@ export function TerminalChat() {
                         exit={{ opacity: 0 }}
                         transition={microTransition}
                       >
-                        <span className="animate-pulse font-mono text-xs text-[rgb(var(--text-muted))]">drafting...</span>
+                        <span className="animate-pulse font-mono text-xs text-[rgb(var(--text-muted))]">
+                          drafting...
+                        </span>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="font-mono text-[11px] text-[rgb(var(--text-muted))]">{t('compose.fromLabel')}</label>
+                  <label className="font-mono text-[11px] text-[rgb(var(--text-muted))]">
+                    {t('compose.fromLabel')}
+                  </label>
                   <input
                     type="email"
+                    maxLength={254}
                     value={compose.email}
-                    onChange={(event) => setCompose((prev) => ({ ...prev, email: event.target.value }))}
+                    onChange={(event) =>
+                      setCompose((prev) => ({
+                        ...prev,
+                        email: event.target.value,
+                      }))
+                    }
                     placeholder={t('compose.fromPlaceholder')}
                     required
                     className="rounded-lg border px-3 py-2 font-mono text-sm text-[rgb(var(--text-primary))] outline-none transition-all duration-200 focus:ring-2"
@@ -802,8 +961,7 @@ export function TerminalChat() {
 
                 {compose.error && (
                   <p className="font-mono text-xs text-[rgb(var(--text-secondary))]">
-                    {t('compose.fallback').split('?')[0]}
-                    {' '}
+                    {t('compose.fallback').split('?')[0]}{' '}
                     <motion.a
                       href={compose.error}
                       className="text-[rgb(var(--accent))] underline transition-colors duration-200 hover:text-[rgb(var(--accent-hover))]"
@@ -829,7 +987,10 @@ export function TerminalChat() {
                     type="text"
                     value={compose.refineInstruction}
                     onChange={(event) =>
-                      setCompose((prev) => ({ ...prev, refineInstruction: event.target.value }))
+                      setCompose((prev) => ({
+                        ...prev,
+                        refineInstruction: event.target.value,
+                      }))
                     }
                     placeholder={t('compose.refineInstructionPlaceholder')}
                     className="rounded-lg border px-3 py-2 font-mono text-xs text-[rgb(var(--text-primary))] outline-none transition-all duration-200 focus:ring-2"
@@ -852,7 +1013,7 @@ export function TerminalChat() {
                     {t('compose.refine')}
                   </MagneticButton>
                   <MagneticButton
-                    onClick={sendToFormSubmit}
+                    onClick={sendContact}
                     disabled={!compose.email.trim() || compose.composing || compose.sending}
                     pull={5}
                     className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))] transition-all duration-200 ease-[var(--ease-out-quart)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
@@ -860,7 +1021,10 @@ export function TerminalChat() {
                     {compose.sending ? 'Sending...' : t('compose.send')}
                   </MagneticButton>
                   <MagneticButton
-                    onClick={() => { setView('chat'); setCompose((prev) => ({ ...prev, error: null })) }}
+                    onClick={() => {
+                      setView('chat')
+                      setCompose((prev) => ({ ...prev, error: null }))
+                    }}
                     disabled={compose.sending}
                     pull={4}
                     className="rounded-full border border-[rgb(var(--border))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--text-secondary))] transition-all duration-200 ease-[var(--ease-out-quart)] hover:border-[rgb(var(--accent)/0.5)] hover:text-[rgb(var(--accent))] disabled:cursor-not-allowed disabled:opacity-40"
@@ -880,11 +1044,13 @@ export function TerminalChat() {
                 exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
                 transition={viewTransition}
               >
-                <p className="font-mono text-sm text-white">
+                <p className="font-mono text-sm text-[rgb(var(--text-primary))]">
                   {t('compose.sentTitle')}
                 </p>
                 <MagneticButton
-                  onClick={() => { setView('chat') }}
+                  onClick={() => {
+                    setView('chat')
+                  }}
                   pull={4}
                   className="rounded-full border border-[rgb(var(--accent)/0.5)] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--accent))] transition-all duration-200 ease-[var(--ease-out-quart)] hover:border-[rgb(var(--accent))] hover:bg-[rgb(var(--accent)/0.08)]"
                 >

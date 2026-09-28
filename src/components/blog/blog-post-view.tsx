@@ -303,8 +303,8 @@ export function BlogPostView({ post, prevPost, nextPost }: Props) {
             </motion.div>
 
             <motion.h1
-              className="mb-6 text-3xl font-bold leading-tight text-white sm:text-4xl"
-              style={{ textShadow: '3px 3px 0 rgb(var(--accent))' }}
+              className="mb-6 text-3xl font-bold leading-tight text-[rgb(var(--text-primary))] sm:text-4xl"
+              style={{ textShadow: '2px 2px 0 rgb(var(--accent) / 0.12)' }}
               initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
@@ -389,7 +389,7 @@ export function BlogPostView({ post, prevPost, nextPost }: Props) {
 
             <div
               ref={proseRef}
-              className="prose prose-invert prose-lg max-w-none prose-p:mb-5 prose-p:leading-relaxed prose-p:text-[rgb(var(--text-secondary))] prose-h2:mt-12 prose-h2:mb-4 prose-h2:text-2xl prose-h2:font-semibold prose-h2:text-white prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-xl prose-h3:font-semibold prose-h3:text-white"
+              className="prose dark:prose-invert prose-lg max-w-none prose-p:mb-5 prose-p:leading-relaxed prose-p:text-[rgb(var(--text-secondary))] prose-h2:mt-12 prose-h2:mb-4 prose-h2:text-2xl prose-h2:font-semibold prose-h2:text-[rgb(var(--text-primary))] prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-xl prose-h3:font-semibold prose-h3:text-[rgb(var(--text-primary))]"
             >
               {blocks.map((block, index) => {
                 if (block.kind === 'h2') {

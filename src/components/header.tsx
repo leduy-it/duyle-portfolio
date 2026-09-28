@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
+import { CompanionToggle } from './pets/companion-toggle'
 import { LocaleToggle } from './locale-toggle'
 import { useLocale } from '@/lib/i18n'
 import {
@@ -29,13 +30,14 @@ export function Header() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const reducedMotion = useReducedMotion()
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
 
   const navLinks = [
     { label: t('nav.about'), href: '/' },
     { label: t('nav.experience'), href: '/experience' },
     { label: t('nav.blog'), href: '/blog' },
-    { label: t('nav.cinema'), href: '/photography' },
+    { label: t('nav.cinema'), href: '/movie' },
+    { label: locale === 'vi' ? 'Pet' : 'Playground', href: '/pets' },
   ]
 
   const brandLower = t('brand.lower')
@@ -43,7 +45,7 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 py-3 xl:py-4 text-foreground backdrop-blur-md border-b"
+      className="portfolio-header sticky top-0 py-3 xl:py-4 text-foreground backdrop-blur-md border-b"
       style={{
         backgroundColor: 'rgb(var(--surface-page) / 0.72)',
         borderColor: 'rgb(var(--border) / 0.6)',
@@ -54,11 +56,11 @@ export function Header() {
         {/* Logo */}
         <Magnetic strength={4}>
           <SmoothLink href="/" className="group">
-            <h1 className="inline-flex items-center text-xl xl:text-2xl font-semibold font-mono tracking-tight">
+            <span className="inline-flex items-center text-xl xl:text-2xl font-semibold font-mono tracking-tight">
               {brandName}
               <span className="text-[rgb(var(--accent))]">.{brandExt}</span>
               <span className="ml-0.5 animate-pulse text-[rgb(var(--accent))]">_</span>
-            </h1>
+            </span>
           </SmoothLink>
         </Magnetic>
 
@@ -98,6 +100,7 @@ export function Header() {
           <div className="flex items-center gap-3">
             <LocaleToggle />
             <ThemeToggle />
+            <CompanionToggle />
             <Magnetic>
               <RippleButton className="rounded-full">
                 <Link
@@ -126,13 +129,14 @@ export function Header() {
         </div>
 
         {/* Mobile: locale + theme + hamburger */}
-        <div className="flex xl:hidden items-center gap-2">
+        <div className="site-mobile-controls flex xl:hidden items-center gap-2">
           <LocaleToggle />
           <ThemeToggle />
+          <CompanionToggle />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
-            className="w-9 h-9 flex flex-col items-center justify-center gap-1.5"
+            className="mobile-menu-toggle w-9 h-9 flex flex-col items-center justify-center gap-1.5"
           >
             {mobileOpen ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--accent))" strokeWidth="2" strokeLinecap="round">

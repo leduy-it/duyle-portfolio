@@ -22,17 +22,17 @@ export function VisitorTracker() {
     if (typeof window === 'undefined') return
     if (typeof navigator !== 'undefined' && navigator.doNotTrack === '1') return
 
-    const search = window.location.search || ''
-    const fullPath = pathname + search
+    if (pathname.startsWith('/admin')) return
+    const fullPath = pathname
     const now = Date.now()
     const last = lastSentRef.current
     if (last && last.key === fullPath && now - last.at < 1500) return
-    lastSentRef.current = { key: fullPath, at: now }
 
     const headers: Record<string, string> = { 'content-type': 'application/json' }
     if (isAdminClient()) headers['x-admin-self'] = '1'
 
     const t = window.setTimeout(() => {
+      lastSentRef.current = { key: fullPath, at: Date.now() }
       fetch('/api/track', {
         method: 'POST',
         headers,

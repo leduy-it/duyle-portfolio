@@ -56,6 +56,7 @@ export function HomeBackgroundWrapper({ active = false }: HomeBackgroundWrapperP
         active={active}
         mobileLite={isMobile}
         pauseWhenHidden
+        reducedMotion={prefersReducedMotion}
       />
     </motion.div>
   )

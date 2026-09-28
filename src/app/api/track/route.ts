@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'node:crypto'
+import { sameOrigin } from '@/lib/server/redis'
 import { isBotUA } from '@/lib/tracking/bot-filter'
 import { appendEvent, getSalt, hashIdentity, rateLimitOk, TrackEvent } from '@/lib/tracking/store'
 import { isAdminRequest } from '@/lib/tracking/admin-auth'
@@ -38,8 +39,9 @@ function clientCountry(req: NextRequest): string | null {
 function safePath(input: unknown): string | null {
   if (typeof input !== 'string') return null
   if (input.length === 0 || input.length > 512) return null
-  if (!input.startsWith('/')) return null
-  return input
+  if (!input.startsWith('/') || input.startsWith('//') || /[\\\u0000-\u001f]/.test(input))
+    return null
+  return input.split(/[?#]/)[0]
 }
 
 function safeStr(input: unknown, max: number): string | null {
@@ -55,11 +57,15 @@ function safeInt(input: unknown): number | null {
 
 export async function POST(req: NextRequest) {
   try {
+    if (!sameOrigin(req)) return NextResponse.json({ error: 'invalid_origin' }, { status: 403 })
+    if (Number(req.headers.get('content-length')) > 4096)
+      return NextResponse.json({ error: 'too_large' }, { status: 413 })
     if (req.headers.get('x-admin-self') === '1' && (await isAdminRequest())) {
       return NextResponse.json({ ok: true, skipped: 'admin' })
     }
 
-    const ua = req.headers.get('user-agent')
+    if (req.headers.get('dnt') === '1') return NextResponse.json({ ok: true, skipped: 'dnt' })
+    const ua = req.headers.get('user-agent')?.slice(0, 512) || null
     if (isBotUA(ua)) {
       return NextResponse.json({ ok: true, skipped: 'bot' })
     }
@@ -70,7 +76,13 @@ export async function POST(req: NextRequest) {
     const path = safePath(body.path)
     if (!path) return NextResponse.json({ error: 'bad path' }, { status: 400 })
 
-    const referrer = safeStr(body.referrer, 1024)
+    let referrer: string | null = null
+    try {
+      const ref = new URL(typeof body.referrer === 'string' ? body.referrer : '')
+      if (['http:', 'https:'].includes(ref.protocol)) referrer = ref.origin
+    } catch {
+      /* Missing or invalid referrers are direct traffic. */
+    }
     const locale = safeStr(body.locale, 32)
     const screenWidth = safeInt(body.screenWidth)
     const screenHeight = safeInt(body.screenHeight)
@@ -80,7 +92,7 @@ export async function POST(req: NextRequest) {
     const ipHash = hashIdentity(['ip', ip], salt)
     const visitorId = hashIdentity(['v', ipHash, ua || ''], salt)
 
-    if (!rateLimitOk(visitorId)) {
+    if (!(await rateLimitOk(visitorId))) {
       return NextResponse.json({ ok: true, skipped: 'rate' })
     }
 
@@ -91,7 +103,8 @@ export async function POST(req: NextRequest) {
       setSession = true
     }
 
-    const country = clientCountry(req)
+    const rawCountry = clientCountry(req)
+    const country = rawCountry && /^[A-Za-z]{2}$/.test(rawCountry) ? rawCountry.toUpperCase() : null
 
     const evt: TrackEvent = {
       ts: new Date().toISOString(),

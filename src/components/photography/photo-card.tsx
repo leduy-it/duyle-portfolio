@@ -49,7 +49,7 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
   const runtime = pickLocalized(film as unknown as Record<string, unknown>, 'runtime', locale)
   const alt = pickLocalized(film as unknown as Record<string, unknown>, 'alt', locale)
   const hasCaption = Boolean(tagline)
-  const href = `/photography/${film.slug}`
+  const href = `/movie/${film.slug}`
 
   useEffect(() => {
     return () => {
@@ -175,7 +175,7 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
                 <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[rgb(var(--accent))]">
                   {film.director}
                 </p>
-                <h3 className="mt-1 text-xl font-semibold text-white transition-colors duration-200 group-hover:text-[rgb(var(--accent))]">
+                <h3 className="mt-1 text-xl font-semibold text-[rgb(var(--text-primary))] transition-colors duration-200 group-hover:text-[rgb(var(--accent))]">
                   {title}
                 </h3>
               </div>
