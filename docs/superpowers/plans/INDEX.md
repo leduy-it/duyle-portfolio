@@ -25,20 +25,20 @@ This is the authoritative checklist for the complete request. Update a task only
 | T02 | Create independent repository and populate `main` | Done | `origin/main` at `75872b5`; fork false |
 | T03 | Inventory reference pet resources | Done | fresh GitHub tree has only `main`, no pet/bunny/shop assets |
 | T04 | Master index, specs, execution ledger | Done | this index and linked plans |
-| T05 | Baseline desktop/mobile screenshots | In progress | old public deployment found via repository homepage; browser capture obtained |
+| T05 | Baseline desktop/mobile screenshots | Done | old public homepage captured at desktop and mobile sizes; deployed app is older than source |
 | T06 | Chat knowledge and playful bilingual persona | Implemented; live probe pending | [Chat plan](2026-09-28-gracie-and-chat.md) task 1 |
 | T07 | Research and live-compare free models | Blocked externally | catalog researched; replacement OpenRouter key not confirmed |
-| T08 | Global Gracie, quick-chat states, terminal handoff | Implemented; browser checks in progress | Chat plan task 3 |
+| T08 | Global Gracie, quick-chat states, terminal handoff | Verified locally | visibility, gaze/states, draft/history handoff, interrupted terminal stream and short viewports |
 | T09 | Versioned seeded pet save and progression rules | Implemented; regression checks pass | [Pet plan](2026-09-28-pet-world.md) tasks 1–2 |
 | T10 | `/pets` art, hatchery/shop, housing, factory, evolution | Implemented; browser evolution/hatch/save pass | Pet plan task 3; T09 |
-| T11 | Active arena combat, desktop/mobile controls, rewards | Implemented; simulation checks pass | Pet plan task 4; T09 |
-| T12 | Canonical `/movie` routes and old-link redirects | Implemented; HTTP check pending | [Service plan](2026-09-28-movie-and-contact.md) task 1 |
+| T11 | Active arena combat, desktop/mobile controls, rewards | Verified locally | movement, keyboard pause, touch controls, projectile simulation, repeat-reward protection |
+| T12 | Canonical `/movie` routes and old-link redirects | Verified locally | 308 redirects and destination 200; [Service plan](2026-09-28-movie-and-contact.md) task 1 |
 | T13 | Resend contact endpoint, validation, idempotency, fallback | Implemented; mocked provider checks pass | Service plan task 2; production sender/key needed |
 | T14 | Trace/fix deployed owner authentication | Code fixed; live config blocked | no public bypass; config error separated from wrong input; auth tests pass |
 | T15 | Durable visitor statistics on Vercel | Code implemented; Redis not provisioned | [Analytics plan](2026-09-29-admin-and-analytics.md); existing store is local JSONL |
 | T16 | First viewport polish and ambient animation | Implemented; light/overflow fixes verified | [Visual plan](2026-09-29-visual-polish.md); T05 |
-| T17 | Desktop/mobile screenshots and interaction verification | Pending | features implemented; compare to T05 |
-| T18 | Meaningful regression checks, production build, branch review | Pending | T06–T17 |
+| T17 | Desktop/mobile screenshots and interaction verification | Done locally | 320/390/844/1440 widths; light/dark; storage, handoff, arena; pets and movie Lighthouse accessibility 100 |
+| T18 | Meaningful regression checks, production build, branch review | Verified locally | 25 tests; lint/typecheck/build; one independent review, all four Important and two Minor findings fixed |
 | T19 | Push feature branch, create PR, merge personal `main` | Pending | T18; user already authorized |
 | T20 | Configure/redeploy Vercel and verify live deployment | Pending | T19; provider configuration and Vercel access |
 
@@ -64,3 +64,11 @@ Detailed execution notes live in this plan's ignored `.superpowers/sdd` workspac
 - Native browser testing connection is available; user browser connection is no longer needed for local UI checks.
 - Browser evidence so far: pet evolution, hatching, save after navigation, quick-chat draft handoff, hidden preference after reload. Light home: no console errors and scroll width equals client width after canvas fixes.
 - Security dependency pass: Next 15.5.14 → 15.5.26, compatible dependency patches, PostCSS override, tsx 4.21.0 → 4.23.15. npm audit reports zero vulnerabilities after installation.
+
+## Final local verification — 2026-09-29
+
+- Source review: four Important findings fixed in one pass: preserve unread pet saves, preserve active terminal streams on empty handoff, reject truncated SSE, fit popup controls on short viewports. Also fixed development salt reuse and the documented sender variable.
+- Browser regression: simulated one-time storage read denial preserves 12,345 stored coins; reload recovers that exact save. A local partial SSE fixture survives empty Gracie handoff and completes afterward. These are fixtures, not a live model evaluation.
+- UI: no horizontal overflow at 320px. At 844×390 the popup top is 12px and controls remain visible. Pet and movie light-mode Lighthouse snapshots score 100 for accessibility, best practices, SEO and agentic browsing; performance was not audited.
+- Game: latest arena movement and Escape pause exercised; stationary attacks lose against ranged wisps as intended. Pure simulation covers projectiles, cooldowns, invulnerability and victory; save tests cover exactly-once rewards.
+- Provider checks remain mocked. The old public homepage returns 404 for `/api/admin/login`; its Vercel project/commit must be identified after login.

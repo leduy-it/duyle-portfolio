@@ -64,6 +64,7 @@ function proxyStream(body: ReadableStream<Uint8Array>) {
           }
         }
         if (!hasText) throw new Error('empty')
+        if (!finished) throw new Error('incomplete')
         emit('event: done\ndata: [DONE]\n\n')
       } catch {
         emit('event: error\ndata: {"error":"chat_unavailable"}\n\n')

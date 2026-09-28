@@ -116,6 +116,10 @@
 }
 .gracie-chat {
   position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 177px);
   bottom: 137px;
   right: 0;
   width: 350px;
@@ -130,6 +134,7 @@
   animation: gracie-panel 0.2s ease-out;
 }
 .gracie-chat-header {
+  flex-shrink: 0;
   padding: 18px 18px 14px;
   display: flex;
   align-items: flex-start;
@@ -161,6 +166,8 @@
   cursor: pointer;
 }
 .gracie-chat-log {
+  min-height: 0;
+  flex-shrink: 1;
   height: 260px;
   max-height: 42dvh;
   overflow-y: auto;
@@ -249,6 +256,7 @@
   animation-delay: 0.3s;
 }
 .gracie-form {
+  flex-shrink: 0;
   margin: 0 14px;
   padding: 9px 10px;
   display: flex;
@@ -291,6 +299,7 @@
   cursor: default;
 }
 .gracie-chat-footer {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   padding: 13px 17px;
@@ -310,6 +319,7 @@
   color: #bbedda;
 }
 .gracie-error {
+  flex-shrink: 0;
   font-size: 10px;
   color: #ffc3b5;
   margin: 0 16px 10px;
@@ -409,6 +419,7 @@
   }
   .gracie-chat {
     bottom: 117px;
+    max-height: calc(100dvh - 153px - env(safe-area-inset-bottom));
     width: min(350px, calc(100vw - 28px));
   }
   .gracie-hint {
@@ -435,6 +446,24 @@
     min-height: 30px;
     display: flex;
     align-items: center;
+  }
+}
+@media (max-height: 600px) {
+  .gracie-chat {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    right: max(14px, env(safe-area-inset-right));
+    max-height: none;
+  }
+  .gracie-chat-log {
+    flex: 1;
+    max-height: none;
+  }
+}
+@media (max-height: 600px) and (min-width: 641px) {
+  .gracie-chat {
+    right: max(126px, env(safe-area-inset-right));
   }
 }
 @media (prefers-reduced-motion: reduce) {

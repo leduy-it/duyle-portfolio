@@ -139,19 +139,27 @@ export function TerminalChat() {
     function receive() {
       const transfer = consumeChatHandoff()
       if (!transfer) return
+      // Opening an unused companion simply restores this terminal, including
+      // any active reply or unsent draft. There is no new conversation to apply.
+      if (!transfer.messages.length && !transfer.draft.trim()) {
+        setWindowState('open')
+        setView('chat')
+        setDrag({ x: 0, y: 0 })
+        requestAnimationFrame(() => terminalInputRef.current?.focus({ preventScroll: true }))
+        return
+      }
       chatGeneration.current += 1
       chatRequest.current?.abort()
       chatInFlight.current = false
       setBusy(false)
       hasHandoffRef.current = true
-      if (transfer.messages.length)
-        setMessages(
-          transfer.messages.map((turn) => ({
-            time: getCurrentTime(),
-            text: turn.content,
-            isUser: turn.role === 'user',
-          }))
-        )
+      setMessages(
+        transfer.messages.map((turn) => ({
+          time: getCurrentTime(),
+          text: turn.content,
+          isUser: turn.role === 'user',
+        }))
+      )
       setInput(transfer.draft)
       setWindowState('open')
       setView('chat')

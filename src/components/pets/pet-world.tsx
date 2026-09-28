@@ -167,8 +167,8 @@ export function PetWorld() {
         {storage === 'memory' && (
           <p className="pet-storage-note" role="status">
             {l(
-              'Storage is unavailable. You can play, but this visit may not be saved.',
-              'Trình duyệt không cho lưu. Bạn vẫn chơi được, nhưng tiến trình có thể mất khi đóng trang.'
+              'Saving is paused. You can play for this visit; reload to recover your saved world.',
+              'Đang tạm ngưng lưu. Bạn vẫn chơi được trong lần ghé này; tải lại trang để khôi phục thế giới đã lưu.'
             )}
           </p>
         )}

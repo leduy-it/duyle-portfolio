@@ -8,14 +8,8 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import {
-  createStarterSave,
-  parsePetSave,
-  serializePetSave,
-  PET_SAVE_KEY,
-  type PetWorldSaveV1,
-} from './save'
-type Persistence = 'loading' | 'saved' | 'memory' | 'newer'
+import { createStarterSave, PET_SAVE_KEY, type PetWorldSaveV1 } from './save'
+import { loadPetWorld, receivePetWorld, updatePetWorld, type Persistence } from './persistence'
 interface WorldContext {
   save: PetWorldSaveV1
   storage: Persistence
@@ -23,13 +17,6 @@ interface WorldContext {
   reset: () => void
 }
 const Context = createContext<WorldContext | null>(null)
-const future = (raw: string | null) => {
-  try {
-    return raw ? JSON.parse(raw).version > 1 : false
-  } catch {
-    return false
-  }
-}
 export function PetSaveProvider({ children }: { children: ReactNode }) {
   const [save, setSave] = useState(() => createStarterSave(0))
   const [storage, setStorage] = useState<Persistence>('loading')
@@ -42,41 +29,17 @@ export function PetSaveProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Hydrate after the first paint; never read browser storage during SSR.
     const frame = requestAnimationFrame(() => {
-      try {
-        const raw = localStorage.getItem(PET_SAVE_KEY)
-        const next = parsePetSave(raw)
-        current.current = next
-        setSave(next)
-        if (future(raw)) {
-          persistence('newer')
-          return
-        }
-        if (raw) {
-          try {
-            JSON.parse(raw)
-          } catch {
-            localStorage.setItem(`${PET_SAVE_KEY}:recovery`, raw)
-          }
-        }
-        if (!raw) localStorage.setItem(PET_SAVE_KEY, serializePetSave(next))
-        persistence('saved')
-      } catch {
-        const next = createStarterSave()
-        current.current = next
-        setSave(next)
-        persistence('memory')
-      }
+      const next = loadPetWorld(() => localStorage)
+      current.current = next.save
+      setSave(next.save)
+      persistence(next.status)
     })
     function onStorage(e: StorageEvent) {
       if (e.key !== PET_SAVE_KEY) return
-      if (future(e.newValue)) {
-        persistence('newer')
-        return
-      }
-      const next = parsePetSave(e.newValue)
-      current.current = next
-      setSave(next)
-      persistence('saved')
+      const next = receivePetWorld(e.newValue, current.current)
+      current.current = next.save
+      setSave(next.save)
+      persistence(next.status)
     }
     window.addEventListener('storage', onStorage)
     return () => {
@@ -86,29 +49,15 @@ export function PetSaveProvider({ children }: { children: ReactNode }) {
   }, [persistence])
   const update = useCallback(
     (fn: (s: PetWorldSaveV1) => PetWorldSaveV1) => {
-      if (status.current === 'loading' || status.current === 'newer') return current.current
-      let base = current.current
-      if (status.current === 'saved')
-        try {
-          const raw = localStorage.getItem(PET_SAVE_KEY)
-          if (future(raw)) {
-            persistence('newer')
-            return base
-          }
-          if (raw) base = parsePetSave(raw)
-        } catch {
-          persistence('memory')
-        }
-      const next = fn(base)
-      current.current = next
-      setSave(next)
-      try {
-        localStorage.setItem(PET_SAVE_KEY, serializePetSave(next))
-        persistence('saved')
-      } catch {
-        persistence('memory')
-      }
-      return next
+      const next = updatePetWorld(
+        () => localStorage,
+        { save: current.current, status: status.current },
+        fn
+      )
+      current.current = next.save
+      setSave(next.save)
+      persistence(next.status)
+      return next.save
     },
     [persistence]
   )

@@ -32,10 +32,17 @@ test('an upstream error frame rejects rather than displaying a completed blank r
   )
 })
 
-test('an empty or truncated response is an error and a final unseparated frame is read', async () => {
+test('empty or truncated responses fail and an unseparated completion frame is read', async () => {
   await assert.rejects(
     consumeChatStream(stream([]), () => {}),
     /empty/
   )
-  assert.equal(await consumeChatStream(stream(['data: {"delta":"hello"}']), () => {}), 'hello')
+  await assert.rejects(
+    consumeChatStream(stream(['data: {"delta":"partial"}\n\n']), () => {}),
+    /incomplete/
+  )
+  assert.equal(
+    await consumeChatStream(stream(['data: {"delta":"hello"}\n\ndata: [DONE]']), () => {}),
+    'hello'
+  )
 })

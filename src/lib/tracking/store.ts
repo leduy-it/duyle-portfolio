@@ -59,6 +59,7 @@ export async function getSalt(): Promise<string> {
   await ensureDir()
   try {
     cachedSalt = (await fs.readFile(SALT_FILE, 'utf8')).trim()
+    if (cachedSalt) return cachedSalt
   } catch {
     /* fall through */
   }

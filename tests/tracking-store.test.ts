@@ -59,3 +59,28 @@ test('durable analytics writes atomically and propagates outages instead of repo
     process.env = original
   }
 })
+
+test('local analytics reuses its persisted salt instead of rotating on restart', async () => {
+  const { promises: fs } = await import('node:fs')
+  const original = { ...process.env },
+    read = fs.readFile,
+    mkdir = fs.mkdir,
+    write = fs.writeFile
+  let writes = 0
+  try {
+    Object.assign(process.env, { NODE_ENV: 'development' })
+    delete process.env.TRACKING_SALT
+    fs.readFile = (async () => 'persisted-development-salt') as unknown as typeof fs.readFile
+    fs.mkdir = (async () => undefined) as typeof fs.mkdir
+    fs.writeFile = async () => {
+      writes++
+    }
+    assert.equal(await getSalt(), 'persisted-development-salt')
+    assert.equal(writes, 0)
+  } finally {
+    fs.readFile = read
+    fs.mkdir = mkdir
+    fs.writeFile = write
+    process.env = original
+  }
+})

@@ -35,3 +35,12 @@
 - Real free-model response comparison with a confirmed replacement OpenRouter key.
 - Valid Vercel session and the correct project link; provider secrets configured.
 - Production login/session, durable statistics across a redeploy, and approved email delivery.
+
+## Local acceptance evidence
+
+- 25 regression tests pass: pet progression/persistence, combat, SSE transport, contact receipts/idempotency, proxy origin handling, authentication and durable tracking behavior.
+- Lint, TypeScript, production build and dependency audit checked; 36 generated routes, no reported vulnerabilities.
+- Desktop/mobile screenshots inspected in the browser at 320, 390, 844 and 1440 widths, including both themes and landscape. No screenshot files were exported because the browser tool rejected the requested output paths.
+- Pet and movie light-mode Lighthouse snapshots: accessibility 100; best practices 100; SEO 100; agentic browsing 100. This is a local snapshot audit, not a performance score or production proof.
+- Independently reviewed; fixed all four Important findings and both Minor findings. Temporary storage failure now keeps play in memory until reload or a valid external save; unread/invalid disk saves are never blindly overwritten. Both streaming layers require an explicit completion frame.
+- The original provided GitHub reference contains no pet assets. Gracie and the pixel species/habitat artwork here are original.

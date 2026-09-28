@@ -48,7 +48,7 @@
 
 ### Task 2: Replace FormSubmit with server-side Resend delivery
 
-- [ ] Add `POST /api/contact` in `src/app/api/contact/route.ts`; validate name, email, subject, and body types/lengths, reject empty payloads, use the fixed recipient `levduyit@gmail.com`, and read `RESEND_API_KEY` plus `RESEND_FROM_EMAIL` only from server environment variables.
+- [ ] Add `POST /api/contact` in `src/app/api/contact/route.ts`; validate name, email, subject, and body types/lengths, reject empty payloads, use the fixed recipient `levduyit@gmail.com`, and read `RESEND_API_KEY` plus `CONTACT_FROM_EMAIL` only from server environment variables.
 - [ ] Submit through Resend REST API with a stable provider idempotency key per form attempt; translate provider outcomes to safe `{ ok, error }` JSON without returning provider internals.
 - [ ] Update `src/components/home/terminal-chat.tsx` to post to `/api/contact`, disable repeat-click while pending, show localized status, preserve entered values on failure, and build a `mailto:` fallback from the same fields.
 - [ ] Add only variable names and configuration guidance to `.env.example`/docs; never add a live key or change the recipient.
@@ -58,5 +58,5 @@
 ### Task 3: Prepare production handoff
 
 - [ ] Confirm the Vercel project is linked to `leduy-it/duyle-portfolio` and determine whether pushing/merging to `main` auto-deploys.
-- [ ] Before the requested 2026-09-29 deployment, verify production `RESEND_API_KEY`, verified `RESEND_FROM_EMAIL`, and rotated `OPENROUTER_API_KEY` exist without printing values.
+- [ ] Before the requested 2026-09-29 deployment, verify production `RESEND_API_KEY`, verified `CONTACT_FROM_EMAIL`, and rotated `OPENROUTER_API_KEY` exist without printing values.
 - [ ] Merge the reviewed feature PR to standalone `main` at the requested time, then verify the Vercel deployment URL, commit SHA, and deployment state before reporting success.

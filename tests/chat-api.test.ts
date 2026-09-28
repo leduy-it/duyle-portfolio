@@ -39,6 +39,14 @@ test('stream forwards Unicode deltas, redacts upstream errors and closes once', 
     const errorText = await error.text()
     assert.match(errorText, /event: error/)
     assert.doesNotMatch(errorText, /private-provider-detail/)
+    global.fetch = async () =>
+      new Response('data: {"choices":[{"delta":{"content":"partial"}}]}\n\n')
+    const truncated = await POST(
+      request({ messages: [{ role: 'user', content: 'hi' }], stream: true })
+    )
+    const truncatedText = await truncated.text()
+    assert.match(truncatedText, /event: error/)
+    assert.doesNotMatch(truncatedText, /event: done/)
   } finally {
     global.fetch = original
     delete process.env.OPENROUTER_API_KEY

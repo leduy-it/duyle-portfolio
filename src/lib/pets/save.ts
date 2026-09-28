@@ -46,8 +46,8 @@ export function createStarterSave(now = Date.now()): PetWorldSaveV1 {
     furniture: ['cottage', 'pond', 'orchard', 'garden'],
   }
 }
-export function parsePetSave(raw: string | null, now = Date.now()): PetWorldSaveV1 {
-  if (!raw) return createStarterSave(now)
+export function readPetSave(raw: string | null, now = Date.now()): PetWorldSaveV1 | null {
+  if (!raw) return null
   try {
     const s = JSON.parse(raw)
     const finite = (n: unknown, max = 1_000_000_000): n is number =>
@@ -129,7 +129,10 @@ export function parsePetSave(raw: string | null, now = Date.now()): PetWorldSave
       furniture: ['cottage', 'pond', 'orchard', 'garden'],
     }
   } catch {
-    return createStarterSave(now)
+    return null
   }
+}
+export function parsePetSave(raw: string | null, now = Date.now()): PetWorldSaveV1 {
+  return readPetSave(raw, now) || createStarterSave(now)
 }
 export const serializePetSave = (save: PetWorldSaveV1) => JSON.stringify(save)

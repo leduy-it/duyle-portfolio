@@ -53,6 +53,7 @@ export async function consumeChatStream(
       }
     }
     if (!text.trim()) throw new Error('empty_reply')
+    if (!finished) throw new Error('incomplete_reply')
     return text
   } finally {
     await reader.cancel().catch(() => {})
