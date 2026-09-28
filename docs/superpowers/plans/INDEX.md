@@ -39,8 +39,8 @@ This is the authoritative checklist for the complete request. Update a task only
 | T16 | First viewport polish and ambient animation | Implemented; light/overflow fixes verified | [Visual plan](2026-09-29-visual-polish.md); T05 |
 | T17 | Desktop/mobile screenshots and interaction verification | Done locally | 320/390/844/1440 widths; light/dark; storage, handoff, arena; pets and movie Lighthouse accessibility 100 |
 | T18 | Meaningful regression checks, production build, branch review | Verified locally | 25 tests; lint/typecheck/build; one independent review, all four Important and two Minor findings fixed |
-| T19 | Push feature branch, create PR, merge personal `main` | Pending | T18; user already authorized |
-| T20 | Configure/redeploy Vercel and verify live deployment | Pending | T19; provider configuration and Vercel access |
+| T19 | Push feature branch, create PR, merge personal `main` | [PR #1](https://github.com/leduy-it/duyle-portfolio/pull/1) | published; integration state is recorded on the linked PR |
+| T20 | Configure/redeploy Vercel and verify live deployment | Blocked externally | T19; provider configuration and Vercel access |
 
 ## External prerequisites
 
@@ -72,3 +72,7 @@ Detailed execution notes live in this plan's ignored `.superpowers/sdd` workspac
 - UI: no horizontal overflow at 320px. At 844×390 the popup top is 12px and controls remain visible. Pet and movie light-mode Lighthouse snapshots score 100 for accessibility, best practices, SEO and agentic browsing; performance was not audited.
 - Game: latest arena movement and Escape pause exercised; stationary attacks lose against ranged wisps as intended. Pure simulation covers projectiles, cooldowns, invulnerability and victory; save tests cover exactly-once rewards.
 - Provider checks remain mocked. The old public homepage returns 404 for `/api/admin/login`; its Vercel project/commit must be identified after login.
+
+- Additional home/Gracie Lighthouse check found undersized legacy terminal traffic-light buttons. Expanded their hit areas to 24px while retaining 12px dots.
+
+- Final home + open Gracie popup mobile Lighthouse snapshot: all four audited categories score 100 after expanding terminal controls. 320px width still has no overflow. Vercel CLI was rechecked and remains logged out.

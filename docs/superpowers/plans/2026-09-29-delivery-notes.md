@@ -44,3 +44,5 @@
 - Pet and movie light-mode Lighthouse snapshots: accessibility 100; best practices 100; SEO 100; agentic browsing 100. This is a local snapshot audit, not a performance score or production proof.
 - Independently reviewed; fixed all four Important findings and both Minor findings. Temporary storage failure now keeps play in memory until reload or a valid external save; unread/invalid disk saves are never blindly overwritten. Both streaming layers require an explicit completion frame.
 - The original provided GitHub reference contains no pet assets. Gracie and the pixel species/habitat artwork here are original.
+
+- Final home + open Gracie popup mobile Lighthouse snapshot: all four audited categories score 100 after expanding terminal controls. 320px width still has no overflow. Vercel CLI was rechecked and remains logged out.

@@ -587,7 +587,7 @@ export function TerminalChat() {
                 setWindowState('closed')
               }}
               aria-label="Close"
-              className="group relative h-3 w-3 rounded-full bg-[rgb(239,68,68)]"
+              className="group relative h-6 w-6 shrink-0 rounded-full bg-[radial-gradient(circle,rgb(239,68,68)_6px,transparent_6px)]"
               whileHover={reducedMotion ? undefined : { scale: 1.08 }}
               whileTap={reducedMotion ? undefined : { scale: 0.94 }}
               transition={reducedMotion ? { duration: 0.12 } : { type: 'spring', ...SOFT_SPRING }}
@@ -602,7 +602,7 @@ export function TerminalChat() {
                 setWindowState('minimized')
               }}
               aria-label="Minimize"
-              className="group relative h-3 w-3 rounded-full bg-[rgb(234,179,8)]"
+              className="group relative h-6 w-6 shrink-0 rounded-full bg-[radial-gradient(circle,rgb(234,179,8)_6px,transparent_6px)]"
               whileHover={reducedMotion ? undefined : { scale: 1.08 }}
               whileTap={reducedMotion ? undefined : { scale: 0.94 }}
               transition={reducedMotion ? { duration: 0.12 } : { type: 'spring', ...SOFT_SPRING }}
@@ -616,7 +616,7 @@ export function TerminalChat() {
               onDoubleClick={handleGreenDblClick}
               aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
               title="Click to maximize/restore · Double-click to recenter"
-              className="group relative h-3 w-3 rounded-full bg-[rgb(34,197,94)]"
+              className="group relative h-6 w-6 shrink-0 rounded-full bg-[radial-gradient(circle,rgb(34,197,94)_6px,transparent_6px)]"
               whileHover={reducedMotion ? undefined : { scale: 1.08 }}
               whileTap={reducedMotion ? undefined : { scale: 0.94 }}
               transition={reducedMotion ? { duration: 0.12 } : { type: 'spring', ...SOFT_SPRING }}
@@ -625,7 +625,7 @@ export function TerminalChat() {
                 ⤢
               </span>
             </motion.button>
-            <span className="ml-3 text-xs font-mono text-[rgb(var(--text-muted))]">
+            <span className="ml-1 min-w-0 truncate text-xs font-mono text-[rgb(var(--text-muted))]">
               {t('brand.shellPrompt')}
             </span>
             <span className="ml-auto flex items-center gap-1.5 text-[10px] font-mono text-[rgb(var(--text-muted))]">
