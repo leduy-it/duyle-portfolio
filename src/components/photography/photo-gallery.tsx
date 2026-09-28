@@ -35,7 +35,7 @@ export default function PhotoGallery({ films }: PhotoGalleryProps) {
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-[rgb(var(--accent))]">
           {t('cinema.galleryEyebrow')}
         </p>
-        <h2 className="text-3xl font-semibold text-white sm:text-4xl lg:text-5xl">
+        <h2 className="text-3xl font-semibold text-[rgb(var(--text-primary))] sm:text-4xl lg:text-5xl">
           {t('cinema.galleryTitle')}
         </h2>
         <p className="max-w-3xl font-mono text-sm leading-relaxed text-[rgb(var(--text-secondary))]">

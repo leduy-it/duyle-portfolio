@@ -63,3 +63,5 @@ tasks/
 
 # Runtime tracking data (private)
 /data/
+
+.artifacts/

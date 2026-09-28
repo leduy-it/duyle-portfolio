@@ -71,7 +71,7 @@ export function MysteryBox() {
         router.refresh()
         return
       }
-      setError(json?.error || 'wrong incantation')
+      setError(res.status === 503 ? 'Owner login is not configured on this deployment yet.' : res.status === 429 ? 'Too many attempts. Try again in 15 minutes.' : 'That passphrase did not match. Try again.')
       setShake((s) => s + 1)
     } catch {
       setError('network error')

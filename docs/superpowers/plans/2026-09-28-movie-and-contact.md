@@ -38,7 +38,7 @@
 
 ## Tasks
 
-### 1. Move the film collection to `/movie`
+### Task 1: Move the film collection to `/movie`
 
 - [ ] Copy `src/app/photography/page.tsx` and `src/app/photography/[slug]/page.tsx` to the matching `src/app/movie` routes, preserving current rendering and metadata while setting canonical URLs.
 - [ ] Update `src/components/header.tsx`, `src/components/photography/photo-card.tsx`, `src/components/photography/film-detail-view.tsx`, and any route metadata references to generate `/movie` links.
@@ -46,7 +46,7 @@
 - [ ] Run `npx tsc --noEmit`, `npm run lint`, and `npm run build`; verify the film index/detail routes and legacy redirects locally.
 - [ ] Commit this route slice with `fix: move cinema pages to movie routes`.
 
-### 2. Replace FormSubmit with server-side Resend delivery
+### Task 2: Replace FormSubmit with server-side Resend delivery
 
 - [ ] Add `POST /api/contact` in `src/app/api/contact/route.ts`; validate name, email, subject, and body types/lengths, reject empty payloads, use the fixed recipient `levduyit@gmail.com`, and read `RESEND_API_KEY` plus `RESEND_FROM_EMAIL` only from server environment variables.
 - [ ] Submit through Resend REST API with a stable provider idempotency key per form attempt; translate provider outcomes to safe `{ ok, error }` JSON without returning provider internals.
@@ -55,7 +55,7 @@
 - [ ] Run `npx tsc --noEmit`, `npm run lint`, and `npm run build`; manually exercise invalid input, missing configuration, successful provider response with a safe test setup, duplicate click, and mailto fallback.
 - [ ] Commit this contact slice with `feat: send portfolio contact mail through Resend`.
 
-### 3. Prepare production handoff
+### Task 3: Prepare production handoff
 
 - [ ] Confirm the Vercel project is linked to `leduy-it/duyle-portfolio` and determine whether pushing/merging to `main` auto-deploys.
 - [ ] Before the requested 2026-09-29 deployment, verify production `RESEND_API_KEY`, verified `RESEND_FROM_EMAIL`, and rotated `OPENROUTER_API_KEY` exist without printing values.

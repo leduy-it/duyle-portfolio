@@ -24,12 +24,12 @@ export function ThemeToggle() {
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label="Toggle theme"
-      className="relative w-14 h-7 border border-[rgb(var(--border))] rounded-lg transition-colors duration-300 bg-[rgb(var(--surface-overlay))]"
+      className="theme-switch relative w-14 h-7 border border-[rgb(var(--border))] rounded-lg transition-colors duration-300 bg-[rgb(var(--surface-overlay))]"
     >
       {/* Sliding indicator — left = dark (sun shown), right = light (moon shown) */}
       <div
         className={`absolute top-px w-6 h-6 bg-[rgb(var(--accent))] rounded-md transition-transform duration-300 flex items-center justify-center text-[rgb(var(--background))] ${
-          isDark ? 'translate-x-0.5' : 'translate-x-[1.875rem]'
+          isDark ? 'translate-x-0.5' : 'translate-x-[var(--theme-slide,1.875rem)]'
         }`}
       >
         {isDark ? (

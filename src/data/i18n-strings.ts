@@ -11,10 +11,10 @@ export type Locale = 'en' | 'vi'
 export const I18N_STRINGS = {
   en: {
     // Brand
-    'brand.lower': 'michael.py',
-    'brand.upper': 'MICHAEL.PY',
-    'brand.cursor': 'michael.py_',
-    'brand.shellPrompt': 'michael.py ~ %',
+    'brand.lower': 'leduy.py',
+    'brand.upper': 'LEDUY.PY',
+    'brand.cursor': 'leduy.py_',
+    'brand.shellPrompt': 'leduy.py ~ %',
 
     // Nav
     'nav.about': 'About Me',
@@ -37,7 +37,7 @@ export const I18N_STRINGS = {
     'hero.now.openTo': 'open to',
     'hero.now.workingModes': 'working modes',
     'hero.now.buildHarness': 'core skill · AI build harness',
-    'hero.pixelCaption': 'pixel.portrait / michael.py',
+    'hero.pixelCaption': 'pixel.portrait / leduy.py',
 
     // Terminal chat
     'chat.statusOnline': 'Duy\'s agent is online.',
@@ -56,7 +56,7 @@ export const I18N_STRINGS = {
     // Compose-to-Duy form
     'compose.title': 'Compose a note Duy will see',
     'compose.subjectLabel': 'Subject',
-    'compose.subjectDefault': 'Hello from michael.py — quick note',
+    'compose.subjectDefault': 'Hello from leduy.py — quick note',
     'compose.bodyLabel': 'Message',
     'compose.bodyPlaceholder': 'Drafting from your conversation...',
     'compose.fromLabel': 'Your email',
@@ -66,7 +66,7 @@ export const I18N_STRINGS = {
     'compose.refineInstructionPlaceholder': 'e.g. "shorter", "more formal", "mention I\'m a frontend dev"',
     'compose.send': 'Send to Duy',
     'compose.cancel': 'Cancel',
-    'compose.sentTitle': 'Sent — Duy will reply from his inbox.',
+    'compose.sentTitle': 'Message accepted for delivery. Duy can reply to your email.',
     'compose.sentBack': 'Back to chat',
     'compose.fallback': 'Send didn\'t go through. Open in your email app instead?',
     'compose.confirmNote': 'First-time submissions trigger a one-time confirmation email to Duy. After that, all messages route silently.',
@@ -120,8 +120,8 @@ export const I18N_STRINGS = {
     'cinema.takeaway': 'Takeaway',
 
     // Mailto / outbound
-    'mailto.subject': 'hello from michael.py',
-    'mailto.signature': '— sent from michael.py',
+    'mailto.subject': 'hello from leduy.py',
+    'mailto.signature': '— sent from leduy.py',
   },
   vi: {
     // Brand
@@ -180,7 +180,7 @@ export const I18N_STRINGS = {
     'compose.refineInstructionPlaceholder': 'ví dụ "ngắn gọn hơn", "trang trọng hơn", "nói rõ tôi là frontend dev"',
     'compose.send': 'Gửi đến Duy',
     'compose.cancel': 'Huỷ',
-    'compose.sentTitle': 'Đã gửi — Duy sẽ trả lời qua email.',
+    'compose.sentTitle': 'Đã tiếp nhận để gửi. Duy có thể trả lời qua email của bạn.',
     'compose.sentBack': 'Quay lại chat',
     'compose.fallback': 'Gửi không thành công. Mở trong ứng dụng email của bạn?',
     'compose.confirmNote': 'Lần đầu sẽ kích hoạt email xác nhận một lần đến Duy. Sau đó mọi tin nhắn sẽ được chuyển âm thầm.',

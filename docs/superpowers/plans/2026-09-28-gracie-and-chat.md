@@ -41,7 +41,7 @@
 
 ## Tasks
 
-### 1. Extract prompts and add fact-grounded playful assistant rules
+### Task 1: Extract prompts and add fact-grounded playful assistant rules
 
 - [ ] Move the existing `CHAT_PROMPT`, `COMPOSE_PROMPT`, and `REFINE_PROMPT` from `src/app/api/chat/route.ts` to `src/lib/chat/prompts.ts` without changing compose/refine semantics.
 - [ ] Add concise bilingual voice rules for dating/fuckboy teasing, mild reciprocal banter, political deflection, private-fact uncertainty, and third-person identity; retain the locale-specific assistant prefix.
@@ -49,14 +49,14 @@
 - [ ] Update `src/app/api/chat/route.ts` to compose the chat system message from persona and knowledge and import edit prompts unchanged.
 - [ ] Verify `git diff --check` and inspect the three prompt modes for accidental behavior changes.
 
-### 2. Probe real OpenRouter models and select a chain
+### Task 2: Probe real OpenRouter models and select a chain
 
 - [ ] Add `src/lib/chat/models.ts` with the current catalog candidates: Gemma 4 31B, Gemma 4 26B A4B, Qwen3.8 27B, and Nemotron 3.5 Lightning, all using their current `:free` IDs.
 - [ ] Add `scripts/evaluate-chat-models.ts`. It must require `OPENROUTER_API_KEY` from the process environment, send the same fixed factual, Vietnamese banter, relationship-uncertainty, profanity-boundary, and politics prompts to each candidate, and print only model ID, status, latency, and answer text.
 - [ ] Run the probe only after the user confirms the old key is revoked and a replacement is configured. Record scores for factual correctness, humor fit, Vietnamese naturalness, boundary behavior, and availability in the plan notes without saving the key or request headers.
 - [ ] Set `OPENROUTER_MODEL` default and ordered `MODEL_CHAIN` fallbacks to the best live-tested candidates; retain environment override support.
 
-### 3. Build the global companion and terminal handoff
+### Task 3: Build the global companion and terminal handoff
 
 - [ ] Implement `GracieSprite({ pose, reducedMotion })` in `src/components/pets/gracie-sprite.tsx` with original SVG shapes, clean accessible labeling, still reduced-motion pose, blink, ear, and body animations.
 - [ ] Implement `GracieCompanion` in `src/components/pets/gracie-companion.tsx` with single activation, 300 ms double activation, hover/focus guidance, explicit full-chat control, responsive placement, dismiss behavior, SSE streaming, retry-preserved drafts, and idle/greeting/thinking/ready/error poses.
@@ -64,7 +64,7 @@
 - [ ] Mount one launcher in `src/app/layout.tsx` on public routes, excluding `/admin` through route checking; keep z-index and offsets clear of the Mystery Box and SecretHint.
 - [ ] Add English and Vietnamese visible strings in `src/data/i18n-strings.ts`; use real buttons, labels, focus rings, and `aria-live` response status.
 
-### 4. Verify assistant and interaction behavior
+### Task 4: Verify assistant and interaction behavior
 
 - [ ] Run the real OpenRouter comparison with the rotated key and retain the chosen model results as a concise text artifact with secrets omitted.
 - [ ] Manually exercise quick-chat stream, network failure/retry, double activation, explicit terminal handoff, keyboard navigation, mobile viewport, and reduced motion in the local browser.

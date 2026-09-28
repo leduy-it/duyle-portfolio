@@ -131,7 +131,7 @@ export default function BlogHero() {
           <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em] text-[rgb(var(--accent))]">
             {intro.eyebrow}
           </p>
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-[rgb(var(--text-primary))] sm:text-5xl lg:text-6xl">
             {intro.title}
           </h1>
           <p className="mt-5 max-w-xl font-mono text-sm leading-relaxed text-[rgb(var(--text-secondary))] sm:text-base">

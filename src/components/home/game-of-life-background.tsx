@@ -1,29 +1,14 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { withAlpha } from '@/lib/motion/color'
 
 interface GameOfLifeBackgroundProps {
   color: string
   active?: boolean
   mobileLite?: boolean
   pauseWhenHidden?: boolean
-}
-
-function withAlpha(color: string, alpha: number) {
-  if (color.startsWith('rgb(')) {
-    return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`)
-  }
-  if (color.startsWith('#')) {
-    const hex = color.slice(1)
-    const value = hex.length === 3
-      ? hex.split('').map((p) => `${p}${p}`).join('')
-      : hex
-    const r = Number.parseInt(value.slice(0, 2), 16)
-    const g = Number.parseInt(value.slice(2, 4), 16)
-    const b = Number.parseInt(value.slice(4, 6), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-  return color
+  reducedMotion?: boolean
 }
 
 interface Marker {
@@ -38,6 +23,7 @@ export function GameOfLifeBackground({
   active = false,
   mobileLite = false,
   pauseWhenHidden = true,
+  reducedMotion = false,
 }: GameOfLifeBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -59,7 +45,7 @@ export function GameOfLifeBackground({
     let markers: Marker[] = []
     let raf = 0
     let lastFrame = 0
-    let startTs = performance.now()
+    const startTs = performance.now()
 
     const seedMarkers = () => {
       markers = Array.from({ length: markerCount }, () => ({
@@ -71,7 +57,7 @@ export function GameOfLifeBackground({
     }
 
     const resize = () => {
-      width = window.innerWidth
+      width = document.documentElement.clientWidth
       height = window.innerHeight
       dpr = Math.min(window.devicePixelRatio || 1, 2)
       canvas.width = Math.floor(width * dpr)
@@ -80,6 +66,11 @@ export function GameOfLifeBackground({
       canvas.style.height = `${height}px`
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       seedMarkers()
+      if (reducedMotion) {
+        ctx.clearRect(0, 0, width, height)
+        drawDotGrid()
+        drawCorners()
+      }
     }
 
     const drawDotGrid = () => {
@@ -150,8 +141,8 @@ export function GameOfLifeBackground({
     }
 
     const step = (ts: number) => {
-      raf = window.requestAnimationFrame(step)
       if (pauseWhenHidden && document.hidden) return
+      raf = window.requestAnimationFrame(step)
       if (ts - lastFrame < noiseInterval) return
       lastFrame = ts
       ctx.clearRect(0, 0, width, height)
@@ -163,12 +154,18 @@ export function GameOfLifeBackground({
 
     resize()
     window.addEventListener('resize', resize)
-    raf = window.requestAnimationFrame(step)
+    if (!reducedMotion) raf = window.requestAnimationFrame(step)
+    function visibility() {
+      window.cancelAnimationFrame(raf)
+      if (!document.hidden && !reducedMotion) raf = window.requestAnimationFrame(step)
+    }
+    document.addEventListener('visibilitychange', visibility)
     return () => {
       window.cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
+      document.removeEventListener('visibilitychange', visibility)
     }
-  }, [active, color, mobileLite, pauseWhenHidden])
+  }, [active, color, mobileLite, pauseWhenHidden, reducedMotion])
 
   return (
     <canvas

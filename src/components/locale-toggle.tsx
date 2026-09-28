@@ -9,7 +9,7 @@ export function LocaleToggle() {
     <div
       role="group"
       aria-label={t('locale.label')}
-      className="inline-flex items-center rounded-full border p-0.5"
+      className="locale-switch inline-flex items-center rounded-full border p-0.5"
       style={{
         borderColor: 'rgb(var(--border) / 0.6)',
         backgroundColor: 'rgb(var(--surface-overlay) / 0.6)',
@@ -31,7 +31,7 @@ export function LocaleToggle() {
         }}
       >
         <UkFlag />
-        EN
+        <span className="locale-label">EN</span>
       </button>
       <button
         type="button"
@@ -49,7 +49,7 @@ export function LocaleToggle() {
         }}
       >
         <VnFlag />
-        VI
+        <span className="locale-label">VI</span>
       </button>
     </div>
   )

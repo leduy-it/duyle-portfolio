@@ -11,7 +11,7 @@ const RANGES: { key: RangeKey; label: string }[] = [
   { key: '24h', label: 'last 24h' },
   { key: '7d', label: '7 days' },
   { key: '30d', label: '30 days' },
-  { key: 'all', label: 'all time' },
+  { key: 'all', label: 'retained history' },
 ]
 
 function fmtTs(ts: string): string {
@@ -41,10 +41,17 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
   return (
     <div
       className="rounded-lg border p-4 flex flex-col gap-1"
-      style={{ borderColor: 'rgb(var(--border) / 0.7)', backgroundColor: 'rgb(var(--surface-card) / 0.6)' }}
+      style={{
+        borderColor: 'rgb(var(--border) / 0.7)',
+        backgroundColor: 'rgb(var(--surface-card) / 0.6)',
+      }}
     >
-      <span className="text-[10px] uppercase tracking-[0.18em] text-[rgb(var(--text-muted))]">{label}</span>
-      <span className="text-2xl font-semibold tracking-tight text-[rgb(var(--text-primary))]">{value}</span>
+      <span className="text-[10px] uppercase tracking-[0.18em] text-[rgb(var(--text-muted))]">
+        {label}
+      </span>
+      <span className="text-2xl font-semibold tracking-tight text-[rgb(var(--text-primary))]">
+        {value}
+      </span>
       {sub && <span className="text-[11px] text-[rgb(var(--text-muted))]">{sub}</span>}
     </div>
   )
@@ -62,7 +69,12 @@ function BarChart({ data }: { data: { date: string; views: number; uniques: numb
 
   return (
     <div className="overflow-x-auto">
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="pageviews per day" className="w-full h-40 min-w-[480px]">
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        role="img"
+        aria-label="pageviews per day"
+        className="w-full h-40 min-w-[480px]"
+      >
         <line
           x1={padX}
           x2={w - padX}
@@ -78,7 +90,15 @@ function BarChart({ data }: { data: { date: string; views: number; uniques: numb
           const bw = Math.max(2, barW * 0.7)
           return (
             <g key={d.date}>
-              <rect x={x} y={y} width={bw} height={barH} fill="rgb(var(--accent))" opacity={0.85} rx={1.5}>
+              <rect
+                x={x}
+                y={y}
+                width={bw}
+                height={barH}
+                fill="rgb(var(--accent))"
+                opacity={0.85}
+                rx={1.5}
+              >
                 <title>{`${d.date} — ${d.views} views, ${d.uniques} uniques`}</title>
               </rect>
             </g>
@@ -112,14 +132,27 @@ function BarChart({ data }: { data: { date: string; views: number; uniques: numb
   )
 }
 
-function Section({ title, children, right }: { title: string; children: React.ReactNode; right?: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  right,
+}: {
+  title: string
+  children: React.ReactNode
+  right?: React.ReactNode
+}) {
   return (
     <section
       className="rounded-lg border p-4"
-      style={{ borderColor: 'rgb(var(--border) / 0.7)', backgroundColor: 'rgb(var(--surface-card) / 0.4)' }}
+      style={{
+        borderColor: 'rgb(var(--border) / 0.7)',
+        backgroundColor: 'rgb(var(--surface-card) / 0.4)',
+      }}
     >
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-[rgb(var(--text-muted))]">{title}</h2>
+        <h2 className="text-xs uppercase tracking-[0.2em] text-[rgb(var(--text-muted))]">
+          {title}
+        </h2>
         {right}
       </div>
       {children}
@@ -128,11 +161,12 @@ function Section({ title, children, right }: { title: string; children: React.Re
 }
 
 interface Props {
+  storageKind: string
   initialSummary: Summary
   initialEvents: TrackEvent[]
 }
 
-export function AdminDashboard({ initialSummary, initialEvents }: Props) {
+export function AdminDashboard({ initialSummary, initialEvents, storageKind }: Props) {
   const router = useRouter()
   const [summary, setSummary] = useState<Summary>(initialSummary)
   const [events, setEvents] = useState<TrackEvent[]>(initialEvents)
@@ -145,28 +179,36 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    setSelfTrack(window.localStorage.getItem('pf_admin_self') !== '1')
+    try {
+      setSelfTrack(window.localStorage.getItem('pf_admin_self') !== '1')
+    } catch {
+      /* storage denied */
+    }
   }, [])
 
-  const fetchSummary = useCallback(
-    async (r: RangeKey, contains: string) => {
-      setLoading(true)
-      setErr(null)
-      try {
-        const params = new URLSearchParams({ range: r })
-        if (contains.trim()) params.set('pathContains', contains.trim())
-        const res = await fetch(`/api/admin/summary?${params.toString()}`, { cache: 'no-store' })
-        if (!res.ok) throw new Error('not authorized')
-        const data = (await res.json()) as Summary
-        setSummary(data)
-      } catch {
-        setErr('failed to load summary')
-      } finally {
-        setLoading(false)
-      }
-    },
-    [],
-  )
+  const fetchSummary = useCallback(async (r: RangeKey, contains: string) => {
+    setLoading(true)
+    setErr(null)
+    try {
+      const params = new URLSearchParams({ range: r })
+      if (contains.trim()) params.set('pathContains', contains.trim())
+      const res = await fetch(`/api/admin/summary?${params.toString()}`, {
+        cache: 'no-store',
+      })
+      if (!res.ok)
+        throw new Error(
+          res.status === 404
+            ? 'Session expired. Sign in again.'
+            : 'Analytics storage is unavailable. Showing the last loaded data.'
+        )
+      const data = (await res.json()) as Summary
+      setSummary(data)
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : 'Could not load statistics.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current)
@@ -180,8 +222,11 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
 
   useEffect(() => {
     const id = window.setInterval(async () => {
+      if (document.hidden) return
       try {
-        const res = await fetch('/api/admin/events?limit=50', { cache: 'no-store' })
+        const res = await fetch('/api/admin/events?limit=50', {
+          cache: 'no-store',
+        })
         if (!res.ok) return
         const data = (await res.json()) as { events: TrackEvent[] }
         setEvents(data.events)
@@ -193,7 +238,10 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
   }, [])
 
   const onClear = useCallback(async () => {
-    const typed = typeof window !== 'undefined' ? window.prompt('Type "delete" to wipe all tracking data:') : null
+    const typed =
+      typeof window !== 'undefined'
+        ? window.prompt('Type "delete" to wipe all tracking data:')
+        : null
     if (typed !== 'delete') return
     const res = await fetch('/api/admin/clear', {
       method: 'POST',
@@ -243,7 +291,8 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
             <span>tracking</span>
           </h1>
           <p className="text-xs text-[rgb(var(--text-muted))] mt-1">
-            owner-only · {summary.totalEventsAllTime.toLocaleString()} total events tracked
+            owner-only · {summary.totalEventsAllTime.toLocaleString()} retained events ·{' '}
+            {storageKind}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -283,8 +332,15 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
         </div>
       </header>
 
+      <p className="mb-5 text-[11px] leading-relaxed text-[rgb(var(--text-muted))]">
+        Last 90 days, up to 10,000 events. Daily charts use UTC. Countries are approximate; direct
+        traffic has no referrer header.
+      </p>
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="flex gap-1 rounded-md border p-1" style={{ borderColor: 'rgb(var(--border-muted))' }}>
+        <div
+          className="flex gap-1 rounded-md border p-1"
+          style={{ borderColor: 'rgb(var(--border-muted))' }}
+        >
           {RANGES.map((r) => (
             <button
               key={r.key}
@@ -314,7 +370,10 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
       {empty ? (
         <div
           className="rounded-lg border p-10 text-center"
-          style={{ borderColor: 'rgb(var(--border) / 0.7)', backgroundColor: 'rgb(var(--surface-card) / 0.4)' }}
+          style={{
+            borderColor: 'rgb(var(--border) / 0.7)',
+            backgroundColor: 'rgb(var(--surface-card) / 0.4)',
+          }}
         >
           <p className="text-base text-[rgb(var(--text-primary))] mb-2">no visitors yet</p>
           <p className="text-xs text-[rgb(var(--text-muted))]">go share your link 👀</p>
@@ -358,10 +417,16 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
                       className="border-t"
                       style={{ borderColor: 'rgb(var(--border-muted) / 0.4)' }}
                     >
-                      <td className="py-1.5 truncate max-w-[220px]" title={p.path}>{p.path}</td>
+                      <td className="py-1.5 truncate max-w-[220px]" title={p.path}>
+                        {p.path}
+                      </td>
                       <td className="py-1.5 text-right tabular-nums">{p.views}</td>
-                      <td className="py-1.5 text-right tabular-nums text-[rgb(var(--text-muted))]">{p.uniques}</td>
-                      <td className="py-1.5 text-right text-[rgb(var(--text-muted))]">{fmtRelative(p.lastSeen)}</td>
+                      <td className="py-1.5 text-right tabular-nums text-[rgb(var(--text-muted))]">
+                        {p.uniques}
+                      </td>
+                      <td className="py-1.5 text-right text-[rgb(var(--text-muted))]">
+                        {fmtRelative(p.lastSeen)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -462,16 +527,25 @@ export function AdminDashboard({ initialSummary, initialEvents }: Props) {
                     className="border-t"
                     style={{ borderColor: 'rgb(var(--border-muted) / 0.4)' }}
                   >
-                    <td className="py-1.5 pr-3 text-[rgb(var(--text-muted))] whitespace-nowrap">{fmtTs(e.ts)}</td>
-                    <td className="py-1.5 pr-3 truncate max-w-[200px]" title={e.path}>{e.path}</td>
-                    <td className="py-1.5 pr-3 font-mono text-[rgb(var(--text-muted))]">{e.visitorId.slice(0, 8)}</td>
+                    <td className="py-1.5 pr-3 text-[rgb(var(--text-muted))] whitespace-nowrap">
+                      {fmtTs(e.ts)}
+                    </td>
+                    <td className="py-1.5 pr-3 truncate max-w-[200px]" title={e.path}>
+                      {e.path}
+                    </td>
+                    <td className="py-1.5 pr-3 font-mono text-[rgb(var(--text-muted))]">
+                      {e.visitorId.slice(0, 8)}
+                    </td>
                     <td className="py-1.5 pr-3">
                       {flagFor(e.country) || ''} {e.country || '—'}
                     </td>
                     <td className="py-1.5 pr-3">
                       {ua.browser} · {ua.os}
                     </td>
-                    <td className="py-1.5 truncate max-w-[160px] text-[rgb(var(--text-muted))]" title={e.referrer || ''}>
+                    <td
+                      className="py-1.5 truncate max-w-[160px] text-[rgb(var(--text-muted))]"
+                      title={e.referrer || ''}
+                    >
                       {e.referrer ? new URL(e.referrer, 'http://x').hostname : '(direct)'}
                     </td>
                   </tr>
