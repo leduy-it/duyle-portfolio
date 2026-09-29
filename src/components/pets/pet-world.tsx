@@ -10,7 +10,6 @@ import {
   warmEgg,
   placePet,
   collectFactory,
-  factoryYield,
   evolvePet,
   cheerPet,
 } from '@/lib/pets/progression'
@@ -18,6 +17,7 @@ import { PixelPet, PixelEgg } from './pixel-art'
 import { HabitatArt } from './habitat-art'
 import { PetArena } from './arena'
 import './pet-world.css'
+import { PetFactory } from './pet-factory'
 import { SourceGallery } from './source-gallery'
 
 const areas: { id: Area; en: string; vi: string; icon: string }[] = [
@@ -39,8 +39,7 @@ export function PetWorld() {
     [resetOpen, setResetOpen] = useState(false)
   const pet = save.pets.find((p) => p.id === save.selected) || save.pets[0],
     info = PETS[pet.species],
-    next = EVOLUTION[pet.stage],
-    yieldNow = factoryYield(save, now)
+    next = EVOLUTION[pet.stage]
   const habitatDrag = useRef<{
     id: string
     x: number
@@ -465,81 +464,14 @@ export function PetWorld() {
               </section>
             )}
             {save.area === 'factory' && (
-              <section className="pet-panel factory-panel">
-                <div className="pet-section-head">
-                  <div>
-                    <span className="pet-eyebrow">03 / MADE WITH TINY PAWS</span>
-                    <h2>{l('A very small business.', 'Một xưởng rất bé.')}</h2>
-                  </div>
-                  <span className="factory-status">
-                    <i className="pet-online-dot" /> {l('working', 'đang chạy')}
-                  </span>
-                </div>
-                <p className="pet-section-copy">
-                  {l(
-                    'Your friends keep making little treasures, even when you’re away. Up to 8 hours of good things, waiting for you.',
-                    'Các bạn vẫn làm ra kho báu khi bạn đi vắng. Tích lũy tối đa 8 tiếng, đợi bạn về nhận.'
-                  )}
-                </p>
-                <div className="factory-floor">
-                  {save.pets.slice(0, 6).map((p, i) => (
-                    <div
-                      className="factory-station"
-                      key={p.id}
-                      style={{ '--pet-delay': `${-i * 0.7}s` } as CSSProperties}
-                    >
-                      <span className="station-output">✧</span>
-                      <PixelPet species={p.species} stage={p.stage} follow />
-                      <div className="factory-desk">
-                        <i />
-                        <i />
-                        <i />
-                      </div>
-                      <strong>{PETS[p.species].name}</strong>
-                      <small>{PETS[p.species].drop}</small>
-                    </div>
-                  ))}
-                  <div className="factory-belt" aria-hidden="true">
-                    <span>✧</span>
-                    <span>◈</span>
-                    <span>✧</span>
-                    <span>◈</span>
-                    <span>✧</span>
-                  </div>
-                </div>
-                <div className="factory-collect">
-                  <div>
-                    <span className="pet-eyebrow">{l('READY TO COLLECT', 'ĐANG ĐỢI BẠN')}</span>
-                    <strong>
-                      {yieldNow.coins} <i>◈</i> <span>+</span> {yieldNow.materials} <i>✧</i>
-                    </strong>
-                    <small>
-                      {l(
-                        'One production cycle per minute. No streaks. No pressure.',
-                        'Mỗi phút một lượt. Không chuỗi ngày. Không áp lực.'
-                      )}
-                    </small>
-                  </div>
-                  <button
-                    type="button"
-                    className="pet-button primary"
-                    disabled={locked || !yieldNow.minutes}
-                    onClick={() => {
-                      const t = Date.now()
-                      update((s) => collectFactory(s, t))
-                      setNow(t)
-                      setNotice(
-                        l(
-                          'Treasures collected. Back to tiny business.',
-                          'Đã nhận kho báu. Tiếp tục làm việc bé xíu.'
-                        )
-                      )
-                    }}
-                  >
-                    {l('Collect the good stuff', 'Nhận kho báu')} ↗
-                  </button>
-                </div>
-              </section>
+              <PetFactory save={save} now={now} locked={locked} vi={vi}
+                onSelect={(id) => update(s => ({ ...s, selected: id }))}
+                onRecruit={() => update(s => ({ ...s, area: 'hatchery' }))}
+                onCollect={() => {
+                  const t = Date.now()
+                  update(s => collectFactory(s, t))
+                  setNow(t)
+                }} />
             )}
             {save.area === 'arena' && (
               <section className="pet-panel arena-panel">
@@ -601,6 +533,7 @@ export function PetWorld() {
           </div>
           <aside className="pet-sidebar">
             <section
+              id="pet-resident"
               className={`pet-resident-card ${reveal === pet.id ? 'is-celebrating' : ''}`}
               style={{ '--pet-tint': info.color } as CSSProperties}
             >

@@ -112,3 +112,8 @@ The earlier asset search was incomplete: it inspected portfolio-clone but missed
 - Lightweight dismissible hint after 90 seconds of foreground viewing, suppressed during quick chat and on Pets/admin; once per seven days per browser.
 - Only clicking the hint opens a validated companion deep link, selects the preview and highlights the explicit Set companion button. No automatic pet change.
 - Production build with lint/type validation passed.
+
+### Factory redesign — 2026-09-29
+- New responsive workshop with animated press, reactor, packing station and conveyor; pauses when storage is full and respects reduced motion.
+- Real per-pet production rates, minute-cycle countdown, eight-hour capacity meter, collection receipt, full crew roster and direct hatch/evolution actions.
+- Existing save schema and economy unchanged. Desktop/mobile screenshots inspected; mobile width 390/390. Local production build, lint and type validation passed.
