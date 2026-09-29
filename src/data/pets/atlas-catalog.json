@@ -1,0 +1,107 @@
+[
+  {
+    "id": "blip",
+    "name": "Blip",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "bot-3d-toy",
+    "name": "Sprocket Toy",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "bot-clay",
+    "name": "Sprocket Clay",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "bot-flat-vector",
+    "name": "Sprocket Vector",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "bot-pixel",
+    "name": "Sprocket Pixel",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "bot-plush",
+    "name": "Sprocket Plush",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "bot-sticker",
+    "name": "Sprocket Sticker",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "bunny",
+    "name": "Bunny",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "cobble",
+    "name": "Cobble",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "dewel",
+    "name": "Dewel",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "firetail",
+    "name": "Firetail",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "grove-evo",
+    "name": "Pip",
+    "file": "stage-1.webp"
+  },
+  {
+    "id": "inko",
+    "name": "Inko",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "kiln",
+    "name": "Kiln",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "mossback",
+    "name": "Mossback",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "nimbus",
+    "name": "Nimbus",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "pip",
+    "name": "Pip",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "sprig",
+    "name": "Sprig",
+    "file": "spritesheet.webp"
+  },
+  {
+    "id": "sprocket-evo",
+    "name": "Sprocket",
+    "file": "stage-1.webp"
+  },
+  {
+    "id": "volt",
+    "name": "Volt",
+    "file": "stage-1.webp"
+  },
+  {
+    "id": "wisp",
+    "name": "Wisp",
+    "file": "spritesheet.webp"
+  }
+]

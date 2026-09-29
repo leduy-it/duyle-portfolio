@@ -76,3 +76,12 @@ Detailed execution notes live in this plan's ignored `.superpowers/sdd` workspac
 - Additional home/Gracie Lighthouse check found undersized legacy terminal traffic-light buttons. Expanded their hit areas to 24px while retaining 12px dots.
 
 - Final home + open Gracie popup mobile Lighthouse snapshot: all four audited categories score 100 after expanding terminal controls. 320px width still has no overflow. Vercel CLI was rechecked and remains logged out.
+
+## Correction — original pet repository and animation, 2026-09-29
+
+The earlier asset search was incomplete: it inspected portfolio-clone but missed the owner's public hatch-pet-plus repository. Original assets are now copied unchanged from leduy-it/hatch-pet-plus commit 08265025817432bd58fb2ddcd9d2d002ad4c7e23. There are 21 pet packs/evolution lines in that tree (README says 19).
+
+- Replace the drawn SVG companion with the original blue Bunny atlas, nine animation lanes and sixteen directional look cells.
+- Pointer/touch drag with viewport bounds, saved position, left/right running poses and drag-click suppression. Keep single quick-chat and double-click terminal handoff.
+- Habitat, roster and arena use source atlases, preserving old save IDs. Gallery exposes every source pack and nine lanes; Volt's original evolved atlas is selectable. Only shipped source evolution art is used.
+- Confirmed live chat returns HTTP503 temporarily_unavailable because production has no Redis. Both clients now distinguish incomplete server setup from transport failure, preserving drafts. Redis and rotated OpenRouter key confirmation still required; no live model quality claim.

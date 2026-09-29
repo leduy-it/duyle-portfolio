@@ -18,6 +18,7 @@ import { PixelPet, PixelEgg } from './pixel-art'
 import { HabitatArt } from './habitat-art'
 import { PetArena } from './arena'
 import './pet-world.css'
+import { SourceGallery } from './source-gallery'
 
 const areas: { id: Area; en: string; vi: string; icon: string }[] = [
   { id: 'habitat', en: 'The habitat', vi: 'Ngôi nhà', icon: '⌂' },
@@ -629,17 +630,18 @@ export function PetWorld() {
             )}
           </aside>
         </div>
+        <SourceGallery vi={locale === 'vi'} />
         <footer className="pet-world-footer">
           <span>
             SMALL WORLD. BIG FEELINGS. <i>✳</i>
           </span>
           <p>
             {l(
-              'Original pet artwork, made for this portfolio.',
-              'Pet được vẽ riêng cho portfolio này.'
+              'Bunny and the animated gallery: Duy’s hatch-pet-plus.',
+              'Bunny và thư viện animation từ hatch-pet-plus của Duy.'
             )}{' '}
             <a
-              href="https://github.com/leduy-it/portfolio-clone"
+              href="https://github.com/leduy-it/hatch-pet-plus"
               target="_blank"
               rel="noopener noreferrer"
             >

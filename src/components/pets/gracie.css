@@ -620,3 +620,9 @@
     display: none;
   }
 }
+/* Original hatch-pet-plus atlas: each pose is a real frame, not an SVG bob. */
+.gracie-launcher { touch-action:none; user-select:none; cursor:grab; width:108px; }
+.gracie-launcher:active { cursor:grabbing; }
+.gracie-launcher:hover { transform:none; }
+.gracie-art.atlas-pet { min-height:0; }
+@media(max-width:640px) { .gracie-launcher { width:88px; } }

@@ -7,8 +7,14 @@ import { usePetSave } from '@/lib/pets/pet-save-provider'
 import { awardArenaWin } from '@/lib/pets/progression'
 import { useHomeMotionPreferences } from '@/components/home/home-motion'
 import { palette, pixels } from './pixel-art'
+import { petAppearance } from '@/lib/pets/appearance'
 
-function draw(ctx: CanvasRenderingContext2D, s: ArenaState, still: boolean) {
+function draw(
+  ctx: CanvasRenderingContext2D,
+  s: ArenaState,
+  still: boolean,
+  bunny?: HTMLImageElement
+) {
   ctx.imageSmoothingEnabled = false
   ctx.fillStyle = '#254b45'
   ctx.fillRect(0, 0, 640, 360)
@@ -64,10 +70,16 @@ function draw(ctx: CanvasRenderingContext2D, s: ArenaState, still: boolean) {
   }
   ctx.globalAlpha =
     s.player.invincible > 0 && !still ? 0.55 + 0.45 * Math.abs(Math.sin(s.time * 20)) : 1
-  const colors = palette(s.species)
-  for (const p of pixels(s.species)) {
-    ctx.fillStyle = colors[p.key] || colors.A
-    ctx.fillRect(x - 20 + p.x * 2, y - 29 + p.y * 2 + bob, 2, 2)
+  if (bunny?.complete && bunny.naturalWidth) {
+    const row = s.slash > 0 ? 4 : s.status === 'lost' ? 5 : 0
+    const frame = still ? 0 : Math.floor(s.time * 7) % (row === 4 ? 5 : row === 5 ? 8 : 6)
+    ctx.drawImage(bunny, frame * 192, row * 208, 192, 208, x - 30, y - 43, 60, 65)
+  } else {
+    const colors = palette(s.species)
+    for (const p of pixels(s.species)) {
+      ctx.fillStyle = colors[p.key] || colors.A
+      ctx.fillRect(x - 20 + p.x * 2, y - 29 + p.y * 2 + bob, 2, 2)
+    }
   }
   ctx.globalAlpha = 1
 }
@@ -106,6 +118,9 @@ export function PetArena({ pet, vi }: { pet: OwnedPet; vi: boolean }) {
   useEffect(() => {
     const ctx = canvas.current?.getContext('2d')
     if (!ctx) return
+    const bunny = new Image()
+    const appearance = petAppearance(pet.species, pet.stage)
+    bunny.src = `/pets/hatch-pet-plus/${appearance.pet}/${appearance.file}`
     const heldKeys = keys.current
     let frame = 0,
       previous = 0,
@@ -131,7 +146,7 @@ export function PetArena({ pet, vi }: { pet: OwnedPet; vi: boolean }) {
           updateRef.current((s) => awardArenaWin(s, pet.id, run.current))
         }
       } else accumulator = 0
-      draw(ctx!, game.current, prefersReducedMotion)
+      draw(ctx!, game.current, prefersReducedMotion, bunny)
       if (time - lastHud > 100) {
         setHud(game.current)
         lastHud = time
@@ -159,7 +174,7 @@ export function PetArena({ pet, vi }: { pet: OwnedPet; vi: boolean }) {
       document.removeEventListener('visibilitychange', visibility)
       window.removeEventListener('blur', blur)
     }
-  }, [pet.id, prefersReducedMotion])
+  }, [pet.id, pet.species, pet.stage, prefersReducedMotion])
   const inputKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' ']
   function control(key: string, label: string, glyph: string) {
     return (
