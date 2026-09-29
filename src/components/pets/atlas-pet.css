@@ -10,3 +10,41 @@
 .pet-source-card { margin:0; border:1px solid rgb(var(--border));border-radius:20px;background:rgb(var(--surface-card));padding:16px;text-align:center; }
 .pet-source-card .atlas-pet { max-width:160px;margin:auto; }
 .pet-source-card figcaption { margin-top:8px; }
+/* A specimen stage, with physical depth and a separate motion console. */
+.studio-heading { display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:24px; }
+.studio-heading h2 { font-family:Georgia,serif;font-size:clamp(30px,3.4vw,46px);letter-spacing:-1.5px;line-height:1.1;margin:12px 0 0;max-width:650px; }
+.studio-counter { font:italic 48px Georgia,serif;color:var(--pw-accent); }
+.studio-counter small { display:block;font:8px monospace;letter-spacing:2px;margin-top:8px; }
+.evolution-studio { display:grid;grid-template-columns:1.15fr 1fr;border:1px solid var(--pw-line);border-radius:28px;overflow:hidden;background:var(--pw-panel); }
+.studio-stage { min-height:500px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 60%,#34584e 0%,#122e2d 45%,#0b191c 85%);color:#eaf4d7;isolation:isolate; }
+.studio-stage::before { content:'';position:absolute;inset:0;background-image:radial-gradient(#b3ddb94d 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(#000,transparent 90%); }
+.studio-stage-top { position:absolute;top:22px;left:24px;right:24px;display:flex;justify-content:space-between;font-size:8px;letter-spacing:1.2px;color:#c1d5cf;z-index:2; }
+.studio-live { color:#c5e89e; }
+.studio-pet { position:absolute;width:260px;left:50%;top:70px;transform:translateX(-50%);z-index:3;animation:form-materialize 1s ease-out;filter:drop-shadow(0 12px 25px #0006); }
+.studio-platform { position:absolute;width:270px;height:75px;border:1px solid #cce9b44d;border-radius:50%;left:50%;top:322px;transform:translateX(-50%);background:radial-gradient(ellipse,#b7dca840,#76a18c0d 62%,transparent 65%);box-shadow:0 12px 0 -1px #081d1e,0 13px 0 0 #a5cb9333,0 23px 50px #0004; }
+.studio-orbit { position:absolute;left:50%;top:220px;width:340px;height:340px;margin:-170px;border:1px solid #b1d6bb20;border-radius:50%;transform:rotateX(55deg) rotate(-20deg); }
+.orbit-two { width:400px;height:400px;margin:-200px;transform:rotateY(50deg) rotate(30deg);border-style:dashed;animation:orbit-drift 30s linear infinite; }
+.studio-stage-caption { position:absolute;bottom:28px;left:24px;right:24px;text-align:center;display:grid;gap:9px; }
+.studio-stage-caption>span {font-size:8px;letter-spacing:3px;color:#acc7b7;}
+.studio-stage-caption strong { font:36px Georgia,serif; }
+.studio-stage-caption small { font-size:9px;color:#b9d2c5; }
+.studio-spark { position:absolute;color:#e7d79a;animation:studio-twinkle 3s ease-in-out infinite; }.spark-a{left:20%;top:32%;font-size:28px;}.spark-b{right:18%;top:53%;font-size:17px;animation-delay:1s;}
+.studio-console {padding:32px;}.studio-console h3{font:38px Georgia,serif;margin:14px 0;display:flex;justify-content:space-between;}.studio-console h3>span{color:#b99b61;font-size:27px;}.studio-console>p{font-size:11px;max-width:390px;margin-bottom:20px;}
+.evolution-forms {display:flex;flex-direction:column;gap:8px;}.evolution-forms button{display:flex;align-items:center;gap:12px;text-align:left;padding:7px 12px;border:1px solid var(--pw-line);border-radius:14px;background:transparent;color:var(--pw-text);cursor:pointer;}.evolution-forms button[aria-pressed=true]{background:var(--pw-raised);border-color:var(--pw-accent);}.evolution-forms .atlas-pet{width:48px;flex-shrink:0;}.evolution-forms button>span{display:grid;gap:5px;flex:1;}.evolution-forms small{font-size:8px;letter-spacing:1px;color:var(--pw-muted);}.evolution-forms strong{font-size:12px;}.evolution-forms b{font-size:11px;color:var(--pw-accent);}
+.studio-evolve{width:100%;display:flex;justify-content:space-between;margin-top:15px;padding:15px 18px;border:0;border-radius:12px;background:var(--pw-accent);color:var(--pw-on-accent);font-size:12px;cursor:pointer;}.studio-evolve:hover{filter:brightness(1.08);}.studio-lines{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;}.studio-lines button{border:0;background:transparent;color:var(--pw-text);font-size:10px;cursor:pointer;padding:6px;}.studio-lines span{display:block;font-size:8px;margin-top:4px;color:var(--pw-muted);}.studio-lines button[aria-pressed=true]{border-bottom:1px solid var(--pw-accent);}.studio-unbuilt{padding:14px;border:1px dashed var(--pw-line);border-radius:12px;}
+.studio-motion-bar{display:flex;gap:22px;align-items:center;padding:15px 0;border-bottom:1px solid var(--pw-line);}.studio-motion-bar>span{font-size:8px;letter-spacing:2px;white-space:nowrap;}.studio-motion-bar .pet-source-controls{margin:0;gap:6px;}.studio-motion-bar button{font-size:9px;padding:8px 12px;}
+.studio-roster-heading{display:flex;justify-content:space-between;gap:20px;align-items:center;margin:28px 0 20px;}.studio-roster-heading h3{font:24px Georgia,serif;margin:0;}.studio-roster-heading a{font-size:10px;color:var(--pw-muted);}
+.pet-source-card{cursor:pointer;position:relative;color:var(--pw-text);transition:transform .2s,border-color .2s;background:var(--pw-panel);border-color:var(--pw-line);}.pet-source-card:hover{transform:translateY(-5px);border-color:var(--pw-accent);}.pet-source-card[aria-pressed=true]{border-color:var(--pw-accent);background:var(--pw-raised);}.pet-source-card>strong,.pet-source-card>small{display:block;}.pet-source-card>strong{font:17px Georgia,serif;margin-top:8px;}.pet-source-card>small{font-size:8px;margin-top:7px;color:var(--pw-muted);}.specimen-no{display:flex;justify-content:space-between;font-size:8px;color:var(--pw-muted);}.specimen-no i{font-style:normal;color:var(--pw-accent);font-size:7px;letter-spacing:1px;}
+@keyframes form-materialize{0%{filter:brightness(0) invert(1) drop-shadow(0 0 40px #efffc7);opacity:.2;transform:translateX(-50%) scale(.82)}45%{filter:brightness(0) invert(1) drop-shadow(0 0 20px #efffc7);opacity:1}100%{filter:drop-shadow(0 12px 25px #0006);transform:translateX(-50%) scale(1)}}
+@keyframes orbit-drift{to{transform:rotateY(50deg) rotate(390deg)}}@keyframes studio-twinkle{50%{opacity:.3;transform:translateY(-9px) rotate(20deg)}}
+@media(max-width:700px){.evolution-studio{grid-template-columns:1fr;}.studio-stage{min-height:420px;}.studio-pet{width:220px;top:48px;}.studio-platform{top:255px;width:230px;}.studio-stage-caption{bottom:22px;}.studio-console{padding:24px;}.studio-counter{display:none;}.studio-motion-bar{display:block;}.studio-motion-bar>span{display:block;margin-bottom:12px;}.pet-source-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}.pet-source-card{padding:12px;}.studio-roster-heading{align-items:start;}.studio-heading h2{font-size:32px;}}
+@media(prefers-reduced-motion:reduce){.studio-pet,.studio-orbit,.studio-spark{animation:none;}.pet-source-card{transition:none;}}
+.pet-source-gallery{scroll-margin-top:92px;}
+.evolution-forms button>.atlas-pet{flex:0 0 48px;width:48px;display:block;gap:0;}
+.evolution-forms button>span:not(.atlas-pet){flex:1;}
+.inko-recommend{display:flex;align-items:center;gap:18px;width:100%;padding:12px 22px;margin-bottom:20px;text-align:left;border:1px solid var(--pw-line);border-radius:18px;background:var(--pw-raised);color:var(--pw-text);cursor:pointer;}.inko-recommend>.atlas-pet{width:70px;flex:0 0 70px;}.inko-recommend>span{display:grid;gap:7px;flex:1;}.inko-recommend small{font-size:7px;letter-spacing:2px;color:var(--pw-accent);}.inko-recommend strong{font:25px Georgia,serif;}.inko-recommend span>span{font-size:10px;color:var(--pw-muted);}.inko-recommend>b{font-size:22px;}.set-companion{display:flex;width:100%;justify-content:space-between;gap:10px;padding:14px 16px;margin-top:14px;background:var(--pw-text);color:var(--pw-bg);border:0;border-radius:12px;font-size:11px;cursor:pointer;}.set-companion:hover{opacity:.85;}
+.pet-source-controls button[aria-pressed=true]{background:var(--pw-accent);color:var(--pw-on-accent);}
+/* A sprite cell must never inherit the old SVG's independently fixed height. */
+.atlas-pet.pixel-pet{height:auto!important;aspect-ratio:192 / 208;flex-shrink:0;}
+.pet-heading-stamp>.atlas-pet{padding:0;border:0;background-color:transparent;}
+.resident-portrait>.atlas-pet{align-self:center;}

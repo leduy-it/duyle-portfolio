@@ -13,10 +13,14 @@ const lanes: Record<GraciePose, PetLane> = {
   waiting: 'waiting',
 }
 export function GracieSprite({
+  pet = 'bunny',
+  file = 'spritesheet.webp',
   pose = 'idle',
   reducedMotion = false,
   className = '',
 }: {
+  pet?: string
+  file?: string
   pose?: GraciePose
   stage?: number
   reducedMotion?: boolean
@@ -24,7 +28,8 @@ export function GracieSprite({
 }) {
   return (
     <AtlasPet
-      pet="bunny"
+      pet={pet}
+      file={file}
       lane={lanes[pose]}
       reducedMotion={reducedMotion}
       follow

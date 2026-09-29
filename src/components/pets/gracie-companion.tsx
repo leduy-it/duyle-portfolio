@@ -11,9 +11,11 @@ import { usePetSave } from '@/lib/pets/pet-save-provider'
 import { useCompanionPreference } from '@/lib/pets/companion-preference'
 import { GracieSprite, type GraciePose } from './gracie-sprite'
 import './gracie.css'
+import { useCompanionSelection } from '@/lib/pets/companion-selection'
 import { chatResponseError, chatErrorMessage } from '@/lib/chat/errors'
 
 export function GracieCompanion() {
+  const companion = useCompanionSelection()
   const pathname = usePathname()
   const router = useRouter()
   const { locale } = useLocale()
@@ -184,7 +186,9 @@ export function GracieCompanion() {
       className="gracie-companion"
       data-open={open}
       style={
-        position ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' } : undefined
+        position && !open
+          ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' }
+          : undefined
       }
     >
       {open && (
@@ -193,25 +197,13 @@ export function GracieCompanion() {
           role="dialog"
           aria-label={vi ? 'Chat nhanh với Gracie' : 'Quick chat with Gracie'}
           className="gracie-chat"
-          style={
-            position
-              ? {
-                  position: 'fixed',
-                  left: Math.max(12, Math.min(window.innerWidth - 362, position.x - 240)),
-                  right: 'auto',
-                  top: Math.max(12, position.y - 460),
-                  bottom: 'auto',
-                  maxHeight: `calc(100dvh - ${Math.max(12, position.y - 460) + 12}px)`,
-                }
-              : undefined
-          }
         >
           <header className="gracie-chat-header">
             <div>
               <span className="gracie-kicker">
-                <i /> GRACIE.OS
+                <i /> {companion.name.toUpperCase()}.OS
               </span>
-              <h2>{vi ? 'Thỏ nhỏ, chuyện lớn.' : 'Small bunny. Big opinions.'}</h2>
+              <h2>{vi ? `${companion.name}, chuyện lớn.` : `${companion.name}. Big opinions.`}</h2>
             </div>
             <button
               type="button"
@@ -237,8 +229,8 @@ export function GracieCompanion() {
                 <span className="gracie-wave">✦</span>
                 <p>
                   {vi
-                    ? 'Mình là Gracie, trợ lý kiêm đội hóng chuyện của Duy.'
-                    : 'I’m Gracie, Duy’s sidekick and unofficial gossip filter.'}
+                    ? `Mình là ${companion.name}, trợ lý kiêm đội hóng chuyện của Duy.`
+                    : `I’m ${companion.name}, Duy’s sidekick and unofficial gossip filter.`}
                 </p>
                 <small>
                   {vi
@@ -337,10 +329,10 @@ export function GracieCompanion() {
           }}
           aria-label={
             vi
-              ? 'Ẩn Gracie. Bật lại bằng nút thỏ trên thanh menu.'
-              : 'Hide Gracie. Show again with the bunny switch in the header.'
+              ? `Ẩn ${companion.name}. Bật lại bằng nút pet trên thanh menu.`
+              : `Hide ${companion.name}. Show again with the pet switch in the header.`
           }
-          title={vi ? 'Ẩn Gracie' : 'Hide Gracie'}
+          title={vi ? `Ẩn ${companion.name}` : `Hide ${companion.name}`}
         >
           ×
         </button>
@@ -397,18 +389,22 @@ export function GracieCompanion() {
             drag.current = null
             setDragPose(null)
           }}
-          aria-label={vi ? 'Gracie — mở chat nhanh' : 'Gracie — open quick chat'}
+          aria-label={
+            vi ? `${companion.name} — mở chat nhanh` : `${companion.name} — open quick chat`
+          }
           aria-expanded={open}
           aria-controls="gracie-chat"
           aria-describedby="gracie-hint"
         >
           <GracieSprite
+            pet={companion.pet.id}
+            file={companion.file}
             stage={stage}
             pose={dragPose || (busy ? 'thinking' : open && pose === 'idle' ? 'waiting' : pose)}
             reducedMotion={prefersReducedMotion}
           />
           <span className="gracie-name">
-            <i /> Gracie
+            <i /> {companion.name}
           </span>
         </button>
       </div>

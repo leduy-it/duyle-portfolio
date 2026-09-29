@@ -2,106 +2,343 @@
   {
     "id": "blip",
     "name": "Blip",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Blip \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Blip",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "bot-3d-toy",
     "name": "Sprocket Toy",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Sprocket Toy \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Sprocket Toy",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "bot-clay",
     "name": "Sprocket Clay",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Sprocket Clay \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Sprocket Clay",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "bot-flat-vector",
     "name": "Sprocket Vector",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Sprocket Vector \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Sprocket Vector",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "bot-pixel",
     "name": "Sprocket Pixel",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Sprocket Pixel \u2014 a pixel-art robot Codex pet.",
+    "stages": [
+      {
+        "name": "Sprocket Pixel",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "bot-plush",
     "name": "Sprocket Plush",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Sprocket Plush \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Sprocket Plush",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "bot-sticker",
     "name": "Sprocket Sticker",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Sprocket Sticker \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Sprocket Sticker",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "bunny",
     "name": "Bunny",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Bunny \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Bunny",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "cobble",
     "name": "Cobble",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Cobble \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Cobble",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "dewel",
     "name": "Dewel",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Dewel \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Dewel",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "firetail",
     "name": "Firetail",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Firetail \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Firetail",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "grove-evo",
     "name": "Pip",
-    "file": "stage-1.webp"
+    "file": "stage-1.webp",
+    "description": "Pip \u2014 a sprout that grows, as you do, from a seedling into a mossy grove-creature.",
+    "stages": [
+      {
+        "minLevel": 0,
+        "name": "Pip",
+        "spritesheetPath": "stage-1.webp",
+        "attributes": {
+          "type": "leaf",
+          "hp": 40,
+          "atk": 34,
+          "def": 42,
+          "spd": 40
+        }
+      },
+      {
+        "minLevel": 12,
+        "name": "Mossback",
+        "spritesheetPath": "stage-2.webp",
+        "attributes": {
+          "type": "leaf",
+          "hp": 68,
+          "atk": 52,
+          "def": 74,
+          "spd": 44
+        }
+      }
+    ]
   },
   {
     "id": "inko",
     "name": "Inko",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Inko \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Inko",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "kiln",
     "name": "Kiln",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Kiln \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Kiln",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "mossback",
     "name": "Mossback",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Mossback \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Mossback",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "nimbus",
     "name": "Nimbus",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Nimbus \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Nimbus",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "pip",
     "name": "Pip",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Pip \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Pip",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "sprig",
     "name": "Sprig",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Sprig \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Sprig",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   },
   {
     "id": "sprocket-evo",
     "name": "Sprocket",
-    "file": "stage-1.webp"
+    "file": "stage-1.webp",
+    "description": "Sprocket \u2014 a desk robot that upgrades its own graphics the more you code. It evolves by re-rendering itself at higher fidelity.",
+    "stages": [
+      {
+        "minLevel": 0,
+        "name": "Sprocket 8-bit",
+        "spritesheetPath": "stage-1.webp",
+        "attributes": {
+          "type": "machine",
+          "hp": 38,
+          "atk": 42,
+          "def": 34,
+          "spd": 46
+        }
+      },
+      {
+        "minLevel": 8,
+        "name": "Sprocket Vector",
+        "spritesheetPath": "stage-2.webp",
+        "attributes": {
+          "type": "machine",
+          "hp": 52,
+          "atk": 58,
+          "def": 48,
+          "spd": 60
+        }
+      },
+      {
+        "minLevel": 20,
+        "name": "Sprocket HD",
+        "spritesheetPath": "stage-3.webp",
+        "attributes": {
+          "type": "machine",
+          "hp": 74,
+          "atk": 82,
+          "def": 68,
+          "spd": 78
+        }
+      }
+    ]
   },
   {
     "id": "volt",
     "name": "Volt",
-    "file": "stage-1.webp"
+    "file": "stage-1.webp",
+    "description": "Volt \u2014 an evolving electric-type Codex pet. Reaches level 10 to become Anodane.",
+    "stages": [
+      {
+        "minLevel": 0,
+        "name": "Volt",
+        "spritesheetPath": "stage-1.webp",
+        "attributes": {
+          "type": "electric",
+          "hp": 50,
+          "atk": 58,
+          "def": 46,
+          "spd": 48
+        }
+      },
+      {
+        "minLevel": 10,
+        "name": "Anodane",
+        "spritesheetPath": "stage-2.webp",
+        "attributes": {
+          "type": "electric",
+          "hp": 68,
+          "atk": 90,
+          "def": 62,
+          "spd": 65
+        }
+      }
+    ]
   },
   {
     "id": "wisp",
     "name": "Wisp",
-    "file": "spritesheet.webp"
+    "file": "spritesheet.webp",
+    "description": "Wisp \u2014 a Codex pet.",
+    "stages": [
+      {
+        "name": "Wisp",
+        "minLevel": 0,
+        "spritesheetPath": "spritesheet.webp"
+      }
+    ]
   }
 ]

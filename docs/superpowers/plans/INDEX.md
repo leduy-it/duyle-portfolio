@@ -85,3 +85,11 @@ The earlier asset search was incomplete: it inspected portfolio-clone but missed
 - Pointer/touch drag with viewport bounds, saved position, left/right running poses and drag-click suppression. Keep single quick-chat and double-click terminal handoff.
 - Habitat, roster and arena use source atlases, preserving old save IDs. Gallery exposes every source pack and nine lanes; Volt's original evolved atlas is selectable. Only shipped source evolution art is used.
 - Confirmed live chat returns HTTP503 temporarily_unavailable because production has no Redis. Both clients now distinguish incomplete server setup from transport failure, preserving drafts. Redis and rotated OpenRouter key confirmation still required; no live model quality claim.
+
+### Additional owner corrections
+
+- Add Evolution Studio with original form previews for Volt, Grove and Sprocket; no invented form artwork. Preview does not spend currency or alter save progress.
+- Replace the “HOME SWEET HOME / The meadow is awake” section with an integrated scene, floating Grove/Dusk/Moon controls and draggable habitat residents.
+- Opening chat docks the mascot next to the popup without covering it; closing restores its free-drag position.
+- Every source pack/form can be selected as the sitewide companion; recommend Inko. Persist the selection independently from world progress and retain the visibility preference.
+- Screenshot inspection found legacy SVG rules stretching atlas portraits (e.g. 110×145 instead of 110×119.17). Atlas portraits now enforce their source cell aspect ratio; homepage companion measured 108×117, exactly 192:208.

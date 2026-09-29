@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { useLocale } from '@/lib/i18n'
 import { usePetSave } from '@/lib/pets/pet-save-provider'
@@ -31,6 +31,7 @@ export function PetWorld() {
     vi = locale === 'vi',
     l = (en: string, vn: string) => (vi ? vn : en)
   const { save, storage, update, reset } = usePetSave()
+  const [scene, setScene] = useState<'grove' | 'dusk' | 'moon'>('grove')
   const [now, setNow] = useState(0),
     [notice, setNotice] = useState(''),
     [placing, setPlacing] = useState(false),
@@ -40,6 +41,14 @@ export function PetWorld() {
     info = PETS[pet.species],
     next = EVOLUTION[pet.stage],
     yieldNow = factoryYield(save, now)
+  const habitatDrag = useRef<{
+    id: string
+    x: number
+    y: number
+    moved: boolean
+    slot: number
+  } | null>(null)
+  const habitatClick = useRef(false)
   const locked = storage === 'loading' || storage === 'newer'
   const canEvolve =
     next && pet.xp >= next.xp && save.coins >= next.coins && save.materials >= next.materials
@@ -112,19 +121,20 @@ export function PetWorld() {
               <i className="pet-online-dot" /> THE POCKET WORLD · EST. 2026
             </span>
             <h1>
-              {l('Little lives.', 'Những bạn nhỏ.')}
-              <br />
-              <em>{l('Big adventures.', 'Chuyến đi lớn.')}</em>
+              {l('Pocket', 'Pocket')} <em>World.</em>
               <span className="pet-title-star" aria-hidden="true">
                 ✳
               </span>
             </h1>
             <p>
               {l(
-                'A cozy corner of the internet, quietly doing its own thing. Drop in. Hatch a friend. Cause a little chaos.',
-                'Một góc internet vẫn đang sống mỗi ngày. Ghé chơi, ấp một bạn mới, rồi quậy một chút.'
+                'A tiny universe. A very real attachment.',
+                'Một vũ trụ nhỏ. Thương thì rất thật.'
               )}
             </p>
+            <a className="studio-jump" href="#evolution-studio">
+              {l('Enter the evolution studio', 'Ghé phòng tiến hóa')} <span>↗</span>
+            </a>
           </div>
           <div className="pet-heading-stamp">
             <PixelPet species="gracie" stage={1} />
@@ -184,21 +194,47 @@ export function PetWorld() {
         <div className="pet-main-grid">
           <div className="pet-main-area" aria-busy={locked}>
             {save.area === 'habitat' && (
-              <section className="pet-panel habitat-panel">
-                <div className="pet-section-head">
-                  <div>
-                    <span className="pet-eyebrow">01 / HOME SWEET HOME</span>
-                    <h2>{l('The meadow is awake.', 'Đồng cỏ thức rồi.')}</h2>
-                  </div>
-                  <span className="pet-weather">
-                    ☀ 24° <span>{l('always spring', 'mãi là xuân')}</span>
-                  </span>
-                </div>
+              <section className="pet-panel habitat-panel" data-scene={scene}>
                 <div className={`pet-habitat ${placing ? 'is-placing' : ''}`}>
                   <HabitatArt />
-                  <div className="habitat-badge">
-                    <i className="pet-online-dot" />
-                    {l('A world already in motion', 'Thế giới vẫn đang chạy')}
+                  <div className="scene-atmosphere" aria-hidden="true">
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <i
+                        key={i}
+                        style={{
+                          left: `${7 + i * 7.5}%`,
+                          top: `${16 + ((i * 17) % 65)}%`,
+                          animationDelay: `${-i * 0.7}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div className="scene-title">
+                    <span>YOUR LITTLE UNIVERSE</span>
+                    <h2>
+                      {scene === 'grove'
+                        ? 'Bunny Grove'
+                        : scene === 'dusk'
+                          ? 'Amber Hour'
+                          : 'Moon Garden'}
+                    </h2>
+                    <small>
+                      {save.pets.length} {l('friends at home', 'bạn nhỏ ở nhà')} ·{' '}
+                      {l('drag to rearrange', 'kéo thả để sắp xếp')}
+                    </small>
+                  </div>
+                  <div className="scene-switch" aria-label={l('Change scenery', 'Đổi khung cảnh')}>
+                    {(['grove', 'dusk', 'moon'] as const).map((value, i) => (
+                      <button
+                        key={value}
+                        aria-pressed={scene === value}
+                        onClick={() => setScene(value)}
+                        title={['Bunny Grove', 'Amber Hour', 'Moon Garden'][i]}
+                      >
+                        {['☀', '◒', '☾'][i]}
+                        <span>{['Grove', 'Dusk', 'Moon'][i]}</span>
+                      </button>
+                    ))}
                   </div>
                   <div className="habitat-slots">
                     {Array.from({ length: 12 }, (_, slot) => (
@@ -226,7 +262,59 @@ export function PetWorld() {
                       key={p.id}
                       type="button"
                       disabled={placing || locked}
-                      onClick={() => update((s) => ({ ...s, selected: p.id }))}
+                      onClick={() => {
+                        if (habitatClick.current) {
+                          habitatClick.current = false
+                          return
+                        }
+                        update((s) => ({ ...s, selected: p.id }))
+                      }}
+                      onPointerDown={(e) => {
+                        if (e.button !== 0) return
+                        habitatDrag.current = {
+                          id: p.id,
+                          x: e.clientX,
+                          y: e.clientY,
+                          moved: false,
+                          slot: p.slot,
+                        }
+                        e.currentTarget.setPointerCapture(e.pointerId)
+                      }}
+                      onPointerMove={(e) => {
+                        const d = habitatDrag.current
+                        if (!d || d.id !== p.id) return
+                        if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return
+                        d.moved = true
+                        habitatClick.current = true
+                        const r = e.currentTarget.parentElement!.getBoundingClientRect()
+                        const x = Math.max(
+                            10,
+                            Math.min(90, ((e.clientX - r.left) / r.width) * 100)
+                          ),
+                          y = Math.max(36, Math.min(83, ((e.clientY - r.top) / r.height) * 100))
+                        d.slot =
+                          Math.max(0, Math.min(3, Math.round((x - 19) / 20))) +
+                          4 * Math.max(0, Math.min(2, Math.round((y - 42) / 18)))
+                        e.currentTarget.style.left = `${x}%`
+                        e.currentTarget.style.top = `${y}%`
+                        e.currentTarget.dataset.dragging = 'true'
+                      }}
+                      onPointerUp={(e) => {
+                        const d = habitatDrag.current
+                        if (d?.moved) {
+                          update((s) => placePet({ ...s, selected: p.id }, p.id, d.slot))
+                          e.currentTarget.style.left = `${19 + (d.slot % 4) * 20}%`
+                          e.currentTarget.style.top = `${42 + Math.floor(d.slot / 4) * 18}%`
+                        }
+                        delete e.currentTarget.dataset.dragging
+                        habitatDrag.current = null
+                      }}
+                      onPointerCancel={(e) => {
+                        e.currentTarget.style.left = `${19 + (p.slot % 4) * 20}%`
+                        e.currentTarget.style.top = `${42 + Math.floor(p.slot / 4) * 18}%`
+                        delete e.currentTarget.dataset.dragging
+                        habitatDrag.current = null
+                      }}
                       className={`habitat-pet ${save.selected === p.id ? 'is-selected' : ''} ${reveal === p.id ? 'is-celebrating' : ''}`}
                       style={
                         {
@@ -258,8 +346,8 @@ export function PetWorld() {
                     </strong>
                     <p>
                       {l(
-                        'Pick a friend. Give them a favorite spot.',
-                        'Chọn một bạn rồi tìm một góc yêu thích.'
+                        'Drag a friend anywhere in the meadow.',
+                        'Kéo thả bạn nhỏ vào một góc đồng cỏ.'
                       )}
                     </p>
                   </div>
