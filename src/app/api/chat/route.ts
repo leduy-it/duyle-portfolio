@@ -149,7 +149,7 @@ export async function POST(request: Request) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
           'HTTP-Referer': process.env.SITE_URL || 'https://github.com/leduy-it/duyle-portfolio',
-          'X-Title': 'Duy Le Portfolio — Gracie',
+          'X-Title': 'Duy Le Portfolio - Gracie',
         },
         body: JSON.stringify({
           model,

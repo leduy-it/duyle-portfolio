@@ -123,3 +123,5 @@ The earlier asset search was incomplete: it inspected portfolio-clone but missed
 - Live key valid. Ling Flash short Vietnamese answer 0.99s; Gemma 31B 1.5s. Qwen, Liquid, Gemma 26B and Laguna hit upstream 429; Inkling restricted to agentic harnesses; Nemotron timed out. Free router returned no usable answer in probes.
 - Prefer Ling, Gemma, then free-only router fallback. Ten-second provider attempts, 35-second total deadline; disable optional reasoning and retry empty nonstream responses.
 - Remove obsolete contact confirmation text. Explain delivery_unconfigured and preserve mailto draft. RESEND_API_KEY and CONTACT_FROM_EMAIL still required.
+
+- Root cause found for portfolio requests failing before provider calls: non-ByteString em dash in X-Title caused Node Headers TypeError. Replaced with ASCII. Exact production prompt succeeded via Ling in 2.38s; Gemma pool temporarily 429.
