@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminConfigured, buildAdminCookie, passphraseMatches } from '@/lib/tracking/admin-auth'
-import { allowRequest, requestIdentity, sameOrigin } from '@/lib/server/redis'
+import { allowRequest, requestIdentity, sameOrigin, redisConfigured } from '@/lib/server/redis'
 export const runtime = 'nodejs'
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req))
     return NextResponse.json({ ok: false, error: 'invalid_origin' }, { status: 403 })
   if (!adminConfigured())
     return NextResponse.json({ ok: false, error: 'admin_unconfigured' }, { status: 503 })
+  if (process.env.NODE_ENV === 'production' && !redisConfigured())
+    return NextResponse.json({ ok: false, error: 'storage_unconfigured' }, { status: 503 })
   if (Number(req.headers.get('content-length')) > 1024)
     return NextResponse.json({ ok: false, error: 'bad_request' }, { status: 400 })
   try {

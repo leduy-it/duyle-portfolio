@@ -172,13 +172,15 @@ export function PixelPet({
   species,
   stage = 0,
   className = '',
+  follow = false,
 }: {
   species: Species
   stage?: number
   className?: string
+  follow?: boolean
 }) {
   const appearance = petAppearance(species, stage)
-  return <AtlasPet {...appearance} className={`pixel-pet ${className}`} />
+  return <AtlasPet {...appearance} follow={follow} className={`pixel-pet ${className}`} />
 }
 export function PixelEgg({
   color = '#b8deac',

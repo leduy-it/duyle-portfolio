@@ -40,7 +40,7 @@ export const I18N_STRINGS = {
     'hero.pixelCaption': 'pixel.portrait / leduy.py',
 
     // Terminal chat
-    'chat.statusOnline': 'Duy\'s agent is online.',
+    'chat.statusOnline': 'Chat session opened.',
     'chat.banner': 'Ask anything about Duy\'s work, stack, or the cinema wall. I answer in a few sentences.',
     'chat.agentPrefix': "[Duy's agent]",
     'chat.placeholder': 'Ask me anything...',
@@ -154,7 +154,7 @@ export const I18N_STRINGS = {
     'hero.pixelCaption': 'pixel.portrait / leduy.py',
 
     // Terminal chat — STATUS: prefix + bracket prefix stay English-styled
-    'chat.statusOnline': 'Duy\'s agent is online.',
+    'chat.statusOnline': 'Đã mở phiên trò chuyện.',
     'chat.banner': 'Hỏi tôi bất cứ điều gì về công việc, stack, hay danh sách phim của Duy. Tôi trả lời trong vài câu.',
     'chat.agentPrefix': '[Duy\'s agent]',
     'chat.placeholder': 'Hỏi tôi bất cứ điều gì...',

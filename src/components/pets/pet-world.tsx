@@ -328,7 +328,7 @@ export function PetWorld() {
                         `Chọn ${PETS[p.species].name}`
                       )}
                     >
-                      <PixelPet species={p.species} stage={p.stage} />
+                      <PixelPet species={p.species} stage={p.stage} follow />
                       <span>
                         {PETS[p.species].name}
                         {p.stage > 0 ? ' ✦' : ''}
@@ -489,7 +489,7 @@ export function PetWorld() {
                       style={{ '--pet-delay': `${-i * 0.7}s` } as CSSProperties}
                     >
                       <span className="station-output">✧</span>
-                      <PixelPet species={p.species} stage={p.stage} />
+                      <PixelPet species={p.species} stage={p.stage} follow />
                       <div className="factory-desk">
                         <i />
                         <i />
@@ -610,7 +610,7 @@ export function PetWorld() {
               </div>
               <div className="resident-portrait">
                 <span className="portrait-orbit" />
-                <PixelPet species={pet.species} stage={pet.stage} />
+                <PixelPet species={pet.species} stage={pet.stage} follow />
                 <span className="resident-spark">✧</span>
               </div>
               <h2>

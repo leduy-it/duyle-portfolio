@@ -44,7 +44,7 @@ export function AtlasPet({
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    let frame = 0,
+    let frame = Math.floor(Math.random() * 6),
       timer = 0,
       hover = false,
       direction: number | null = null,
@@ -58,7 +58,7 @@ export function AtlasPet({
     const tick = () => {
       const still = reducedMotion || media.matches
       let row = LANES.indexOf(lane)
-      if (!still && hover && lane === 'idle') row = 4
+      if (!still && hover && lane === 'idle' && frame < durations[3].length) row = 3
       if (
         !still &&
         follow &&

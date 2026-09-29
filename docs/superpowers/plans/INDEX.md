@@ -93,3 +93,9 @@ The earlier asset search was incomplete: it inspected portfolio-clone but missed
 - Opening chat docks the mascot next to the popup without covering it; closing restores its free-drag position.
 - Every source pack/form can be selected as the sitewide companion; recommend Inko. Persist the selection independently from world progress and retain the visibility preference.
 - Screenshot inspection found legacy SVG rules stretching atlas portraits (e.g. 110×145 instead of 110×119.17). Atlas portraits now enforce their source cell aspect ratio; homepage companion measured 108×117, exactly 192:208.
+
+### Woodland and service correction — 2026-09-29
+- Replace flat habitat with compressed generated woodland backdrop; retain original source pet atlases.
+- Remove sliding CSS animation, use source idle/gaze and one greeting cycle on hover; compact portrait to 96 px.
+- Owner login distinguishes missing admin config from missing Redis. Terminal no longer claims the agent is online before a provider request.
+- Production Redis absent, Upstash terms await owner acceptance; replacement OpenRouter key unconfirmed. Chat and login are not operational yet.

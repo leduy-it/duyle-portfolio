@@ -71,7 +71,15 @@ export function MysteryBox() {
         router.refresh()
         return
       }
-      setError(res.status === 503 ? 'Owner login is not configured on this deployment yet.' : res.status === 429 ? 'Too many attempts. Try again in 15 minutes.' : 'That passphrase did not match. Try again.')
+      const errors: Record<string, string> = {
+        admin_unconfigured: 'Owner access has not been configured for this environment.',
+        storage_unconfigured: 'Owner access is waiting for the database connection. Please finish the Upstash setup.',
+        temporarily_unavailable: 'The login service is temporarily unavailable. Please try again shortly.',
+        too_many_attempts: 'Too many attempts. Try again in 15 minutes.',
+        wrong_passphrase: 'That passphrase did not match. Try again.',
+        invalid_origin: 'Please reload this page and try again.',
+      }
+      setError(errors[json?.error || ''] || 'Unable to sign in. Please try again.')
       setShake((s) => s + 1)
     } catch {
       setError('network error')
@@ -138,7 +146,7 @@ export function MysteryBox() {
               )}
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[10px] text-[rgb(var(--text-muted))] tracking-wide">
-                  owner-only · keep it secret
+                  Private analytics · owner access
                 </p>
                 <button
                   type="submit"

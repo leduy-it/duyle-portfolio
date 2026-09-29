@@ -1845,3 +1845,26 @@
 @keyframes scene-mote{0%,100%{transform:translate(0,0);opacity:.2;}50%{transform:translate(12px,-24px);opacity:.9;}}
 @media(max-width:600px){.habitat-panel .pet-habitat{height:370px;}.scene-title{left:18px;top:18px;}.scene-title h2{font-size:26px;}.scene-title>span{font-size:6px;}.scene-title small{font-size:8px;}.scene-switch{top:auto;bottom:12px;right:12px;padding:3px;}.scene-switch button{padding:5px 8px;font-size:15px;}.scene-switch span{font-size:6px;}.habitat-panel .habitat-art{top:82px;height:calc(100% - 82px);}.habitat-panel .habitat-pet{width:62px;height:75px;}}
 @media(prefers-reduced-motion:reduce){.scene-atmosphere i{animation:none;}.habitat-panel .habitat-art{transition:none;}}
+
+/* Grounded woodland: source animation supplies movement, never slide the sprite. */
+.habitat-panel .habitat-art.woodland-backdrop{inset:0;height:100%;background:url('/pets/woodland-garden.webp') center 58% / cover no-repeat;image-rendering:auto;}
+.habitat-panel .pet-habitat{height:520px;background:#263b27;}
+.habitat-panel .pet-habitat::after{background:linear-gradient(180deg,#0e211c80,transparent 35%,transparent 85%,#0e211c30);}
+.habitat-panel .scene-title,.habitat-panel[data-scene=dusk] .scene-title,.habitat-panel[data-scene=moon] .scene-title{color:#fff8e6;text-shadow:0 2px 12px #0009;}
+.scene-title small{display:none;}.scene-title h2{font-size:29px;}
+.habitat-panel .habitat-pet .pixel-pet{animation:none;filter:none;}
+.habitat-panel .habitat-pet{transition:left .25s ease-out,top .25s ease-out;filter:none;width:76px;height:83px;}
+.habitat-pet::before{content:'';position:absolute;bottom:2px;left:23%;width:54%;height:9px;background:#14261b70;border-radius:50%;filter:blur(3px);}
+.habitat-pet[data-dragging=true]::before{opacity:.25;transform:scale(.7);}
+.habitat-butterfly{display:none;}.scene-atmosphere i{width:2px;height:2px;opacity:.25;}
+.habitat-panel[data-scene=dusk] .habitat-art{filter:sepia(.3) saturate(.8) brightness(.82);}
+.habitat-panel[data-scene=moon] .habitat-art{filter:brightness(.42) saturate(.5) hue-rotate(30deg);}
+.pet-resident-card{padding:18px;border-radius:20px;background:linear-gradient(150deg,#f2f1de,#dce4c9);}
+.pet-resident-card .resident-portrait{height:124px;margin:8px 0;align-items:center;}
+.pet-resident-card .resident-portrait .atlas-pet{width:96px;height:104px!important;animation:none;filter:none;image-rendering:crisp-edges;}
+.pet-resident-card .portrait-orbit{width:106px;height:106px;top:9px;opacity:.55;}
+.pet-resident-card h2{font-size:26px;}.pet-resident-card .resident-spark{font-size:18px;}
+@media(max-width:600px){.habitat-panel .pet-habitat{height:400px;}.habitat-panel .habitat-pet{width:60px;height:65px;}.habitat-panel .habitat-art.woodland-backdrop{background-position:49% center;}.pet-resident-card .resident-portrait{height:106px;}.pet-resident-card .resident-portrait .atlas-pet{width:80px;height:auto!important;}}
+@media(prefers-reduced-motion:reduce){.habitat-panel .habitat-pet{transition:none;}}
+
+.pet-world{padding-top:84px;}
