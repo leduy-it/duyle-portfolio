@@ -69,7 +69,7 @@ export const I18N_STRINGS = {
     'compose.sentTitle': 'Message accepted for delivery. Duy can reply to your email.',
     'compose.sentBack': 'Back to chat',
     'compose.fallback': 'Send didn\'t go through. Open in your email app instead?',
-    'compose.confirmNote': 'First-time submissions trigger a one-time confirmation email to Duy. After that, all messages route silently.',
+    'compose.confirmNote': 'Your message goes to levduyit@gmail.com. Your email is used so Duy can reply.',
     'compose.button': 'Send to Duy',
 
     // Experience page
@@ -183,7 +183,7 @@ export const I18N_STRINGS = {
     'compose.sentTitle': 'Đã tiếp nhận để gửi. Duy có thể trả lời qua email của bạn.',
     'compose.sentBack': 'Quay lại chat',
     'compose.fallback': 'Gửi không thành công. Mở trong ứng dụng email của bạn?',
-    'compose.confirmNote': 'Lần đầu sẽ kích hoạt email xác nhận một lần đến Duy. Sau đó mọi tin nhắn sẽ được chuyển âm thầm.',
+    'compose.confirmNote': 'Tin nhắn được gửi đến levduyit@gmail.com. Email của bạn giúp Duy trả lời.',
     'compose.button': 'Gửi đến Duy',
 
     // Experience page — dev-style tokens stay English in both locales

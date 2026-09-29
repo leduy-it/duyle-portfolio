@@ -438,6 +438,8 @@ export function TerminalChat() {
     }
   }
 
+  const [deliveryError, setDeliveryError] = useState('')
+
   async function sendContact() {
     if (
       !compose.email.trim() ||
@@ -447,6 +449,7 @@ export function TerminalChat() {
     )
       return
     sendingRef.current = true
+    setDeliveryError('')
     const fingerprint = JSON.stringify([compose.email.trim(), compose.subject, compose.body])
     if (deliveryAttempt.current.fingerprint !== fingerprint)
       deliveryAttempt.current = { fingerprint, id: crypto.randomUUID() }
@@ -464,9 +467,15 @@ export function TerminalChat() {
         signal: AbortSignal.timeout(18_000),
       })
       const data = await res.json()
-      if (!res.ok || data.status !== 'accepted') throw new Error('delivery_failed')
+      if (!res.ok || data.status !== 'accepted') throw new Error(data.error || 'delivery_failed')
       setView('sent')
-    } catch {
+    } catch (error) {
+      const code = error instanceof Error ? error.message : ''
+      setDeliveryError(code === 'delivery_unconfigured'
+        ? (locale === 'vi' ? 'Gửi trực tiếp chưa được cấu hình. Bản nháp của bạn vẫn còn.' : 'Direct email delivery is not configured yet. Your draft is preserved.')
+        : code === 'rate_limited'
+          ? (locale === 'vi' ? 'Bạn đã gửi quá nhiều lần. Hãy thử lại sau.' : 'Too many attempts. Please try again later.')
+          : (locale === 'vi' ? 'Chưa gửi được tin nhắn. Bản nháp của bạn vẫn còn.' : 'Your message could not be sent. Your draft is preserved.'))
       const mailtoHref = `mailto:levduyit@gmail.com?subject=${encodeURIComponent(compose.subject)}&body=${encodeURIComponent(compose.body)}`
       setCompose((prev) => ({ ...prev, error: mailtoHref }))
     } finally {
@@ -962,7 +971,7 @@ export function TerminalChat() {
 
                 {compose.error && (
                   <p className="font-mono text-xs text-[rgb(var(--text-secondary))]">
-                    {t('compose.fallback').split('?')[0]}{' '}
+                    {deliveryError}{' '}
                     <motion.a
                       href={compose.error}
                       className="text-[rgb(var(--accent))] underline transition-colors duration-200 hover:text-[rgb(var(--accent-hover))]"
@@ -970,7 +979,7 @@ export function TerminalChat() {
                       whileTap={reducedMotion ? undefined : { scale: 0.98 }}
                       transition={microTransition}
                     >
-                      {t('compose.fallback').split('?')[1] ?? 'Open in your email app instead?'}
+                      {locale === 'vi' ? 'Mở ứng dụng email ↗' : 'Open email app ↗'}
                     </motion.a>
                   </p>
                 )}

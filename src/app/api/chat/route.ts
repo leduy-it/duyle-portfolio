@@ -136,10 +136,11 @@ export async function POST(request: Request) {
     return failure('temporarily_unavailable', 503)
   }
   const wantStream = body.stream === true && !edit
-  const deadline = AbortSignal.timeout(50_000)
+  const deadline = AbortSignal.timeout(35_000)
   let upstream: Response | undefined
   let chosenModel = ''
-  for (const model of getModelChain(edit)) {
+  let completedReply = ''
+  for (const model of getModelChain()) {
     if (request.signal.aborted || deadline.aborted) break
     try {
       const response = await fetch(OPENROUTER_URL, {
@@ -153,19 +154,26 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           model,
           messages: [{ role: 'system', content: prompt }, ...messages],
-          max_tokens: 600,
+          max_tokens: 500,
+          reasoning: { enabled: false },
           temperature: edit ? 0.25 : 0.8,
           stream: wantStream,
         }),
-        signal: AbortSignal.any([request.signal, deadline, AbortSignal.timeout(25_000)]),
+        signal: AbortSignal.any([request.signal, deadline, AbortSignal.timeout(10_000)]),
       })
       if (response.ok) {
+        if (!wantStream) {
+          const data = await response.json()
+          const reply = data.choices?.[0]?.message?.content
+          if (typeof reply !== 'string' || !reply.trim()) continue
+          completedReply = reply.trim()
+        }
         upstream = response
         chosenModel = model
         break
       }
       await response.body?.cancel()
-      if (response.status === 401 || response.status === 403) return failure('unavailable')
+      if (response.status === 401) return failure('unavailable')
     } catch {
       /* A timeout or unavailable provider can fall through to the next free model. */
     }
@@ -181,12 +189,5 @@ export async function POST(request: Request) {
       },
     })
   }
-  try {
-    const data = await upstream.json()
-    const reply = data.choices?.[0]?.message?.content
-    if (typeof reply !== 'string' || !reply.trim()) return failure('empty_reply')
-    return NextResponse.json({ reply: reply.trim(), model: chosenModel })
-  } catch {
-    return failure('unavailable')
-  }
+  return NextResponse.json({ reply: completedReply, model: chosenModel })
 }

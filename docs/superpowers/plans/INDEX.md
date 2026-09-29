@@ -117,3 +117,9 @@ The earlier asset search was incomplete: it inspected portfolio-clone but missed
 - New responsive workshop with animated press, reactor, packing station and conveyor; pauses when storage is full and respects reduced motion.
 - Real per-pet production rates, minute-cycle countdown, eight-hour capacity meter, collection receipt, full crew roster and direct hatch/evolution actions.
 - Existing save schema and economy unchanged. Desktop/mobile screenshots inspected; mobile width 390/390. Local production build, lint and type validation passed.
+
+### Chat live provider selection and email error correction — 2026-09-29
+- Production OpenRouter secret updated through stdin; no credentials committed.
+- Live key valid. Ling Flash short Vietnamese answer 0.99s; Gemma 31B 1.5s. Qwen, Liquid, Gemma 26B and Laguna hit upstream 429; Inkling restricted to agentic harnesses; Nemotron timed out. Free router returned no usable answer in probes.
+- Prefer Ling, Gemma, then free-only router fallback. Ten-second provider attempts, 35-second total deadline; disable optional reasoning and retry empty nonstream responses.
+- Remove obsolete contact confirmation text. Explain delivery_unconfigured and preserve mailto draft. RESEND_API_KEY and CONTACT_FROM_EMAIL still required.
