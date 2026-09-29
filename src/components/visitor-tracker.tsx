@@ -39,6 +39,9 @@ export function VisitorTracker() {
         keepalive: true,
         body: JSON.stringify({
           path: fullPath,
+          source: new URLSearchParams(window.location.search).get('utm_source'),
+          medium: new URLSearchParams(window.location.search).get('utm_medium'),
+          campaign: new URLSearchParams(window.location.search).get('utm_campaign'),
           referrer: typeof document !== 'undefined' ? document.referrer || null : null,
           screenWidth: window.innerWidth,
           screenHeight: window.innerHeight,

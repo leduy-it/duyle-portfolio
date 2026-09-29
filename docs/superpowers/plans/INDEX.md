@@ -99,3 +99,10 @@ The earlier asset search was incomplete: it inspected portfolio-clone but missed
 - Remove sliding CSS animation, use source idle/gaze and one greeting cycle on hover; compact portrait to 96 px.
 - Owner login distinguishes missing admin config from missing Redis. Terminal no longer claims the agent is online before a provider request.
 - Production Redis absent, Upstash terms await owner acceptance; replacement OpenRouter key unconfirmed. Chat and login are not operational yet.
+
+### Analytics expansion — 2026-09-29
+- Production snapshot contained one recorded pageview at 15:36 UTC after Redis activation; no historical backfill exists.
+- Add retained-history timestamps, approximate city/region/timezone, viewport, language, device, allowlisted campaign tags, observed entry/last pages and repeat-session visitors.
+- Refresh totals with live activity; change renewed session cookie expiry from 30 days to 30 minutes. Explain estimated visitor identity and collection exclusions.
+- Geo header reference: https://vercel.com/docs/headers/request-headers
+- Local production build, lint and type validation passed.

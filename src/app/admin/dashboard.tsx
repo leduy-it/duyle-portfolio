@@ -230,12 +230,13 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
         if (!res.ok) return
         const data = (await res.json()) as { events: TrackEvent[] }
         setEvents(data.events)
+        void fetchSummary(range, pathFilter)
       } catch {
         /* ignore */
       }
     }, 10_000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [fetchSummary, range, pathFilter])
 
   const onClear = useCallback(async () => {
     const typed =
@@ -271,6 +272,7 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
     })
   }, [])
 
+  const insights = summary.insights
   const totals = summary.totals
   const empty = summary.totalEventsAllTime === 0
 
@@ -334,8 +336,16 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
 
       <p className="mb-5 text-[11px] leading-relaxed text-[rgb(var(--text-muted))]">
         Last 90 days, up to 10,000 events. Daily charts use UTC. Countries are approximate; direct
-        traffic has no referrer header.
+        traffic has no referrer header. Visitors are estimates based on a hashed network address and
+        browser signature: shared networks can merge people, and changing networks can split them.
+        Owner visits are excluded when “log my own visits” is off. DNT and detected bots are excluded.
+        Sessions expire after 30 minutes of inactivity (new collection).
       </p>
+      <div className="mb-6 rounded-lg border border-[rgb(var(--border))] p-4 text-xs leading-6">
+        <strong>Recorded history starts: {insights.firstRecorded ? fmtTs(insights.firstRecorded) : 'Waiting for first visit'}</strong>
+        <p>Earlier visits were not collected. This is retained history, not lifetime traffic.</p>
+        <p>Latest recorded visit: {insights.lastRecorded ? fmtTs(insights.lastRecorded) : '—'} · totals refresh every 10 seconds.</p>
+      </div>
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div
           className="flex gap-1 rounded-md border p-1"
@@ -382,7 +392,7 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
             <StatCard label="pageviews" value={totals.pageviews.toLocaleString()} />
-            <StatCard label="unique visitors" value={totals.uniqueVisitors.toLocaleString()} />
+            <StatCard label="estimated visitors" value={totals.uniqueVisitors.toLocaleString()} />
             <StatCard label="sessions" value={totals.sessions.toLocaleString()} />
             <StatCard
               label="pages / session"
@@ -393,6 +403,17 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
             <StatCard label="today uniques" value={totals.todayUniques.toLocaleString()} />
           </div>
 
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <StatCard label="visitors in last 5 min" value={insights.recentVisitors} sub="Recent pageviews, not a live presence count" />
+            <StatCard label="repeat visitors" value={insights.repeatVisitors} sub="Seen in multiple sessions within selected range" />
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {insights.breakdowns.map(group => <Section key={group.title} title={group.title}>
+              <ul className="space-y-2 text-xs">{group.items.map(item => <li key={item.label} className="flex justify-between gap-3">
+                <span className="break-words min-w-0">{item.label}</span><span>{item.count}</span>
+              </li>)}</ul>
+            </Section>)}
+          </div>
           <div className="mb-6">
             <Section title="pageviews per day">
               <BarChart data={summary.perDay} />
@@ -537,10 +558,10 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
                       {e.visitorId.slice(0, 8)}
                     </td>
                     <td className="py-1.5 pr-3">
-                      {flagFor(e.country) || ''} {e.country || '—'}
+                      {flagFor(e.country) || ''} {[e.city, e.region, e.country].filter(Boolean).join(', ') || '—'}
                     </td>
                     <td className="py-1.5 pr-3">
-                      {ua.browser} · {ua.os}
+                      {ua.browser} · {ua.os}<br /><span className="text-[10px] text-[rgb(var(--text-muted))]">{e.locale || '—'} · {e.screenWidth || '?'}×{e.screenHeight || '?'}</span>
                     </td>
                     <td
                       className="py-1.5 truncate max-w-[160px] text-[rgb(var(--text-muted))]"

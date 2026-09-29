@@ -34,6 +34,12 @@ export interface TrackEvent {
   sessionId: string
   screenWidth: number | null
   screenHeight: number | null
+  city?: string | null
+  region?: string | null
+  timezone?: string | null
+  source?: string | null
+  medium?: string | null
+  campaign?: string | null
 }
 
 let cachedSalt: string | null = null

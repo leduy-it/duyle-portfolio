@@ -4,6 +4,13 @@ import { parseUA } from './ua'
 export type RangeKey = '24h' | '7d' | '30d' | 'all'
 
 export interface Summary {
+  insights: {
+    firstRecorded: string | null
+    lastRecorded: string | null
+    recentVisitors: number
+    repeatVisitors: number
+    breakdowns: { title: string; items: { label: string; count: number }[] }[]
+  }
   totals: {
     pageviews: number
     uniqueVisitors: number
@@ -166,7 +173,34 @@ export async function buildSummary(opts: { range: RangeKey; pathContains?: strin
   const sessionCount = sessions.size
   const avgPagesPerSession = sessionCount > 0 ? filtered.length / sessionCount : 0
 
+  const breakdown = (title: string, values: string[]) => ({ title, items: topN(
+    [...values.reduce((m, v) => m.set(v, (m.get(v) || 0) + 1), new Map<string, number>())]
+      .map(([label, count]) => ({ label, count })), 12) })
+  const visitSessions = new Map<string, Set<string>>()
+  const journeys = new Map<string, TrackEvent[]>()
+  for (const e of filtered) {
+    const visits = visitSessions.get(e.visitorId) || new Set<string>()
+    visits.add(e.sessionId); visitSessions.set(e.visitorId, visits)
+    const journey = journeys.get(e.sessionId) || []
+    journey.push(e); journeys.set(e.sessionId, journey)
+  }
   return {
+    insights: {
+      firstRecorded: all[0]?.ts || null,
+      lastRecorded: all.at(-1)?.ts || null,
+      recentVisitors: new Set(filtered.filter(e => Date.parse(e.ts) > now - 300000).map(e => e.visitorId)).size,
+      repeatVisitors: [...visitSessions.values()].filter(v => v.size > 1).length,
+      breakdowns: [
+        breakdown('Cities · approximate', filtered.map(e => e.city ? [e.city, e.region, e.country].filter(Boolean).join(', ') : 'Unknown')),
+        breakdown('Devices', filtered.map(e => /ipad|tablet|android(?!.*mobile)/i.test(e.userAgent || '') ? 'Tablet' : parseUA(e.userAgent).mobile ? 'Mobile' : 'Desktop / other')),
+        breakdown('Languages', filtered.map(e => e.locale || 'Unknown')),
+        breakdown('Viewports', filtered.map(e => e.screenWidth && e.screenHeight ? `${e.screenWidth} × ${e.screenHeight}` : 'Unknown')),
+        breakdown('Timezones', filtered.map(e => e.timezone || 'Unknown')),
+        breakdown('Campaigns · source / medium / name', filtered.map(e => [e.source, e.medium, e.campaign].filter(Boolean).join(' / ') || 'Untagged')),
+        breakdown('Entry pages · observed', [...journeys.values()].map(j => j[0].path)),
+        breakdown('Last pages · observed', [...journeys.values()].map(j => j[j.length - 1].path)),
+      ],
+    },
     totals: {
       pageviews: filtered.length,
       uniqueVisitors: visitors.size,

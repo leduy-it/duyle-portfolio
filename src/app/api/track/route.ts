@@ -8,7 +8,7 @@ import { isAdminRequest } from '@/lib/tracking/admin-auth'
 export const runtime = 'nodejs'
 
 const SESSION_COOKIE = 'pf_sid'
-const SESSION_TTL = 60 * 60 * 24 * 30
+const SESSION_TTL = 60 * 30
 
 interface IncomingPing {
   path?: unknown
@@ -16,6 +16,9 @@ interface IncomingPing {
   screenWidth?: unknown
   screenHeight?: unknown
   locale?: unknown
+  source?: unknown
+  medium?: unknown
+  campaign?: unknown
   ts?: unknown
 }
 
@@ -97,16 +100,27 @@ export async function POST(req: NextRequest) {
     }
 
     let sessionId = req.cookies.get(SESSION_COOKIE)?.value
-    let setSession = false
     if (!sessionId || sessionId.length < 8 || sessionId.length > 64) {
       sessionId = crypto.randomUUID()
-      setSession = true
     }
 
     const rawCountry = clientCountry(req)
     const country = rawCountry && /^[A-Za-z]{2}$/.test(rawCountry) ? rawCountry.toUpperCase() : null
 
+    const geo = (name: string) => {
+      const value = req.headers.get(name)
+      if (!value) return null
+      try { return decodeURIComponent(value).slice(0, 100) } catch { return null }
+    }
+    const campaignTag = (value: unknown) => typeof value === 'string'
+      ? value.replace(/[^a-zA-Z0-9_. -]/g, '').slice(0, 80) || null : null
     const evt: TrackEvent = {
+      city: geo('x-vercel-ip-city'),
+      region: geo('x-vercel-ip-country-region'),
+      timezone: geo('x-vercel-ip-timezone'),
+      source: campaignTag(body.source),
+      medium: campaignTag(body.medium),
+      campaign: campaignTag(body.campaign),
       ts: new Date().toISOString(),
       path,
       referrer: referrer || null,
@@ -127,7 +141,7 @@ export async function POST(req: NextRequest) {
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: setSession ? SESSION_TTL : SESSION_TTL,
+      maxAge: SESSION_TTL,
     })
     return res
   } catch {
