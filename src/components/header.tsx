@@ -37,7 +37,7 @@ export function Header() {
     { label: t('nav.experience'), href: '/experience' },
     { label: t('nav.blog'), href: '/blog' },
     { label: t('nav.cinema'), href: '/movie' },
-    { label: locale === 'vi' ? 'Pet' : 'Playground', href: '/pets' },
+    { label: 'Pets', href: '/pets' },
   ]
 
   const brandLower = t('brand.lower')

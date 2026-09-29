@@ -631,3 +631,7 @@
 .gracie-chat { bottom:164px;max-height:calc(100dvh - 204px); }
 @media(max-width:640px){.gracie-companion[data-open='true']{right:14px;bottom:max(12px,env(safe-area-inset-bottom));}.gracie-chat{bottom:139px;max-height:calc(100dvh - 171px - env(safe-area-inset-bottom));}}
 @media(max-height:600px){.gracie-chat{top:12px;bottom:12px;max-height:none;right:126px;max-width:calc(100vw - 146px);}}
+
+.companion-discovery{position:fixed;right:20px;bottom:174px;display:flex;align-items:center;gap:6px;max-width:calc(100vw - 32px);border:1px solid rgb(var(--border));border-radius:24px;background:rgb(var(--surface-card));color:rgb(var(--text-secondary));box-shadow:0 4px 20px #0002;font-size:11px;z-index:45;}
+.companion-discovery a{padding:10px 4px 10px 14px;display:flex;gap:7px;align-items:center;}.companion-discovery button{padding:8px 12px;border:0;background:none;color:inherit;cursor:pointer;}.companion-discovery a:hover{color:rgb(var(--accent));}.companion-discovery :focus-visible{outline:2px solid rgb(var(--accent));outline-offset:2px;border-radius:20px;}
+@media(max-width:640px){.companion-discovery{right:14px;bottom:150px;}}

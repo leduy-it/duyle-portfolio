@@ -48,3 +48,7 @@
 .atlas-pet.pixel-pet{height:auto!important;aspect-ratio:192 / 208;flex-shrink:0;}
 .pet-heading-stamp>.atlas-pet{padding:0;border:0;background-color:transparent;}
 .resident-portrait>.atlas-pet{align-self:center;}
+
+#companion-preview{scroll-margin-top:90px;}.set-companion.is-guided{background:var(--pw-accent);color:var(--pw-on-accent);outline:2px solid var(--pw-accent);outline-offset:4px;box-shadow:0 0 24px #b6e08c50;animation:companion-invite 2s ease-in-out 3;}.companion-guide{display:flex;align-items:center;gap:8px;border-left:2px solid var(--pw-accent);padding-left:12px;font-size:12px!important;}.companion-guide button{background:none;color:inherit;border:0;padding:8px;cursor:pointer;}
+@keyframes companion-invite{50%{box-shadow:0 0 32px #b6e08c80;}}
+@media(prefers-reduced-motion:reduce){.set-companion.is-guided{animation:none;}}

@@ -106,3 +106,9 @@ The earlier asset search was incomplete: it inspected portfolio-clone but missed
 - Refresh totals with live activity; change renewed session cookie expiry from 30 days to 30 minutes. Explain estimated visitor identity and collection exclusions.
 - Geo header reference: https://vercel.com/docs/headers/request-headers
 - Local production build, lint and type validation passed.
+
+### Quiet companion discovery — 2026-09-29
+- Navigation label Pets in both languages.
+- Lightweight dismissible hint after 90 seconds of foreground viewing, suppressed during quick chat and on Pets/admin; once per seven days per browser.
+- Only clicking the hint opens a validated companion deep link, selects the preview and highlights the explicit Set companion button. No automatic pet change.
+- Production build with lint/type validation passed.

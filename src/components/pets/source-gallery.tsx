@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCompanionSelection } from '@/lib/pets/companion-selection'
 import { useCompanionPreference } from '@/lib/pets/companion-preference'
 import catalog from '@/data/pets/atlas-catalog.json'
@@ -8,8 +8,28 @@ export function SourceGallery({ vi }: { vi: boolean }) {
   const companion = useCompanionSelection()
   const { setVisible } = useCompanionPreference()
   const [selected, setSelected] = useState('inko')
-  const [lane, setLane] = useState<PetLane>('idle')
   const [stage, setStage] = useState(0)
+  const [guided, setGuided] = useState(false)
+  const setButton = useRef<HTMLButtonElement>(null)
+  const preview = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    let frame = 0
+    const openGuide = () => {
+      const id = new URLSearchParams(window.location.hash.slice(1)).get('companion')
+      if (!catalog.some(p => p.id === id)) return
+      setSelected(id!)
+      setStage(0)
+      setGuided(true)
+      frame = requestAnimationFrame(() => {
+        preview.current?.scrollIntoView({ behavior: 'auto', block: 'start' })
+        setButton.current?.focus({ preventScroll: true })
+      })
+    }
+    openGuide()
+    window.addEventListener('hashchange', openGuide)
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('hashchange', openGuide) }
+  }, [])
+  const [lane, setLane] = useState<PetLane>('idle')
   const [transition, setTransition] = useState(0)
   const pet = catalog.find((p) => p.id === selected)!
   const form = pet.stages[stage] || pet.stages[0]
@@ -44,7 +64,7 @@ export function SourceGallery({ vi }: { vi: boolean }) {
         </span>
         <b>↗</b>
       </button>
-      <div className="evolution-studio">
+      <div className="evolution-studio" ref={preview} id="companion-preview">
         <div className="studio-stage">
           <div className="studio-stage-top">
             <span>SPECIMEN / {pet.id.toUpperCase()}</span>
@@ -111,11 +131,19 @@ export function SourceGallery({ vi }: { vi: boolean }) {
                 : 'One form ships for this pet. Try Volt, Grove or Sprocket for evolution.'}
             </p>
           )}
+          {guided && <p id="companion-guide" className="companion-guide" role="status">
+            {vi ? `Xem thử ${form.name}, rồi bấm nút sáng bên dưới để chọn đi cùng bạn.` : `Preview ${form.name}, then use the highlighted button to choose your companion.`}
+            <button type="button" onClick={() => setGuided(false)} aria-label={vi ? 'Ẩn hướng dẫn' : 'Dismiss guide'}>×</button>
+          </p>}
           <button
-            className="set-companion"
+            ref={setButton}
+            className={`set-companion ${guided ? 'is-guided' : ''}`}
+            aria-describedby={guided ? 'companion-guide' : undefined}
             onClick={() => {
               companion.setCompanion(pet.id, stage)
               setVisible(true)
+              setGuided(false)
+              if (window.location.hash.startsWith('#companion=')) window.history.replaceState(null, '', '#companion-preview')
             }}
           >
             {companion.pet.id === pet.id && companion.stage === stage

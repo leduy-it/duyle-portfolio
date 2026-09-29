@@ -11,6 +11,7 @@ import { usePetSave } from '@/lib/pets/pet-save-provider'
 import { useCompanionPreference } from '@/lib/pets/companion-preference'
 import { GracieSprite, type GraciePose } from './gracie-sprite'
 import './gracie.css'
+import { CompanionDiscovery } from './companion-discovery'
 import { useCompanionSelection } from '@/lib/pets/companion-selection'
 import { chatResponseError, chatErrorMessage } from '@/lib/chat/errors'
 
@@ -191,6 +192,7 @@ export function GracieCompanion() {
           : undefined
       }
     >
+      <CompanionDiscovery enabled={!open && !busy && pathname !== '/pets'} vi={vi} current={companion.pet.id} />
       {open && (
         <section
           id="gracie-chat"
