@@ -620,3 +620,14 @@
     display: none;
   }
 }
+/* Original hatch-pet-plus atlas: each pose is a real frame, not an SVG bob. */
+.gracie-launcher { touch-action:none; user-select:none; cursor:grab; width:108px; }
+.gracie-launcher:active { cursor:grabbing; }
+.gracie-launcher:hover { transform:none; }
+.gracie-art.atlas-pet { min-height:0; }
+@media(max-width:640px) { .gracie-launcher { width:88px; } }
+/* Dock chat beside the mascot; closing restores the saved free-drag position. */
+.gracie-companion[data-open='true'] { right:22px;bottom:20px;left:auto;top:auto; }
+.gracie-chat { bottom:164px;max-height:calc(100dvh - 204px); }
+@media(max-width:640px){.gracie-companion[data-open='true']{right:14px;bottom:max(12px,env(safe-area-inset-bottom));}.gracie-chat{bottom:139px;max-height:calc(100dvh - 171px - env(safe-area-inset-bottom));}}
+@media(max-height:600px){.gracie-chat{top:12px;bottom:12px;max-height:none;right:126px;max-width:calc(100vw - 146px);}}

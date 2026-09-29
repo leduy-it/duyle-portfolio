@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale } from '@/lib/i18n'
+import { chatResponseError, chatErrorMessage } from '@/lib/chat/errors'
 import { consumeChatStream } from '@/lib/chat/stream'
 import { CHAT_HANDOFF_EVENT, consumeChatHandoff } from '@/lib/chat/handoff'
 // Try the new locale-aware export; fall back to the legacy export if the data agent hasn't landed yet.
@@ -315,7 +316,7 @@ export function TerminalChat() {
       })
 
       if (!res.ok || !res.body) {
-        throw new Error(`http ${res.status}`)
+        throw await chatResponseError(res)
       }
 
       const acc = await consumeChatStream(res.body, (text) => {
@@ -341,14 +342,14 @@ export function TerminalChat() {
         }
         return next
       })
-    } catch {
+    } catch (error) {
       if (generation !== chatGeneration.current) return
       setInput(trimmed)
       setMessages((prev) => {
         const next = prev.slice(0, -2)
         next.push({
           time: getCurrentTime(),
-          text: `${t('chat.agentPrefix')}\n\n${t('chat.error')}`,
+          text: `${t('chat.agentPrefix')}\n\n${chatErrorMessage(error,locale === 'vi')}`,
         })
         return next
       })
@@ -386,7 +387,7 @@ export function TerminalChat() {
         body: JSON.stringify({ mode: 'compose', messages: history }),
       })
 
-      if (!res.ok) throw new Error(`http ${res.status}`)
+      if (!res.ok) throw await chatResponseError(res)
       const data = (await res.json()) as { reply?: string }
       setCompose((prev) => ({
         ...prev,
@@ -423,7 +424,7 @@ export function TerminalChat() {
         }),
       })
 
-      if (!res.ok) throw new Error(`http ${res.status}`)
+      if (!res.ok) throw await chatResponseError(res)
       const data = (await res.json()) as { reply?: string }
       setCompose((prev) => ({
         ...prev,

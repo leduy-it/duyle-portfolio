@@ -1,12 +1,14 @@
 'use client'
 
+import { useCompanionSelection } from '@/lib/pets/companion-selection'
 import { useLocale } from '@/lib/i18n'
 import { useCompanionPreference } from '@/lib/pets/companion-preference'
 
 export function CompanionToggle() {
   const { visible, setVisible } = useCompanionPreference()
   const { locale } = useLocale()
-  const label = locale === 'vi' ? 'Hiện Gracie' : 'Show Gracie'
+  const { name } = useCompanionSelection()
+  const label = locale === 'vi' ? `Hiện ${name}` : `Show ${name}`
   return (
     <button
       type="button"

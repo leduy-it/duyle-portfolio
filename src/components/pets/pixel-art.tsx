@@ -1,3 +1,5 @@
+import { petAppearance } from '@/lib/pets/appearance'
+import { AtlasPet } from './atlas-pet'
 import { PETS, type Species } from '@/data/pets/catalog'
 
 // Original 20x22 sprites, shared by SVG habitat and Canvas arena.
@@ -175,35 +177,8 @@ export function PixelPet({
   stage?: number
   className?: string
 }) {
-  const colors = palette(species)
-  return (
-    <svg
-      viewBox="-3 -4 26 29"
-      aria-hidden="true"
-      className={`pixel-pet ${className}`}
-      shapeRendering="crispEdges"
-    >
-      <ellipse cx="10" cy="23" rx="8" ry="1.5" fill="#16332e" opacity=".15" />
-      {stage > 0 && (
-        <g fill={stage === 2 ? '#f8cc61' : '#dfcbfa'}>
-          <path d="M0 4h1V3h1v1h1v1H2v1H1V5H0zm20 8h1V7h1v1h1v1h-1v1h-1V9h-1Z" />
-          {stage === 2 && <path d="m6-3 2 2 2-3 2 3 2-2v5H6Z" />}
-        </g>
-      )}
-      <g className="pixel-pet-body">
-        {pixels(species).map((p) => (
-          <rect
-            key={`${p.x}-${p.y}`}
-            x={p.x}
-            y={p.y}
-            width="1"
-            height="1"
-            fill={colors[p.key] || colors.A}
-          />
-        ))}
-      </g>
-    </svg>
-  )
+  const appearance = petAppearance(species, stage)
+  return <AtlasPet {...appearance} className={`pixel-pet ${className}`} />
 }
 export function PixelEgg({
   color = '#b8deac',
