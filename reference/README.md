@@ -8,6 +8,11 @@ Local research clones live in `reference/checkouts/` (ignored; upstream historie
 
 Wildwood uses original simulation and procedural scene art, generated title art and Duy's existing pet sprites.
 
+The local Last Beacon and Orbital Garden copies now receive the selected Pocket World pet through
+`/play/pet-companion.js`: one optional assist per defense wave, and a resonance effect when the
+observatory blooms. Their original license files remain in each `public/play/` folder; the
+public arcade shows a generic source/license link without author badges in the UI.
+
 - `last-beacon`: https://github.com/stackloomdev/last-beacon — MIT, spatial combat warnings and contextual HUD; already credited as a separate guest game. Wildwood is a new Pets simulation rather than a reskin of its tower defense.
 
 Research revisions: awesome `7510288c66013804aecbe7e6a6a08a0d1c847934`; SURGE `aaf1319799c83289f872fd62fd263e3a5b9d5008`.

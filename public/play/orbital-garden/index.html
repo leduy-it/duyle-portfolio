@@ -25,6 +25,17 @@
     @media(max-width:380px){h1{font-size:56px}.sound-text{display:none}.form-button{gap:5px}.stage{min-height:670px}.artwork{top:250px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
   </style>
+  <style>
+    /* Keep the portrait introduction and the sculpture in separate mobile zones. */
+    @media(max-width:760px){
+      .stage{min-height:810px}
+      .artwork{top:355px;bottom:38px}
+      .specimen{top:365px}
+      .orbit-guide{top:72%}
+      .intro-copy{max-width:305px}
+      .intro-copy span{display:block}
+    }
+  </style>
 </head>
 <body>
   <main class="exhibition" id="exhibition">
@@ -51,6 +62,7 @@
   </main>
   <dialog id="about-dialog" aria-labelledby="about-title"><button class="icon-button dialog-close" id="close-dialog" aria-label="Close artwork notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button><div class="mono dialog-kicker">THE IDEA BEHIND THE GARDEN</div><h2 id="about-title">Order is just chaos,<br><em>in full bloom.</em></h2><p>「轨道花园」是一件关于<strong>秩序如何从混沌中生长</strong>的交互艺术作品。48,000 颗光点，既是一朵花，也是一道环，或一个遥远的星系。</p><p>Change formation，看同一群光点寻找新的轨道。释放引力，让它们短暂散开，再重新聚拢。调低Time flow，留意那些平时错过的细节。</p><div class="key-list"><span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>Change formation</span><span><kbd>Space</kbd>Pause / resume</span><span><kbd>↑ ↓ ← →</kbd>Rotate view</span><span><kbd>B</kbd>Bloom · <kbd>R</kbd>Reset</span><span><kbd>F</kbd>Immersive mode</span><span><kbd>Esc</kbd>Exit immersive mode</span></div><p>点击「Save this moment」，生成带有形态、时间与参数的高清纪念海报。声音由浏览器实时合成，仅在你开启后播放。</p><div class="dialog-bottom">CODE, FORM & INTERACTION · GPT-6 ASTRA<br>原生 WebGL · 程序化图形 · 无外部素材<br>这是一种艺术化的引力想象，并非物理模拟。</div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/play/pet-companion.js"></script>
   <script>
   (() => {
     'use strict';
@@ -240,6 +252,7 @@
     }
     function burst(){
       if(!renderer)return;
+      window.PetBridge?.onBloom(state);
       if(reducedMotion.matches){toast('已启用减少动态效果；可以旋转、Change formation或收藏画面。');return}
       if(state.paused){state.paused=false;syncPause()}
       state.burstPhase=.001;state.burst=0;requestFrame();

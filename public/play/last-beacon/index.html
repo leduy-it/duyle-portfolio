@@ -470,6 +470,7 @@ h1,h2,h3,p{margin:0}
   <dialog id="restart-dialog" class="game-dialog small-dialog"><span class="eyebrow">A NEW WATCH</span><h2 data-i18n="restart.title">重新出发？</h2><p class="dialog-intro" data-i18n="restart.description">本局的防线和进度会重置，最高纪录和语言选择会保留。</p><fieldset id="difficulty" class="difficulty"><legend data-i18n="difficulty.label">难度</legend><button type="button" data-difficulty="easy" data-i18n="difficulty.easy">轻松</button><button type="button" data-difficulty="normal" data-i18n="difficulty.normal">标准</button><button type="button" data-difficulty="hard" data-i18n="difficulty.hard">困难</button></fieldset><p id="difficulty-note" class="difficulty-note"></p><div class="dialog-actions"><button data-i18n="restart.cancel" id="cancel-restart" class="secondary-button" type="button">继续本局</button><button data-i18n="restart.confirm" id="confirm-restart" class="primary-button" type="button">重新出发 →</button></div></dialog>
   <dialog id="result-dialog" class="game-dialog result-dialog"><span id="result-kicker" class="eyebrow">THE LIGHT REMAINS</span><div class="result-art" aria-hidden="true">✦</div><h2 id="result-title">黎明终于抵达。</h2><p id="result-copy" class="dialog-intro"></p><div id="result-stats" class="result-stats"></div><button id="endless" class="primary-button endless-button" type="button" hidden><span data-i18n="result.endless">进入无尽潮汐</span><b>∞</b></button><button id="play-again" class="primary-button" type="button"><span data-i18n="result.again">再守望一次</span><b>→</b></button><button data-i18n="result.view" id="view-island" class="text-button" type="button">查看战场</button></dialog>
   <noscript>请启用 JavaScript 运行游戏。Please enable JavaScript to play. 无需登录 / No account or API key required.</noscript>
+<script src="/play/pet-companion.js"></script>
 <script>(()=>{'use strict';const __modules={};
 __modules["src/game.js"]=(()=>{
 const SOURCE = { x: 10, y: 5, radius: 3.5 };
@@ -8339,7 +8340,7 @@ function fireStrikeAt(point){
 }
 function pause(){if(!game.canEdit())return;game.paused=!game.paused;if(game.paused)cancelAim();updateHud();}
 function nextWave(){
-  if(game.phase==='build'){game.startWave();buildType=null;renderer.buildType=null;closeMenus();persistBest();updateHud();}
+  if(game.phase==='build'){game.startWave();window.PetBridge?.onWave(game);buildType=null;renderer.buildType=null;closeMenus();persistBest();updateHud();}
   else if(game.phase==='wave')pause();
   else $('result-dialog').showModal();
 }
