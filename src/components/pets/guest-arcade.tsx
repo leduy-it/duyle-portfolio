@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { OwnedPet } from "@/lib/pets/save";
 import { petAppearance } from "@/lib/pets/appearance";
@@ -9,6 +10,7 @@ const experiences = [
     id: "last-beacon",
     name: "Last Beacon",
     tag: "STRATEGY / 3D",
+    creator: "stackloomdev",
     source: "https://github.com/stackloomdev/last-beacon",
     en: "One island. Ten waves. Keep the light alive.",
     vi: "Một hòn đảo. Mười đợt tấn công. Giữ ngọn hải đăng sáng.",
@@ -22,6 +24,7 @@ const experiences = [
     id: "orbital-garden",
     name: "Orbital Garden",
     tag: "OBSERVATORY / INTERACTIVE ART",
+    creator: "MartinDelophy",
     source:
       "https://github.com/MartinDelophy/awesome-gpt-6-astra/tree/main/works/orbital-garden",
     en: "48,000 points of light. A universe at your fingertips.",
@@ -92,15 +95,7 @@ export function GuestArcade({ vi, pet }: { vi: boolean; pet: OwnedPet }) {
               >
                 {game.action[vi ? 1 : 0]} <span>↗</span>
               </button>
-              <small>
-                {vi
-                  ? "Mang pet đang chọn theo"
-                  : "Your selected pet comes along"}{" "}
-                ·{" "}
-                <a href={game.source} target="_blank" rel="noreferrer">
-                  {vi ? "Mã nguồn" : "Source"} ↗
-                </a>
-              </small>
+              <small>{vi ? "Tác giả" : "Created by"} {game.creator} · {vi ? "Mang pet theo" : "Bring your pet"}</small>
             </div>
           </article>
         ))}
@@ -141,12 +136,11 @@ export function GuestArcade({ vi, pet }: { vi: boolean; pet: OwnedPet }) {
                 ? "Pet đồng hành từ thế giới của bạn"
                 : "Your companion from Pocket World"}
             </span>
-            <a href={active.source} target="_blank" rel="noreferrer">
-              {vi ? "Nguồn và giấy phép" : "Source and license"} ↗
-            </a>
+            <span>{vi ? "Tác giả" : "Created by"} {active.creator}</span>
           </footer>
         </dialog>
       )}
+      <Link className="arcade-more-link" href="/arcade">{vi ? "Khám phá thêm thế giới trong Arcade" : "Explore more worlds in the Arcade"} ↗</Link>
     </section>
   );
 }

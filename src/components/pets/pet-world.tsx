@@ -263,20 +263,7 @@ export function PetWorld() {
                 {vi ? area.vi : area.en}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() =>
-                document.getElementById("guest-arcade")?.scrollIntoView({
-                  behavior: matchMedia("(prefers-reduced-motion: reduce)")
-                    .matches
-                    ? "auto"
-                    : "smooth",
-                  block: "start",
-                })
-              }
-            >
-              ↗ Arcade
-            </button>
+            <Link className="pet-arcade-route" href="/arcade">↗ Arcade</Link>
           </nav>
           <div className="pet-wallet">
             <span title={l("Coins", "Xu")}>

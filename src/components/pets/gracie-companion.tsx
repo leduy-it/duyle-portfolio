@@ -187,7 +187,7 @@ export function GracieCompanion() {
     }
   }
 
-  if (!visible || pathname.startsWith('/admin')) return null
+  if (!visible || pathname.startsWith('/admin') || pathname === '/arcade') return null
 
   return (
     <div
