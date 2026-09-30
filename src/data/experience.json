@@ -9,14 +9,14 @@
     "quote": "Solo-engineer pace at a startup — propose, build, ship, iterate crazy fast across the whole stack: data pipelines, agents, video generation, all the way to the UI students actually touch.",
     "quote_vi": "Tốc độ kỹ sư solo ở startup — propose, build, ship, iterate điên cuồng trên toàn bộ stack: data pipeline, agent, video generation, cho đến cái UI mà học sinh thực sự chạm vào.",
     "missions": [
-      "Replaced manual content labeling with an agentic document-parsing pipeline — a stronger verification logic that generalises across edge cases instead of memorising shapes, hitting >99% precision (effectively zero false positives) and still converting ~73% of unstructured educational content into clean structured Q&A data — 50k+ questions populated.",
+      "Replaced manual content labeling with an agentic document-parsing pipeline — a stronger verification logic that generalises across edge cases instead of memorising shapes, hitting >99% precision while still converting ~73% of unstructured educational content into clean structured Q&A data — 50k+ questions populated.",
       "Designed the structured-output schema and the model emitter that powers it — each parsed item carries enough downstream signal (teaching cues, learning concepts, hidden analytical tags, and a few other things the product is not ready to talk about yet) to feed several internal product surfaces at once, without leaking how it was assembled.",
       "Built an agentic research + crawling system that ingests curriculum content from across the web with provenance-grade source verification: planner-driven multi-hop search, syllabus-mapping agents that align fragments back to the curriculum tree, and citation tracking — so every generated explanation can be traced to a trusted source.",
       "Built the observability + orchestration backbone for our GenAI platform: end-to-end traces, cost dashboards, schedulers for long-running jobs, and a single place to discover and operate every model/tool/workflow shipping across the company.",
       "Worn every hat the work needed: solo engineer owning a feature end-to-end, peer co-working with founders on roadmap, and stepping into product + lightweight design when no one else was free. Comfortable in any mode — what matters is the thing shipping well."
     ],
     "missions_vi": [
-      "Thay thế việc gán nhãn nội dung thủ công bằng pipeline document-parsing agentic — logic xác minh mạnh hơn theo hướng generalize qua mọi edge case thay vì học thuộc hình dạng, đạt độ chính xác >99% (gần như không có false positive) và vẫn chuyển đổi được ~73% nội dung giáo dục phi cấu trúc thành dữ liệu Q&A có cấu trúc — 50k+ câu hỏi đã populate.",
+      "Thay thế việc gán nhãn nội dung thủ công bằng pipeline document-parsing agentic — logic xác minh mạnh hơn theo hướng generalize qua mọi edge case thay vì học thuộc hình dạng, đạt precision >99% và vẫn chuyển đổi được ~73% nội dung giáo dục phi cấu trúc thành dữ liệu Q&A có cấu trúc — 50k+ câu hỏi đã populate.",
       "Thiết kế schema output có cấu trúc và lớp model emit ra nó — mỗi item parse ra đều mang đủ tín hiệu cho downstream (cues dạy học, concept học tập, các tag phân tích ẩn, và vài thứ khác mà sản phẩm chưa sẵn sàng nói) để đồng thời feed cho nhiều product surface nội bộ, mà không lộ phần raw của cách nó được lắp ráp.",
       "Xây dựng hệ thống agentic research + crawling thu thập nội dung chương trình học từ khắp web với xác minh nguồn cấp độ provenance: multi-hop search điều phối bởi planner, các agent mapping giáo trình để căn chỉnh từng mảnh về curriculum tree, và citation tracking — để mỗi giải thích được sinh ra đều truy ngược về nguồn đáng tin.",
       "Xây dựng backbone observability + orchestration cho GenAI platform: trace end-to-end, dashboard chi phí, scheduler cho các job chạy lâu, và một nơi duy nhất để khám phá và vận hành mọi model/tool/workflow đang chạy trong công ty.",
@@ -34,8 +34,8 @@
         "value": ">99%",
         "label": "precision",
         "label_vi": "độ chính xác",
-        "hint": "effectively zero false positives",
-        "hint_vi": "gần như không có false positive"
+        "hint": "accepted-item metric; evaluation details not public",
+        "hint_vi": "đo trên nhóm được nhận; chưa công bố chi tiết tập đánh giá"
       },
       {
         "value": "~73%",

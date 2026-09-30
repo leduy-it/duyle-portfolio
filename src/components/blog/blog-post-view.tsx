@@ -2,10 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useLocale } from '@/lib/i18n'
 import { pickLocalized } from '@/lib/i18n'
+
+const AgenticGateVisual = dynamic(() => import('@/components/blog/agentic-gate-visual'), { ssr: false })
 
 interface ChartMeta {
   id: string
@@ -64,9 +67,10 @@ type Block =
   | { kind: 'h2'; text: string }
   | { kind: 'h3'; text: string }
   | { kind: 'chart'; id: string; isDiagram: boolean }
+  | { kind: 'agentic-gates' }
   | { kind: 'references' }
 
-const ANCHOR_RE = /^\[\[(CHART|DIAGRAM|REFERENCES)(?::([a-z0-9-]+))?\]\]$/i
+const ANCHOR_RE = /^\[\[(CHART|DIAGRAM|REFERENCES|AGENTIC-GATES)(?::([a-z0-9-]+))?\]\]$/i
 
 function parseBlocks(content: string): Block[] {
   const raw = content
@@ -80,6 +84,8 @@ function parseBlocks(content: string): Block[] {
       const kind = anchor[1].toUpperCase()
       if (kind === 'REFERENCES') {
         out.push({ kind: 'references' })
+      } else if (kind === 'AGENTIC-GATES') {
+        out.push({ kind: 'agentic-gates' })
       } else if (anchor[2]) {
         out.push({ kind: 'chart', id: anchor[2], isDiagram: kind === 'DIAGRAM' })
       }
@@ -446,6 +452,9 @@ export function BlogPostView({ post, prevPost, nextPost }: Props) {
                       )}
                     </figure>
                   )
+                }
+                if (block.kind === 'agentic-gates') {
+                  return <AgenticGateVisual key={index} />
                 }
                 if (block.kind === 'references') {
                   if (refs.length === 0) return null
