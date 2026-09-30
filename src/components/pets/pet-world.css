@@ -370,7 +370,7 @@
   height: 100%;
   animation: pet-wander 9s ease-in-out var(--pet-delay, 0s) infinite;
 }
-.habitat-pet > span:not(.atlas-pet) {
+.habitat-pet > .habitat-pet-name {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -385,9 +385,9 @@
   opacity: 0;
   transition: opacity 0.2s;
 }
-.habitat-pet:hover > span:not(.atlas-pet),
-.habitat-pet.is-selected > span:not(.atlas-pet),
-.habitat-pet:focus-visible > span:not(.atlas-pet) {
+.habitat-pet:hover > .habitat-pet-name,
+.habitat-pet.is-selected > .habitat-pet-name,
+.habitat-pet:focus-visible > .habitat-pet-name {
   opacity: 1;
 }
 .habitat-pet.is-selected .pixel-pet {
@@ -1535,7 +1535,7 @@
     width: 52px;
     height: 64px;
   }
-  .habitat-pet > span:not(.atlas-pet) {
+  .habitat-pet > .habitat-pet-name {
     font-size: 7px;
   }
   .pet-section-head {

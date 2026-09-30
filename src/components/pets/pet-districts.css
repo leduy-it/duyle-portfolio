@@ -1,0 +1,82 @@
+/* Spatial hierarchy: one world stage, compact destinations, contextual pet details. */
+.pet-world .pet-main-grid { display:block; }
+.pet-world .pet-world-heading { min-height:240px; padding:36px 0; border:0; background:none; overflow:visible; border-radius:0; color:var(--pw-text); }
+.pet-world .pet-world-heading::before,.pet-world .pet-world-heading::after,.pet-world .pet-heading-stamp { display:none; }
+.pet-world .pet-world-heading h1 { font-size:clamp(48px,6vw,84px); }
+.pet-world .pet-world-heading h1 em { color:var(--pw-text); opacity:.65; }
+.pet-world .pet-world-heading p { color:var(--pw-muted); }
+.world-arcade-link { display:grid; gap:12px; padding:24px; border-left:1px solid var(--pw-line); text-decoration:none; color:var(--pw-text); max-width:340px; }
+.world-arcade-link > span,.world-arcade-link small { font:10px/1.6 var(--font-mono,monospace); opacity:.7; letter-spacing:.06em; }
+.world-arcade-link strong { font:26px/1.2 Georgia,serif; }
+.pet-world .pet-sidebar { display:none; position:fixed; right:24px; top:100px; bottom:24px; width:320px; overflow:auto; z-index:60; padding:12px; background:var(--pw-panel); border:1px solid var(--pw-line); border-radius:22px; box-shadow:0 24px 100px #0008; }
+.pet-world .pet-sidebar.is-open { display:block; }
+.inspector-close { position:sticky; top:0; float:right; z-index:2; width:40px; height:40px; justify-content:center; font-size:24px; }
+.pet-world .pet-resident-card { box-shadow:none; }
+.pet-world .habitat-panel .pet-habitat { height:clamp(440px,43vw,600px); }
+.pet-world .habitat-pet { width:100px; height:108px; z-index:5; }
+.pet-world .habitat-pet .living-pet { opacity:1; background:none; padding:0; border:0; }
+.pet-world .habitat-pet-name { bottom:-14px; font-size:10px; }
+.district-gates { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--pw-line); }
+.district-gates button { padding:26px; text-align:left; display:grid; gap:10px; border:0; border-right:1px solid var(--pw-line); background:transparent; color:var(--pw-text); cursor:pointer; transition:background .2s; }
+.district-gates button:last-child { border-right:0; }
+.district-gates button:hover { background:#9fc78815; }
+.district-gates span,.district-gates small { font:10px/1.6 monospace; color:var(--pw-muted); }
+.district-gates strong { font:24px/1.2 Georgia,serif; }
+.roster-tools { display:flex; gap:16px; justify-content:space-between; margin:20px 0; flex-wrap:wrap; }
+.roster-tools > div { display:flex; gap:6px; }
+.roster-tools button,.roster-tools input { border:1px solid var(--pw-line); background:var(--pw-panel); color:var(--pw-text); padding:12px 16px; border-radius:10px; font-size:12px; }
+.roster-tools button[aria-pressed=true] { background:#c9dda8; color:#233c2b; }
+.pet-world .pet-roster-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+.guest-arcade { margin:100px 0; scroll-margin-top:160px; }
+.arcade-heading { max-width:700px; margin-bottom:36px; }
+.arcade-heading h2 { font:clamp(34px,5vw,64px)/1.06 Georgia,serif; letter-spacing:-.04em; margin:18px 0; }
+.arcade-heading p { max-width:560px; color:var(--pw-muted); font-size:14px; line-height:1.8; }
+.arcade-portals { display:grid; grid-template-columns:1.15fr 1fr; gap:24px; }
+.arcade-portal { position:relative; min-height:560px; overflow:hidden; border-radius:24px; border:1px solid #c5e8d92b; background:#071b27; color:#eef6e7; isolation:isolate; }
+.portal-orbital-garden { background:radial-gradient(ellipse at 60% 30%,#27473c,#091c21 65%); }
+.portal-art { position:absolute; inset:0; overflow:hidden; background-image:radial-gradient(#f2e9c555 1px,transparent 1px); background-size:61px 71px; }
+.portal-copy { position:absolute; inset:auto 0 0; z-index:2; padding:32px; background:linear-gradient(transparent,#06141bea 24%); padding-top:90px; }
+.portal-copy > span { font:10px/1.5 monospace; letter-spacing:.16em; color:#b1d2c5; }
+.portal-copy h3 { font:42px/1.1 Georgia,serif; margin:12px 0; }
+.portal-copy p { max-width:330px; font-size:14px; line-height:1.7; color:#d0dfd9; }
+.portal-copy button { margin:20px 0; background:#def0bb; color:#18322b; border:0; min-height:48px; }
+.portal-copy small { display:block; font:10px/1.6 monospace; color:#b1c7c2; }
+.portal-copy a { text-decoration:underline; text-underline-offset:3px; }
+.arcade-dialog { position:fixed; inset:0; width:min(1500px,calc(100vw - 32px)); height:calc(100dvh - 32px); max-width:none; max-height:none; margin:auto; padding:0; border:1px solid #73958966; border-radius:16px; background:#07171d; color:#ecf2e7; overflow:hidden; }
+.arcade-dialog[open] { display:flex; flex-direction:column; }
+.arcade-dialog::backdrop { background:#02090fe8; backdrop-filter:blur(12px); }
+.arcade-dialog header { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; gap:20px; }
+.arcade-dialog header div { display:grid; gap:4px; }
+.arcade-dialog header span,.arcade-dialog footer { font:11px/1.5 monospace; color:#b3c8c1; }
+.arcade-dialog header button { width:44px; height:44px; flex-shrink:0; border:1px solid #a9cdbb55; border-radius:50%; font-size:26px; cursor:pointer; }
+.arcade-dialog iframe { width:100%; flex:1; min-height:0; border:0; background:#07171d; }
+.arcade-dialog footer { display:flex; justify-content:space-between; gap:12px; padding:8px 18px; }
+@media(max-width:700px) {
+ .world-arcade-link { display:none; }
+ .pet-world .pet-world-heading { min-height:190px; padding:20px 0; }
+ .pet-world .pet-sidebar { right:8px; left:8px; width:auto; top:90px; bottom:8px; }
+ .district-gates button { padding:16px 10px; }
+ .district-gates strong { font-size:18px; }
+ .district-gates span { font-size:8px; }
+ .district-gates small { font-size:9px; }
+ .arcade-portals { grid-template-columns:1fr; }
+ .arcade-portal { min-height:510px; }
+ .arcade-dialog { width:100vw; height:100dvh; border-radius:0; }
+ .arcade-dialog footer span { display:none; }
+ .arcade-dialog header span { font-size:9px; }
+ .guest-arcade { margin:64px 0; }
+}
+
+
+.pet-world .pet-sidebar { margin:0 0 0 auto; max-height:none; color:var(--pw-text); }
+.pet-sidebar::backdrop { background:#03110b66; backdrop-filter:blur(3px); }
+@media(max-width:700px) { .pet-world .habitat-pet { width:76px; height:82px; } }
+.pet-world .pet-world-heading .pet-eyebrow { color:var(--pw-muted); }
+.pet-world .pet-world-heading .studio-jump { color:var(--pw-accent); }
+.pet-world .pet-world-heading .studio-jump > span { border-color:var(--pw-line); }
+
+.portal-last-beacon .portal-art { background:url('/play/last-beacon/preview.png') center top / cover no-repeat; }
+.portal-orbital-garden .portal-art { background:url('/play/orbital-garden/preview.png') center top / cover no-repeat; }
+.portal-art { transition:transform .8s ease; }
+.arcade-portal:hover .portal-art { transform:scale(1.035); }
+@media(prefers-reduced-motion:reduce) { .portal-art { transition:none; } .arcade-portal:hover .portal-art { transform:none; } }
