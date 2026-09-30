@@ -21,6 +21,8 @@ import './pet-world.css'
 import { PetFactory } from './pet-factory'
 import { SourceGallery } from './source-gallery'
 import './pet-journey.css'
+import { GuestArcade } from './guest-arcade'
+import './pet-districts.css'
 import { LivingPet } from './living-pet'
 import { WorldTransfer } from './world-transfer'
 import { petAppearance } from '@/lib/pets/appearance'
@@ -40,12 +42,25 @@ export function PetWorld() {
   const { save, storage, update, reset } = usePetSave()
   const companion = useCompanionSelection()
   const { visible: companionVisible, setVisible: showCompanion } = useCompanionPreference()
+  const inspector = useRef<HTMLDialogElement>(null)
+  const [inspectorOpen, setInspectorOpen] = useState(false)
+  const [rosterFilter, setRosterFilter] = useState<'owned' | 'all'>('owned')
+  const [rosterSearch, setRosterSearch] = useState('')
   const [scene, setScene] = useState<'grove' | 'dusk' | 'moon'>('grove')
   const [now, setNow] = useState(0),
     [notice, setNotice] = useState(''),
     [placing, setPlacing] = useState(false),
     [reveal, setReveal] = useState<string | null>(null),
     [resetOpen, setResetOpen] = useState(false)
+  useEffect(() => {
+    if (!inspectorOpen) return
+    const node = inspector.current!
+    const trigger = document.activeElement as HTMLElement | null
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    node.showModal()
+    return () => { node.close(); document.body.style.overflow = overflow; trigger?.focus({ preventScroll: true }) }
+  }, [inspectorOpen])
   const pet = save.pets.find((p) => p.id === save.selected) || save.pets[0],
     info = PETS[pet.species],
     next = EVOLUTION[pet.stage]
@@ -173,6 +188,7 @@ export function PetWorld() {
               {l('Enter the evolution studio', 'Ghé phòng tiến hóa')} <span>↗</span>
             </a>
           </div>
+          <a className="world-arcade-link" href="#guest-arcade"><span>02 / PLAY SOMETHING BIGGER</span><strong>{l('Beyond the grove', 'Bên kia khu vườn')} ↗</strong><small>{l('Island defense · Particle observatory', 'Thủ thành trên đảo · Đài quan sát')}</small></a>
           <div className="pet-heading-stamp">
             <PixelPet species="gracie" stage={1} />
             <span>
@@ -199,6 +215,7 @@ export function PetWorld() {
                 {vi ? area.vi : area.en}
               </button>
             ))}
+            <button type="button" onClick={() => document.getElementById('guest-arcade')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })}>↗ Arcade</button>
           </nav>
           <div className="pet-wallet">
             <span title={l('Coins', 'Xu')}>
@@ -305,6 +322,7 @@ export function PetWorld() {
                           return
                         }
                         update((s) => ({ ...s, selected: p.id }))
+                        setInspectorOpen(true)
                       }}
                       onPointerDown={(e) => {
                         if (e.button !== 0) return
@@ -367,7 +385,7 @@ export function PetWorld() {
                       )}
                     >
                       <LivingPet species={p.species} stage={p.stage} enabled={!placing} />
-                      <span>
+                      <span className="habitat-pet-name">
                         {PETS[p.species].name}
                         {p.stage > 0 ? ' ✦' : ''}
                       </span>
@@ -376,6 +394,11 @@ export function PetWorld() {
                   <span className="habitat-butterfly" aria-hidden="true">
                     ❧
                   </span>
+                </div>
+                <div className="district-gates">
+                  <button onClick={() => visit('hatchery')}><span>01 / NURSERY</span><strong>{l('The greenhouse', 'Nhà kính')}</strong><small>{save.eggs.length} {l('eggs incubating', 'trứng đang ấp')} ↗</small></button>
+                  <button onClick={() => visit('factory')}><span>02 / WORKSHOP</span><strong>{l('Production floor', 'Xưởng sản xuất')}</strong><small>{l('Your crew is at work', 'Đội pet đang làm việc')} ↗</small></button>
+                  <button onClick={() => visit('arena')}><span>03 / EXPEDITION</span><strong>{l('Into the wild', 'Ra ngoài phiêu lưu')}</strong><small>{l('Fight alongside your pet', 'Chiến đấu cùng pet')} ↗</small></button>
                 </div>
                 <div className="habitat-footer">
                   <div>
@@ -532,8 +555,15 @@ export function PetWorld() {
                   {l('discovered', 'đã gặp')}
                 </span>
               </div>
+              <div className="roster-tools">
+                <div role="group" aria-label={l('Collection filter', 'Lọc bộ sưu tập')}>
+                  <button aria-pressed={rosterFilter === 'owned'} onClick={() => setRosterFilter('owned')}>{l('At home', 'Ở nhà')} · {save.pets.length}</button>
+                  <button aria-pressed={rosterFilter === 'all'} onClick={() => setRosterFilter('all')}>{l('All species', 'Tất cả loài')} · {SPECIES.length}</button>
+                </div>
+                <input type="search" value={rosterSearch} onChange={e => setRosterSearch(e.target.value)} placeholder={l('Find a pet…', 'Tìm pet…')} aria-label={l('Search pets', 'Tìm pet')} />
+              </div>
               <div className="pet-roster-grid">
-                {SPECIES.map((species, i) => {
+                {SPECIES.filter(species => (rosterFilter === 'all' || save.pets.some(p => p.species === species)) && `${PETS[species].name} ${PETS[species].species} ${PETS[species].vi}`.toLowerCase().includes(rosterSearch.toLowerCase())).map((species, i) => {
                   const owned = save.pets.find((p) => p.species === species),
                     p = PETS[species]
                   return (
@@ -547,11 +577,7 @@ export function PetWorld() {
                           '--pet-delay': `${-i * 0.6}s`,
                         } as CSSProperties
                       }
-                      onClick={() =>
-                        owned
-                          ? update((s) => ({ ...s, selected: owned.id }))
-                          : update((s) => ({ ...s, area: 'hatchery' }))
-                      }
+                      onClick={() => { if (owned) { update((s) => ({ ...s, selected: owned.id })); setInspectorOpen(true) } else visit('hatchery') }}
                       disabled={locked}
                       aria-pressed={owned ? pet.id === owned.id : undefined}
                     >
@@ -570,7 +596,8 @@ export function PetWorld() {
               </div>
             </section>
           </div>
-          <aside className="pet-sidebar">
+          <dialog ref={inspector} className={`pet-sidebar ${inspectorOpen ? 'is-open' : ''}`} onCancel={() => setInspectorOpen(false)} aria-label={l('Pet details', 'Thông tin pet')}>
+            <button className="inspector-close pet-button" onClick={() => setInspectorOpen(false)} aria-label={l('Close pet details', 'Đóng thông tin pet')}>×</button>
             <section
               id="pet-resident"
               className={`pet-resident-card ${reveal === pet.id ? 'is-celebrating' : ''}`}
@@ -690,8 +717,9 @@ export function PetWorld() {
                 </button>
               </div>
             )}
-          </aside>
+          </dialog>
         </div>
+        <GuestArcade vi={vi} />
         <SourceGallery vi={locale === 'vi'} />
         <WorldTransfer vi={vi} />
         <footer className="pet-world-footer">
