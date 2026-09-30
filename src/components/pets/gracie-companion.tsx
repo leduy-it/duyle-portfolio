@@ -99,9 +99,17 @@ export function GracieCompanion() {
   }, [])
   useEffect(() => {
     if (pose === 'idle' || busy) return
-    const timer = setTimeout(() => setPose('idle'), 2400)
+    const timer = setTimeout(() => setPose('idle'), pose === 'sleep' ? 9000 : pose === 'rest' ? 5000 : 2400)
     return () => clearTimeout(timer)
   }, [pose, busy])
+
+  useEffect(() => {
+    if (open || busy || dragPose || !visible || prefersReducedMotion) return
+    const timer = setInterval(() => {
+      if (!document.hidden) setPose(Math.random() < .25 ? 'sleep' : 'rest')
+    }, 38000)
+    return () => clearInterval(timer)
+  }, [open, busy, dragPose, visible, prefersReducedMotion])
 
   function fullChat() {
     const draft = busy ? pendingText.current : input

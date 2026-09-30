@@ -1,0 +1,145 @@
+/* The world is a continuous journey; each destination stays mounted. */
+.pet-world-shell { max-width: 1480px; }
+.pet-world-heading { min-height: 290px; align-items: center; }
+.pet-world-heading h1 { font-size: clamp(56px, 7vw, 108px); letter-spacing: -.06em; }
+.pet-world-heading p { max-width: 440px; line-height: 1.8; }
+.pet-world-toolbar { position: sticky; top: 76px; z-index: 20; background: var(--pw-panel); box-shadow: 0 8px 32px #071d1824; }
+.pet-chapter { scroll-margin-top: 164px; margin-bottom: 48px; }
+.pet-main-area { display: flex; flex-direction: column; }
+.pet-sidebar { position: sticky; top: 164px; }
+.pet-chapter .pet-section-head h2 { font-size: clamp(27px, 3vw, 42px); line-height: 1.15; }
+.habitat-panel .habitat-art.pixel-backdrop { inset: 0; height: 100%; background: url('/pets/pixel-garden-v2.webp') center / cover no-repeat; image-rendering: pixelated; }
+.habitat-panel .pet-habitat { height: clamp(440px, 42vw, 620px); }
+.habitat-panel .pet-habitat::after { background: linear-gradient(180deg,#173d5055,transparent 35%,transparent 85%,#183c2622); }
+.habitat-panel .habitat-art { filter: none !important; }
+.habitat-art::after { content: ''; position: absolute; inset: 0; pointer-events: none; transition: background 1.2s ease; }
+.habitat-panel[data-scene=dusk] .habitat-art::after { background: linear-gradient(155deg,#ef965756,#922a5f24 60%,#3f245e55); mix-blend-mode: multiply; }
+.habitat-panel[data-scene=moon] .habitat-art::after { background: linear-gradient(150deg,#142857b5,#192b5877); mix-blend-mode: multiply; }
+.habitat-panel .scene-title { top: 30px; left: 28px; }
+.habitat-panel .scene-title h2 { font-size: clamp(28px,3vw,42px); }
+.habitat-panel .scene-title > span { letter-spacing: .22em; }
+.hatchery-panel { position: relative; background: radial-gradient(ellipse at 50% 30%,#c4af6c15,transparent 65%),var(--pw-panel); }
+.hatchery-panel .incubator-row { min-height: 240px; align-items: center; }
+.hatchery-panel .incubator { position: relative; border-radius: 22px; background: linear-gradient(180deg,#e6d6a111,transparent); }
+.hatchery-panel .egg-orbit { background: radial-gradient(ellipse,#e9d79126,transparent 65%); }
+.arena-panel { background: radial-gradient(ellipse at top right,#ab86d522,transparent 70%),var(--pw-panel); }
+.pet-chapter { transition: opacity .65s ease, transform .65s ease; }
+.pet-chapter[data-reveal='waiting'] { opacity: 0; transform: translateY(24px); }
+.pet-chapter[data-reveal='visible'] { opacity: 1; transform: none; }
+@media(min-width: 901px) { .pet-main-grid { grid-template-columns: minmax(0,1fr) 240px; gap: 28px; } }
+@media(max-width: 900px) { .pet-sidebar { position: static; } .pet-world-toolbar { top: 72px; } }
+@media(max-width: 600px) {
+  .pet-world-shell { padding: 18px 12px; }
+  .pet-world-heading { min-height: 230px; }
+  .pet-world-heading h1 { font-size: 58px; }
+  .pet-heading-stamp { display: none; }
+  .pet-world-toolbar { border-radius: 14px; top: 68px; padding: 8px; }
+  .pet-world-toolbar nav { overflow-x: auto; scrollbar-width: none; }
+  .pet-chapter { scroll-margin-top: 170px; margin-bottom: 30px; }
+  .habitat-panel .pet-habitat { height: 440px; }
+  .habitat-panel .habitat-art.pixel-backdrop { background-position: 48% center; }
+  .habitat-panel .scene-title { left: 18px; top: 20px; }
+}
+@media(prefers-reduced-motion: reduce) { .pet-chapter { transition: none; } .pet-chapter[data-reveal='waiting'] { opacity: 1; transform: none; } .habitat-art::after { transition: none; } }
+@media(max-width:600px) {
+  .pet-world-toolbar nav { display: flex; flex-wrap: nowrap; width: 100%; }
+  .pet-world-toolbar nav button { flex: 0 0 auto; padding: 12px 14px; }
+  .pet-world-toolbar .pet-wallet { padding: 4px 6px 0; }
+  .pet-world-heading { min-height: 210px; }
+}
+.hatchery-panel .incubator-row {
+  margin: 16px 0 0;
+  padding: 180px 24px 36px;
+  min-height: 490px;
+  background: url('/pets/pixel-hatchery-v2.webp') center / cover;
+  image-rendering: pixelated;
+  gap: 18px;
+}
+.hatchery-panel .incubator {
+  min-width: 160px;
+  padding: 18px;
+  color: #203c32;
+  background: #fff9e5eb;
+  border: 1px solid #fff9e5;
+  box-shadow: 0 10px 30px #14352830;
+  image-rendering: auto;
+}
+.hatchery-panel .incubator small { color: #435a45; }
+.hatchery-panel .incubator .pet-button { background: #294f3d; color: #fff9e5; border-color: #294f3d; }
+.hatchery-panel .incubator-empty { background: #fff9e5ed; color: #203c32; padding: 24px; border-radius: 16px; }
+@media(max-width:600px) { .hatchery-panel .incubator-row { padding: 160px 16px 26px; min-height: 430px; } }
+.living-pet { display: block; width: 100%; height: 100%; transform: translate(0,0); transition: transform 1.92s linear; }
+.living-pet[data-away=true] { transform: translate(18px,6px); }
+.living-pet .atlas-pet { width: 100%; height: 100%; }
+.living-pet .extension-walk { background-size: 800% 100%; animation: pet-extension-walk .96s steps(8) infinite; }
+@keyframes pet-extension-walk { from { background-position: 0 0; } to { background-position: 114.285714% 0; } }
+@media(prefers-reduced-motion:reduce) { .living-pet { transition: none; transform: none !important; } .living-pet .extension-walk { animation: none; } }
+.world-transfer { margin: 48px 0; padding: 28px; border: 1px solid var(--pw-line); border-radius: 20px; background: var(--pw-panel); }
+.world-transfer p { font-size: 13px; margin: 12px 0 18px; }
+.world-transfer > div { display: flex; gap: 12px; flex-wrap: wrap; }
+.world-transfer output { display: block; font-size: 12px; margin-top: 12px; }
+.world-import-confirm { padding-top: 20px; }
+.world-import-confirm p { width: 100%; }
+.evolution-preview { display:flex; align-items:center; justify-content:center; gap:8px; margin:16px 0; }
+.evolution-preview .pixel-pet { width:64px; height:70px; }
+.evolution-preview > span { color:#456444; }
+.pet-resident-card .companion-resident-set { margin-top:16px; border-color:#416449; color:#29422d; }
+.pet-roster-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); }
+.pet-world-heading {
+  position: relative;
+  overflow: hidden;
+  min-height: 440px;
+  padding: 44px;
+  border: 1px solid var(--pw-line);
+  border-radius: 28px;
+  background: linear-gradient(90deg,#10291feb 2%,#10291fce 35%,#10291f14 75%),url('/pets/pixel-garden-v2.webp') center 36% / cover;
+  color: #fff8e4;
+  isolation: isolate;
+}
+.pet-world-heading h1 { font-size: clamp(56px,6.8vw,96px); }
+.pet-world-heading p { color: #f4f0da; }
+.pet-world-heading .pet-eyebrow { color: #d5e7b8; }
+.pet-world-heading .studio-jump { color: #e3f5b9; }
+.pet-world-heading .pet-heading-stamp { position: absolute; right: 13%; bottom: 26px; width: 160px; height: 185px; transform: none; background: none; border: 0; box-shadow: none; }
+.pet-world-heading .pet-heading-stamp .pixel-pet { width: 124px; height: 135px; }
+.pet-world-heading .pet-heading-stamp > span { background: #183b2fdc; color: #fff7da; padding: 9px 12px; border-radius: 9px; }
+.pet-world-heading .pet-heading-stamp > i { color: #fff7b2; }
+@media(max-width:600px) {
+  .pet-world-heading { min-height: 390px; padding: 24px; align-items: flex-start; background-image: linear-gradient(180deg,#10291fe8,#10291f88 50%,#10291f00),url('/pets/pixel-garden-v2.webp'); background-position: center; }
+  .pet-world-heading h1 { font-size: 55px; margin-top: 22px; }
+  .pet-world-heading p { font-size: 11px; max-width: 250px; }
+  .pet-world-heading .pet-heading-stamp { display: flex; width: 90px; height: 95px; right: 13%; bottom: 12px; }
+  .pet-world-heading .pet-heading-stamp .pixel-pet { width: 74px; height: 80px; }
+  .pet-world-heading .pet-heading-stamp > span { display:none; }
+}
+.workshop .workshop-scene { height: 440px; background: url('/pets/pixel-workshop-v2.webp') center / cover; }
+.workshop .workshop-window,.workshop .workshop-pipe,.workshop .workshop-scene::after { display:none; }
+.workshop .workshop-line-label { color: #fff9e8; text-shadow: 0 1px 5px #17251b; }
+.workshop .workshop-machines { top: 165px; }
+.workshop .workshop-conveyor { top: 320px; }
+.workshop .workshop-foreman { bottom: 8px; color: #fff6dc; text-shadow:0 1px 4px #302414; }
+.workshop .workshop-cycle { padding: 8px; border-radius: 8px; background:#18382cdc; color:#fff6dc; }
+.workshop .workshop-machine,.workshop .workshop-reactor { border-radius: 3px; box-shadow: 5px 6px 0 #26382266; }
+@media(max-width:600px) { .workshop .workshop-scene { height:390px; } .workshop .workshop-machines { top:140px; } .workshop .workshop-conveyor { top:280px; } }
+.motion-pet { animation: motion-strip 960ms steps(8) infinite; }
+@keyframes motion-strip { from { background-position: 0 0; } to { background-position: var(--motion-end) 0; } }
+@media(prefers-reduced-motion:reduce) { .motion-pet { animation: none !important; } }
+.habitat-decor { position:absolute; width:58px; height:58px; padding:0; background:none; border:1px solid transparent; transform:translate(-50%,-50%); z-index:4; }
+.habitat-decor:disabled { opacity:1; pointer-events:none; }
+.habitat-decor svg { width:100%; height:100%; }
+.habitat-decor[data-editing=true] { border:1px dashed #f8ffe1; background:#f8ffe125; border-radius:8px; cursor:grab; touch-action:none; z-index:12; }
+.habitat-decor:focus-visible { outline:3px solid #fff7c2; }
+.decor-tools { position:absolute; bottom:10px; left:12px; z-index:15; display:flex; gap:4px; background:#19372fec; padding:6px; border-radius:10px; }
+.decor-tools button { font-size:10px; padding:8px; color:#fff6da; border:1px solid #afc3a755; background:transparent; border-radius:6px; }
+.decor-tools button:disabled { opacity:.4; }
+@media(max-width:600px) { .habitat-decor { width:44px; height:44px; } .decor-tools { bottom:66px; } }
+.habitat-panel .habitat-pet:disabled { pointer-events:none; }
+.habitat-panel .scene-switch { z-index:18; }
+.decor-tools { z-index:24; }
+.studio-pet { width:192px; top:100px; }
+.atlas-pet[data-pet=bunny] { image-rendering:pixelated; }
+@media(max-width:700px) { .studio-pet { width:160px; top:78px; } }
+.pet-world-heading h1 em { color: #d5edaa; }
+@media(max-width:600px) {
+  .pet-world-heading .pet-heading-stamp > .atlas-pet { display:block; background-color:transparent; border-radius:0; padding:0; }
+}

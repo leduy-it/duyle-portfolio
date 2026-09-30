@@ -1,4 +1,4 @@
-/** Generated woodland backdrop; original animated pet atlases remain separate. */
+/** Pixel scenery stays separate from the original animated pet atlases. */
 export function HabitatArt() {
-  return <div className="habitat-art woodland-backdrop" aria-hidden="true" />
+  return <div className="habitat-art pixel-backdrop" aria-hidden="true" />
 }

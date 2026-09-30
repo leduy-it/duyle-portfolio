@@ -15,10 +15,17 @@ import {
 } from '@/lib/pets/progression'
 import { PixelPet, PixelEgg } from './pixel-art'
 import { HabitatArt } from './habitat-art'
+import { HabitatDecor } from './habitat-decor'
 import { PetArena } from './arena'
 import './pet-world.css'
 import { PetFactory } from './pet-factory'
 import { SourceGallery } from './source-gallery'
+import './pet-journey.css'
+import { LivingPet } from './living-pet'
+import { WorldTransfer } from './world-transfer'
+import { petAppearance } from '@/lib/pets/appearance'
+import { useCompanionSelection } from '@/lib/pets/companion-selection'
+import { useCompanionPreference } from '@/lib/pets/companion-preference'
 
 const areas: { id: Area; en: string; vi: string; icon: string }[] = [
   { id: 'habitat', en: 'The habitat', vi: 'Ngôi nhà', icon: '⌂' },
@@ -31,6 +38,8 @@ export function PetWorld() {
     vi = locale === 'vi',
     l = (en: string, vn: string) => (vi ? vn : en)
   const { save, storage, update, reset } = usePetSave()
+  const companion = useCompanionSelection()
+  const { visible: companionVisible, setVisible: showCompanion } = useCompanionPreference()
   const [scene, setScene] = useState<'grove' | 'dusk' | 'moon'>('grove')
   const [now, setNow] = useState(0),
     [notice, setNotice] = useState(''),
@@ -40,12 +49,16 @@ export function PetWorld() {
   const pet = save.pets.find((p) => p.id === save.selected) || save.pets[0],
     info = PETS[pet.species],
     next = EVOLUTION[pet.stage]
+  const appearance = petAppearance(pet.species, pet.stage)
+  const changesForm = next && appearance.file !== petAppearance(pet.species, pet.stage + 1).file
+  const isCompanion = companion.pet.id === appearance.pet && companion.file === appearance.file
   const habitatDrag = useRef<{
     id: string
     x: number
     y: number
     moved: boolean
     slot: number
+    position?: { x: number; y: number }
   } | null>(null)
   const habitatClick = useRef(false)
   const locked = storage === 'loading' || storage === 'newer'
@@ -71,6 +84,31 @@ export function PetWorld() {
     const t = setTimeout(() => setReveal(null), 2500)
     return () => clearTimeout(t)
   }, [reveal])
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const chapters = document.querySelectorAll<HTMLElement>('.pet-chapter')
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          (entry.target as HTMLElement).dataset.reveal = 'visible'
+          observer.unobserve(entry.target)
+        }
+      }
+    }, { threshold: 0.04, rootMargin: '80px' })
+    chapters.forEach((chapter) => {
+      if (chapter.getBoundingClientRect().top > innerHeight) chapter.dataset.reveal = 'waiting'
+      observer.observe(chapter)
+    })
+    return () => { observer.disconnect(); chapters.forEach(chapter => delete chapter.dataset.reveal) }
+  }, [])
+  function visit(area: Area) {
+    update((s) => ({ ...s, area }))
+    setPlacing(false)
+    document.getElementById(`pet-chapter-${area}`)?.scrollIntoView({
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'start',
+    })
+  }
   function cheer() {
     const t = Date.now()
     update((s) => cheerPet(s, pet.id, t))
@@ -81,9 +119,9 @@ export function PetWorld() {
       )
     )
   }
-  function hatch(id: string) {
+  async function hatch(id: string) {
     const before = save.pets.length
-    const result = update((s) => hatchEgg(s, id, Date.now()))
+    const result = await update((s) => hatchEgg(s, id, Date.now()))
     if (result.pets.length > before) {
       setReveal(result.selected)
       setNotice(
@@ -94,14 +132,14 @@ export function PetWorld() {
       )
     }
   }
-  function evolve() {
-    const result = update((s) => evolvePet(s, pet.id))
-    if (result.pets.find((p) => p.id === pet.id)!.stage > pet.stage) {
+  async function evolve() {
+    const result = await update((s) => evolvePet(s, pet.id))
+    if ((result.pets.find((p) => p.id === pet.id)?.stage ?? pet.stage) > pet.stage) {
       setReveal(pet.id)
       setNotice(
         l(
-          `${info.name} evolved. A little more extraordinary.`,
-          `${info.name} tiến hóa rồi. Lấp lánh hơn một chút.`
+          `${info.name} ${changesForm ? 'evolved' : 'ranked up'}. A little more extraordinary.`,
+          `${info.name} ${changesForm ? 'tiến hóa' : 'lên bậc'} rồi. Lấp lánh hơn một chút.`
         )
       )
     }
@@ -127,8 +165,8 @@ export function PetWorld() {
             </h1>
             <p>
               {l(
-                'A tiny universe. A very real attachment.',
-                'Một vũ trụ nhỏ. Thương thì rất thật.'
+                'A living world of small wonders. Wander a little.',
+                'Một thế giới đầy điều nhỏ xinh. Cứ thong thả khám phá.'
               )}
             </p>
             <a className="studio-jump" href="#evolution-studio">
@@ -154,8 +192,7 @@ export function PetWorld() {
                 aria-current={save.area === area.id ? 'page' : undefined}
                 disabled={locked}
                 onClick={() => {
-                  update((s) => ({ ...s, area: area.id }))
-                  setPlacing(false)
+                  visit(area.id)
                 }}
               >
                 <span aria-hidden="true">{area.icon}</span>
@@ -192,10 +229,11 @@ export function PetWorld() {
         )}
         <div className="pet-main-grid">
           <div className="pet-main-area" aria-busy={locked}>
-            {save.area === 'habitat' && (
-              <section className="pet-panel habitat-panel" data-scene={scene}>
+            {(
+              <section id="pet-chapter-habitat" className="pet-panel habitat-panel pet-chapter" data-scene={scene}>
                 <div className={`pet-habitat ${placing ? 'is-placing' : ''}`}>
                   <HabitatArt />
+                  <HabitatDecor editing={placing} vi={vi} />
                   <div className="scene-atmosphere" aria-hidden="true">
                     {Array.from({ length: 12 }, (_, i) => (
                       <i
@@ -287,10 +325,11 @@ export function PetWorld() {
                         habitatClick.current = true
                         const r = e.currentTarget.parentElement!.getBoundingClientRect()
                         const x = Math.max(
-                            10,
-                            Math.min(90, ((e.clientX - r.left) / r.width) * 100)
+                            14,
+                            Math.min(84, ((e.clientX - r.left) / r.width) * 100)
                           ),
-                          y = Math.max(36, Math.min(83, ((e.clientY - r.top) / r.height) * 100))
+                          y = Math.max(46, Math.min(85, ((e.clientY - r.top) / r.height) * 100))
+                        d.position = { x, y }
                         d.slot =
                           Math.max(0, Math.min(3, Math.round((x - 19) / 20))) +
                           4 * Math.max(0, Math.min(2, Math.round((y - 42) / 18)))
@@ -301,24 +340,24 @@ export function PetWorld() {
                       onPointerUp={(e) => {
                         const d = habitatDrag.current
                         if (d?.moved) {
-                          update((s) => placePet({ ...s, selected: p.id }, p.id, d.slot))
-                          e.currentTarget.style.left = `${19 + (d.slot % 4) * 20}%`
-                          e.currentTarget.style.top = `${42 + Math.floor(d.slot / 4) * 18}%`
+                          update((s) => placePet({ ...s, selected: p.id }, p.id, d.slot, d.position))
+                          e.currentTarget.style.left = `${d.position?.x ?? 19 + (d.slot % 4) * 20}%`
+                          e.currentTarget.style.top = `${d.position?.y ?? 42 + Math.floor(d.slot / 4) * 18}%`
                         }
                         delete e.currentTarget.dataset.dragging
                         habitatDrag.current = null
                       }}
                       onPointerCancel={(e) => {
-                        e.currentTarget.style.left = `${19 + (p.slot % 4) * 20}%`
-                        e.currentTarget.style.top = `${42 + Math.floor(p.slot / 4) * 18}%`
+                        e.currentTarget.style.left = `${p.position?.x ?? 19 + (p.slot % 4) * 20}%`
+                        e.currentTarget.style.top = `${p.position?.y ?? 42 + Math.floor(p.slot / 4) * 18}%`
                         delete e.currentTarget.dataset.dragging
                         habitatDrag.current = null
                       }}
                       className={`habitat-pet ${save.selected === p.id ? 'is-selected' : ''} ${reveal === p.id ? 'is-celebrating' : ''}`}
                       style={
                         {
-                          left: `${19 + (p.slot % 4) * 20 + (i > 11 ? (i % 3) * 2 : 0)}%`,
-                          top: `${42 + Math.floor(p.slot / 4) * 18}%`,
+                          left: `${p.position?.x ?? 19 + (p.slot % 4) * 20 + (i > 11 ? (i % 3) * 2 : 0)}%`,
+                          top: `${p.position?.y ?? 42 + Math.floor(p.slot / 4) * 18}%`,
                           '--pet-delay': `${-i * 1.7}s`,
                         } as CSSProperties
                       }
@@ -327,7 +366,7 @@ export function PetWorld() {
                         `Chọn ${PETS[p.species].name}`
                       )}
                     >
-                      <PixelPet species={p.species} stage={p.stage} follow />
+                      <LivingPet species={p.species} stage={p.stage} enabled={!placing} />
                       <span>
                         {PETS[p.species].name}
                         {p.stage > 0 ? ' ✦' : ''}
@@ -365,8 +404,8 @@ export function PetWorld() {
                 </div>
               </section>
             )}
-            {save.area === 'hatchery' && (
-              <section className="pet-panel">
+            {(
+              <section id="pet-chapter-hatchery" className="pet-panel hatchery-panel pet-chapter">
                 <div className="pet-section-head">
                   <div>
                     <span className="pet-eyebrow">02 / SOMEBODY NEW</span>
@@ -463,18 +502,18 @@ export function PetWorld() {
                 </div>
               </section>
             )}
-            {save.area === 'factory' && (
-              <PetFactory save={save} now={now} locked={locked} vi={vi}
+            {(
+              <div id="pet-chapter-factory" className="pet-chapter"><PetFactory save={save} now={now} locked={locked} vi={vi}
                 onSelect={(id) => update(s => ({ ...s, selected: id }))}
-                onRecruit={() => update(s => ({ ...s, area: 'hatchery' }))}
+                onRecruit={() => visit('hatchery')}
                 onCollect={() => {
                   const t = Date.now()
                   update(s => collectFactory(s, t))
                   setNow(t)
-                }} />
+                }} /></div>
             )}
-            {save.area === 'arena' && (
-              <section className="pet-panel arena-panel">
+            {(
+              <section id="pet-chapter-arena" className="pet-panel arena-panel pet-chapter">
                 <div className="pet-section-head">
                   <div>
                     <span className="pet-eyebrow">04 / A LITTLE FRIENDLY CHAOS</span>
@@ -579,7 +618,8 @@ export function PetWorld() {
               </div>
               {next ? (
                 <div className="evolution-next">
-                  <span className="pet-eyebrow">{l('NEXT CHAPTER', 'CHƯƠNG TIẾP THEO')}</span>
+                  <span className="pet-eyebrow">{changesForm ? l('NEXT FORM', 'HÌNH THÁI TIẾP') : l('NEXT GROWTH RANK', 'BẬC TRƯỞNG THÀNH TIẾP')}</span>
+                  {changesForm && <div className="evolution-preview"><PixelPet species={pet.species} stage={pet.stage} /><span>→</span><PixelPet species={pet.species} stage={(pet.stage + 1) as 1 | 2} /></div>}
                   <h3>{info.forms[pet.stage + 1]}</h3>
                   <p>
                     {next.xp} XP · {next.coins} ◈ · {next.materials} ✧
@@ -591,7 +631,7 @@ export function PetWorld() {
                     onClick={evolve}
                   >
                     {canEvolve
-                      ? l('Time to evolve', 'Tiến hóa thôi')
+                      ? changesForm ? l('Time to evolve', 'Tiến hóa thôi') : l('Grow to next rank', 'Lên bậc tiếp theo')
                       : l('Keep growing', 'Đang lớn dần')}{' '}
                     <span>✦</span>
                   </button>
@@ -601,6 +641,7 @@ export function PetWorld() {
                   ✦ {l('A little legend, fully grown.', 'Huyền thoại nhỏ đã lớn rồi.')}
                 </p>
               )}
+              <button className="pet-button companion-resident-set" disabled={isCompanion && companionVisible} onClick={() => { companion.setCompanion(appearance.pet, pet.stage); showCompanion(true) }}>{isCompanion ? l('Your companion ✓', 'Đang đồng hành ✓') : l('Set as companion ↗', 'Chọn đồng hành ↗')}</button>
             </section>
             <div className="pet-note">
               <span>↳</span>
@@ -652,6 +693,7 @@ export function PetWorld() {
           </aside>
         </div>
         <SourceGallery vi={locale === 'vi'} />
+        <WorldTransfer vi={vi} />
         <footer className="pet-world-footer">
           <span>
             SMALL WORLD. BIG FEELINGS. <i>✳</i>

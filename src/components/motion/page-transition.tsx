@@ -1,13 +1,15 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useHomeMotionPreferences } from '@/components/home/home-motion'
+
+import { AnimatePresence, motion } from 'motion/react'
 import { usePathname } from 'next/navigation'
 import { type PropsWithChildren } from 'react'
 import { easeInOutQuart, easeOutExpo, motionDurations } from './easings'
 
 export function PageTransition({ children }: PropsWithChildren) {
   const pathname = usePathname()
-  const reducedMotion = useReducedMotion()
+  const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
 
   return (
     <AnimatePresence initial={false} mode="wait">

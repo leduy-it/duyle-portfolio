@@ -1,5 +1,7 @@
 'use client'
 
+import { useHomeMotionPreferences } from '@/components/home/home-motion'
+
 import Link, { type LinkProps } from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -8,7 +10,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react'
-import { useReducedMotion } from 'motion/react'
+
 
 type AnchorProps = Omit<ComponentPropsWithoutRef<'a'>, keyof LinkProps | 'href'>
 
@@ -39,7 +41,7 @@ export const SmoothLink = forwardRef<HTMLAnchorElement, SmoothLinkProps>(functio
 ) {
   const router = useRouter()
   const pathname = usePathname()
-  const reducedMotion = useReducedMotion()
+  const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(event)

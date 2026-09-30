@@ -8,14 +8,20 @@ import { awardArenaWin } from '@/lib/pets/progression'
 import { useHomeMotionPreferences } from '@/components/home/home-motion'
 import { palette, pixels } from './pixel-art'
 import { petAppearance } from '@/lib/pets/appearance'
+import { motionCatalog } from './motion-pet'
 
 function draw(
   ctx: CanvasRenderingContext2D,
   s: ArenaState,
   still: boolean,
-  bunny?: HTMLImageElement
+  bunny?: HTMLImageElement,
+  scenery?: HTMLImageElement,
+  walking?: HTMLImageElement
 ) {
   ctx.imageSmoothingEnabled = false
+  if (scenery?.complete && scenery.naturalWidth) {
+    ctx.drawImage(scenery, 0, 0, 640, 360)
+  } else {
   ctx.fillStyle = '#254b45'
   ctx.fillRect(0, 0, 640, 360)
   for (let x = 0; x < 640; x += 32)
@@ -28,6 +34,7 @@ function draw(
         ctx.fillRect(x + 11, y + 8, 2, 5)
       }
     }
+  }
   ctx.strokeStyle = '#a9c77b55'
   ctx.lineWidth = 2
   ctx.strokeRect(13, 13, 614, 334)
@@ -70,7 +77,10 @@ function draw(
   }
   ctx.globalAlpha =
     s.player.invincible > 0 && !still ? 0.55 + 0.45 * Math.abs(Math.sin(s.time * 20)) : 1
-  if (bunny?.complete && bunny.naturalWidth) {
+  if (walking?.complete && walking.naturalWidth && s.slash <= 0 && s.status === 'running') {
+    const frame = still ? 0 : Math.floor(s.time / .12) % 8
+    ctx.drawImage(walking, frame * 192, 0, 192, 208, x - 30, y - 43, 60, 65)
+  } else if (bunny?.complete && bunny.naturalWidth) {
     const row = s.slash > 0 ? 4 : s.status === 'lost' ? 5 : 0
     const frame = still ? 0 : Math.floor(s.time * 7) % (row === 4 ? 5 : row === 5 ? 8 : 6)
     ctx.drawImage(bunny, frame * 192, row * 208, 192, 208, x - 30, y - 43, 60, 65)
@@ -121,11 +131,15 @@ export function PetArena({ pet, vi }: { pet: OwnedPet; vi: boolean }) {
     const bunny = new Image()
     const appearance = petAppearance(pet.species, pet.stage)
     bunny.src = `/pets/hatch-pet-plus/${appearance.pet}/${appearance.file}`
+    const scenery = new Image()
+    scenery.src = '/pets/pixel-arena-v2.webp'
+    const walks = new Map<string, HTMLImageElement>()
     const heldKeys = keys.current
     let frame = 0,
       previous = 0,
       accumulator = 0,
-      lastHud = 0
+      lastHud = 0,
+      inView = false
     function loop(time: number) {
       const dt = previous ? Math.min(0.1, (time - previous) / 1000) : 0
       previous = time
@@ -146,18 +160,31 @@ export function PetArena({ pet, vi }: { pet: OwnedPet; vi: boolean }) {
           updateRef.current((s) => awardArenaWin(s, pet.id, run.current))
         }
       } else accumulator = 0
-      draw(ctx!, game.current, prefersReducedMotion, bunny)
+      const dx = Number(keys.current.has('ArrowRight') || keys.current.has('d')) - Number(keys.current.has('ArrowLeft') || keys.current.has('a'))
+      const dy = Number(keys.current.has('ArrowDown') || keys.current.has('s')) - Number(keys.current.has('ArrowUp') || keys.current.has('w'))
+      const direction = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'][(Math.round(Math.atan2(dx, -dy) / (Math.PI / 4)) + 8) % 8]
+      const clip = motionCatalog[appearance.pet]?.[`walk-${direction}`]
+      let walking: HTMLImageElement | undefined
+      if ((dx || dy) && clip && !pausedRef.current) {
+        if (!walks.has(direction)) {
+          const sprite = new Image()
+          sprite.src = `/pets/hatch-pet-plus/${appearance.pet}/motion/${clip.file}`
+          walks.set(direction, sprite)
+        }
+        walking = walks.get(direction)
+      }
+      draw(ctx!, game.current, prefersReducedMotion, bunny, scenery, walking)
       if (time - lastHud > 100) {
         setHud(game.current)
         lastHud = time
       }
-      if (!document.hidden) frame = requestAnimationFrame(loop)
+      if (!document.hidden && inView) frame = requestAnimationFrame(loop)
     }
     function visibility() {
       if (document.hidden) {
         cancelAnimationFrame(frame)
         pause(true)
-      } else {
+      } else if (inView) {
         previous = 0
         frame = requestAnimationFrame(loop)
       }
@@ -165,11 +192,19 @@ export function PetArena({ pet, vi }: { pet: OwnedPet; vi: boolean }) {
     function blur() {
       pause(true)
     }
-    frame = requestAnimationFrame(loop)
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting
+      cancelAnimationFrame(frame)
+      previous = 0
+      if (!inView) pause(true)
+      else if (!document.hidden) frame = requestAnimationFrame(loop)
+    })
+    if (root.current) observer.observe(root.current)
     document.addEventListener('visibilitychange', visibility)
     window.addEventListener('blur', blur)
     return () => {
       cancelAnimationFrame(frame)
+      observer.disconnect()
       heldKeys.clear()
       document.removeEventListener('visibilitychange', visibility)
       window.removeEventListener('blur', blur)
