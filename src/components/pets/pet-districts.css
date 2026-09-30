@@ -1,82 +1,942 @@
 /* Spatial hierarchy: one world stage, compact destinations, contextual pet details. */
-.pet-world .pet-main-grid { display:block; }
-.pet-world .pet-world-heading { min-height:240px; padding:36px 0; border:0; background:none; overflow:visible; border-radius:0; color:var(--pw-text); }
-.pet-world .pet-world-heading::before,.pet-world .pet-world-heading::after,.pet-world .pet-heading-stamp { display:none; }
-.pet-world .pet-world-heading h1 { font-size:clamp(48px,6vw,84px); }
-.pet-world .pet-world-heading h1 em { color:var(--pw-text); opacity:.65; }
-.pet-world .pet-world-heading p { color:var(--pw-muted); }
-.world-arcade-link { display:grid; gap:12px; padding:24px; border-left:1px solid var(--pw-line); text-decoration:none; color:var(--pw-text); max-width:340px; }
-.world-arcade-link > span,.world-arcade-link small { font:10px/1.6 var(--font-mono,monospace); opacity:.7; letter-spacing:.06em; }
-.world-arcade-link strong { font:26px/1.2 Georgia,serif; }
-.pet-world .pet-sidebar { display:none; position:fixed; right:24px; top:100px; bottom:24px; width:320px; overflow:auto; z-index:60; padding:12px; background:var(--pw-panel); border:1px solid var(--pw-line); border-radius:22px; box-shadow:0 24px 100px #0008; }
-.pet-world .pet-sidebar.is-open { display:block; }
-.inspector-close { position:sticky; top:0; float:right; z-index:2; width:40px; height:40px; justify-content:center; font-size:24px; }
-.pet-world .pet-resident-card { box-shadow:none; }
-.pet-world .habitat-panel .pet-habitat { height:clamp(440px,43vw,600px); }
-.pet-world .habitat-pet { width:100px; height:108px; z-index:5; }
-.pet-world .habitat-pet .living-pet { opacity:1; background:none; padding:0; border:0; }
-.pet-world .habitat-pet-name { bottom:-14px; font-size:10px; }
-.district-gates { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--pw-line); }
-.district-gates button { padding:26px; text-align:left; display:grid; gap:10px; border:0; border-right:1px solid var(--pw-line); background:transparent; color:var(--pw-text); cursor:pointer; transition:background .2s; }
-.district-gates button:last-child { border-right:0; }
-.district-gates button:hover { background:#9fc78815; }
-.district-gates span,.district-gates small { font:10px/1.6 monospace; color:var(--pw-muted); }
-.district-gates strong { font:24px/1.2 Georgia,serif; }
-.roster-tools { display:flex; gap:16px; justify-content:space-between; margin:20px 0; flex-wrap:wrap; }
-.roster-tools > div { display:flex; gap:6px; }
-.roster-tools button,.roster-tools input { border:1px solid var(--pw-line); background:var(--pw-panel); color:var(--pw-text); padding:12px 16px; border-radius:10px; font-size:12px; }
-.roster-tools button[aria-pressed=true] { background:#c9dda8; color:#233c2b; }
-.pet-world .pet-roster-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
-.guest-arcade { margin:100px 0; scroll-margin-top:160px; }
-.arcade-heading { max-width:700px; margin-bottom:36px; }
-.arcade-heading h2 { font:clamp(34px,5vw,64px)/1.06 Georgia,serif; letter-spacing:-.04em; margin:18px 0; }
-.arcade-heading p { max-width:560px; color:var(--pw-muted); font-size:14px; line-height:1.8; }
-.arcade-portals { display:grid; grid-template-columns:1.15fr 1fr; gap:24px; }
-.arcade-portal { position:relative; min-height:560px; overflow:hidden; border-radius:24px; border:1px solid #c5e8d92b; background:#071b27; color:#eef6e7; isolation:isolate; }
-.portal-orbital-garden { background:radial-gradient(ellipse at 60% 30%,#27473c,#091c21 65%); }
-.portal-art { position:absolute; inset:0; overflow:hidden; background-image:radial-gradient(#f2e9c555 1px,transparent 1px); background-size:61px 71px; }
-.portal-copy { position:absolute; inset:auto 0 0; z-index:2; padding:32px; background:linear-gradient(transparent,#06141bea 24%); padding-top:90px; }
-.portal-copy > span { font:10px/1.5 monospace; letter-spacing:.16em; color:#b1d2c5; }
-.portal-copy h3 { font:42px/1.1 Georgia,serif; margin:12px 0; }
-.portal-copy p { max-width:330px; font-size:14px; line-height:1.7; color:#d0dfd9; }
-.portal-copy button { margin:20px 0; background:#def0bb; color:#18322b; border:0; min-height:48px; }
-.portal-copy small { display:block; font:10px/1.6 monospace; color:#b1c7c2; }
-.portal-copy a { text-decoration:underline; text-underline-offset:3px; }
-.arcade-dialog { position:fixed; inset:0; width:min(1500px,calc(100vw - 32px)); height:calc(100dvh - 32px); max-width:none; max-height:none; margin:auto; padding:0; border:1px solid #73958966; border-radius:16px; background:#07171d; color:#ecf2e7; overflow:hidden; }
-.arcade-dialog[open] { display:flex; flex-direction:column; }
-.arcade-dialog::backdrop { background:#02090fe8; backdrop-filter:blur(12px); }
-.arcade-dialog header { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; gap:20px; }
-.arcade-dialog header div { display:grid; gap:4px; }
-.arcade-dialog header span,.arcade-dialog footer { font:11px/1.5 monospace; color:#b3c8c1; }
-.arcade-dialog header button { width:44px; height:44px; flex-shrink:0; border:1px solid #a9cdbb55; border-radius:50%; font-size:26px; cursor:pointer; }
-.arcade-dialog iframe { width:100%; flex:1; min-height:0; border:0; background:#07171d; }
-.arcade-dialog footer { display:flex; justify-content:space-between; gap:12px; padding:8px 18px; }
-@media(max-width:700px) {
- .world-arcade-link { display:none; }
- .pet-world .pet-world-heading { min-height:190px; padding:20px 0; }
- .pet-world .pet-sidebar { right:8px; left:8px; width:auto; top:90px; bottom:8px; }
- .district-gates button { padding:16px 10px; }
- .district-gates strong { font-size:18px; }
- .district-gates span { font-size:8px; }
- .district-gates small { font-size:9px; }
- .arcade-portals { grid-template-columns:1fr; }
- .arcade-portal { min-height:510px; }
- .arcade-dialog { width:100vw; height:100dvh; border-radius:0; }
- .arcade-dialog footer span { display:none; }
- .arcade-dialog header span { font-size:9px; }
- .guest-arcade { margin:64px 0; }
+.pet-world .pet-main-grid {
+  display: block;
+}
+.pet-world .pet-world-heading {
+  min-height: 240px;
+  padding: 36px 0;
+  border: 0;
+  background: none;
+  overflow: visible;
+  border-radius: 0;
+  color: var(--pw-text);
+}
+.pet-world .pet-world-heading::before,
+.pet-world .pet-world-heading::after,
+.pet-world .pet-heading-stamp {
+  display: none;
+}
+.pet-world .pet-world-heading h1 {
+  font-size: clamp(48px, 6vw, 84px);
+}
+.pet-world .pet-world-heading h1 em {
+  color: var(--pw-text);
+  opacity: 0.65;
+}
+.pet-world .pet-world-heading p {
+  color: var(--pw-muted);
+}
+.world-arcade-link {
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  border-left: 1px solid var(--pw-line);
+  text-decoration: none;
+  color: var(--pw-text);
+  max-width: 340px;
+}
+.world-arcade-link > span,
+.world-arcade-link small {
+  font: 10px/1.6 var(--font-mono, monospace);
+  opacity: 0.7;
+  letter-spacing: 0.06em;
+}
+.world-arcade-link strong {
+  font:
+    26px/1.2 Georgia,
+    serif;
+}
+.pet-world .pet-sidebar {
+  display: none;
+  position: fixed;
+  right: 24px;
+  top: 100px;
+  bottom: 24px;
+  width: 320px;
+  overflow: auto;
+  z-index: 60;
+  padding: 12px;
+  background: var(--pw-panel);
+  border: 1px solid var(--pw-line);
+  border-radius: 22px;
+  box-shadow: 0 24px 100px #0008;
+}
+.pet-world .pet-sidebar.is-open {
+  display: block;
+}
+.inspector-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  font-size: 24px;
+}
+.pet-world .pet-resident-card {
+  box-shadow: none;
+}
+.pet-world .habitat-panel .pet-habitat {
+  height: clamp(440px, 43vw, 600px);
+}
+.pet-world .habitat-pet {
+  width: 100px;
+  height: 108px;
+  z-index: 5;
+}
+.pet-world .habitat-pet .living-pet {
+  opacity: 1;
+  background: none;
+  padding: 0;
+  border: 0;
+}
+.pet-world .habitat-pet-name {
+  bottom: -14px;
+  font-size: 10px;
+}
+.district-gates {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--pw-line);
+}
+.district-gates button {
+  padding: 26px;
+  text-align: left;
+  display: grid;
+  gap: 10px;
+  border: 0;
+  border-right: 1px solid var(--pw-line);
+  background: transparent;
+  color: var(--pw-text);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.district-gates button:last-child {
+  border-right: 0;
+}
+.district-gates button:hover {
+  background: #9fc78815;
+}
+.district-gates span,
+.district-gates small {
+  font: 10px/1.6 monospace;
+  color: var(--pw-muted);
+}
+.district-gates strong {
+  font:
+    24px/1.2 Georgia,
+    serif;
+}
+.roster-tools {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+.roster-tools > div {
+  display: flex;
+  gap: 6px;
+}
+.roster-tools button,
+.roster-tools input {
+  border: 1px solid var(--pw-line);
+  background: var(--pw-panel);
+  color: var(--pw-text);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+.roster-tools button[aria-pressed="true"] {
+  background: #c9dda8;
+  color: #233c2b;
+}
+.pet-world .pet-roster-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.guest-arcade {
+  margin: 100px 0;
+  scroll-margin-top: 160px;
+}
+.arcade-heading {
+  max-width: 700px;
+  margin-bottom: 36px;
+}
+.arcade-heading h2 {
+  font:
+    clamp(34px, 5vw, 64px)/1.06 Georgia,
+    serif;
+  letter-spacing: -0.04em;
+  margin: 18px 0;
+}
+.arcade-heading p {
+  max-width: 560px;
+  color: var(--pw-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.arcade-portals {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+}
+.arcade-portal {
+  position: relative;
+  min-height: 560px;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid #c5e8d92b;
+  background: #071b27;
+  color: #eef6e7;
+  isolation: isolate;
+}
+.portal-orbital-garden {
+  background: radial-gradient(ellipse at 60% 30%, #27473c, #091c21 65%);
+}
+.portal-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-image: radial-gradient(#f2e9c555 1px, transparent 1px);
+  background-size: 61px 71px;
+}
+.portal-copy {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  padding: 32px;
+  background: linear-gradient(transparent, #06141bea 24%);
+  padding-top: 90px;
+}
+.portal-copy > span {
+  font: 10px/1.5 monospace;
+  letter-spacing: 0.16em;
+  color: #b1d2c5;
+}
+.portal-copy h3 {
+  font:
+    42px/1.1 Georgia,
+    serif;
+  margin: 12px 0;
+}
+.portal-copy p {
+  max-width: 330px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #d0dfd9;
+}
+.portal-copy button {
+  margin: 20px 0;
+  background: #def0bb;
+  color: #18322b;
+  border: 0;
+  min-height: 48px;
+}
+.portal-copy small {
+  display: block;
+  font: 10px/1.6 monospace;
+  color: #b1c7c2;
+}
+.portal-copy a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.arcade-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(1500px, calc(100vw - 32px));
+  height: calc(100dvh - 32px);
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #73958966;
+  border-radius: 16px;
+  background: #07171d;
+  color: #ecf2e7;
+  overflow: hidden;
+}
+.arcade-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.arcade-dialog::backdrop {
+  background: #02090fe8;
+  backdrop-filter: blur(12px);
+}
+.arcade-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  gap: 20px;
+}
+.arcade-dialog header div {
+  display: grid;
+  gap: 4px;
+}
+.arcade-dialog header span,
+.arcade-dialog footer {
+  font: 11px/1.5 monospace;
+  color: #b3c8c1;
+}
+.arcade-dialog header button {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid #a9cdbb55;
+  border-radius: 50%;
+  font-size: 26px;
+  cursor: pointer;
+}
+.arcade-dialog iframe {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  background: #07171d;
+}
+.arcade-dialog footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 18px;
+}
+@media (max-width: 700px) {
+  .world-arcade-link {
+    display: none;
+  }
+  .pet-world .pet-world-heading {
+    min-height: 190px;
+    padding: 20px 0;
+  }
+  .pet-world .pet-sidebar {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    top: 90px;
+    bottom: 8px;
+  }
+  .district-gates button {
+    padding: 16px 10px;
+  }
+  .district-gates strong {
+    font-size: 18px;
+  }
+  .district-gates span {
+    font-size: 8px;
+  }
+  .district-gates small {
+    font-size: 9px;
+  }
+  .arcade-portals {
+    grid-template-columns: 1fr;
+  }
+  .arcade-portal {
+    min-height: 510px;
+  }
+  .arcade-dialog {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
+  .arcade-dialog footer span {
+    display: none;
+  }
+  .arcade-dialog header span {
+    font-size: 9px;
+  }
+  .guest-arcade {
+    margin: 64px 0;
+  }
 }
 
+.pet-world .pet-sidebar {
+  margin: 0 0 0 auto;
+  max-height: none;
+  color: var(--pw-text);
+}
+.pet-sidebar::backdrop {
+  background: #03110b66;
+  backdrop-filter: blur(3px);
+}
+@media (max-width: 700px) {
+  .pet-world .habitat-pet {
+    width: 76px;
+    height: 82px;
+  }
+}
+.pet-world .pet-world-heading .pet-eyebrow {
+  color: var(--pw-muted);
+}
+.pet-world .pet-world-heading .studio-jump {
+  color: var(--pw-accent);
+}
+.pet-world .pet-world-heading .studio-jump > span {
+  border-color: var(--pw-line);
+}
 
-.pet-world .pet-sidebar { margin:0 0 0 auto; max-height:none; color:var(--pw-text); }
-.pet-sidebar::backdrop { background:#03110b66; backdrop-filter:blur(3px); }
-@media(max-width:700px) { .pet-world .habitat-pet { width:76px; height:82px; } }
-.pet-world .pet-world-heading .pet-eyebrow { color:var(--pw-muted); }
-.pet-world .pet-world-heading .studio-jump { color:var(--pw-accent); }
-.pet-world .pet-world-heading .studio-jump > span { border-color:var(--pw-line); }
+/* Arrival: the selected pet inhabits the scene, and the first screen has a clear destination. */
+.pet-world .pet-world-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(510px, 45vw, 650px);
+  padding: clamp(30px, 5vw, 74px);
+  margin: 10px 0 28px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid #e5edca4d;
+  border-radius: 30px;
+  background: #17332b url("/pets/world-arrival.webp") center 54% / cover
+    no-repeat;
+  color: #fff9df;
+  box-shadow:
+    0 24px 70px #07180d38,
+    inset 0 0 0 1px #fff8d417;
+}
+.pet-world .pet-world-heading::before {
+  content: "";
+  position: absolute;
+  display: block;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      90deg,
+      #0d251ef2 0%,
+      #0d251edb 31%,
+      #0d251e4d 59%,
+      transparent 88%
+    ),
+    linear-gradient(0deg, #0b231bbd 0%, transparent 33%);
+}
+.pet-world .pet-world-heading::after {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  opacity: 0.14;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23ffffff' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+}
+.pet-arrival-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 575px;
+  padding-bottom: 38px;
+}
+.pet-world .pet-world-heading .pet-eyebrow {
+  color: #def4b8;
+  font-size: 10px;
+  letter-spacing: 0.19em;
+  text-shadow: 0 1px 8px #092118;
+}
+.pet-world .pet-world-heading h1 {
+  font-size: clamp(68px, 7.6vw, 118px);
+  line-height: 0.88;
+  letter-spacing: -0.075em;
+  margin: 26px 0 26px;
+  color: #fff9e6;
+  text-shadow: 0 4px 24px #0a1e19a8;
+}
+.pet-world .pet-world-heading h1 em {
+  display: block;
+  color: #dff0b4;
+  opacity: 1;
+  margin-left: 0.7em;
+}
+.pet-world .pet-world-heading p {
+  max-width: 410px;
+  color: #eef1d8;
+  font-size: 14px;
+  line-height: 1.75;
+  text-shadow: 0 1px 7px #071e18;
+}
+.pet-arrival-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+.pet-arrival-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid #d9e8bc8a;
+  border-radius: 8px;
+  background: #e8f1c7;
+  color: #173327;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.pet-arrival-actions button + button {
+  background: #13372c9c;
+  color: #f1f6da;
+  backdrop-filter: blur(8px);
+}
+.pet-arrival-actions button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px #061b1270;
+}
+.pet-arrival-actions button + button:hover {
+  background: #214d3c;
+}
+.pet-arrival-companion {
+  position: absolute;
+  z-index: 1;
+  right: clamp(70px, 15%, 260px);
+  bottom: 11%;
+  width: clamp(142px, 14vw, 208px);
+  aspect-ratio: 192/208;
+  filter: drop-shadow(0 12px 16px #102b1c99);
+  animation: arrival-breathe 4.5s ease-in-out infinite;
+}
+.pet-arrival-companion .living-pet,
+.pet-arrival-companion .atlas-pet {
+  width: 100%;
+  height: 100%;
+}
+.pet-arrival-companion .living-pet {
+  position: relative;
+  z-index: 2;
+}
+.pet-arrival-halo {
+  position: absolute;
+  inset: 9% -23%;
+  border: 1px solid #ffedb665;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #f2edb337, transparent 66%);
+  box-shadow: 0 0 70px #f7d98445;
+  transform: rotate(-12deg);
+}
+.pet-arrival-shadow {
+  position: absolute;
+  bottom: -4%;
+  left: 11%;
+  width: 78%;
+  height: 11%;
+  background: #09160c8c;
+  border-radius: 50%;
+  filter: blur(8px);
+}
+.pet-arrival-footnote {
+  position: absolute;
+  z-index: 3;
+  left: clamp(30px, 5vw, 74px);
+  right: clamp(30px, 5vw, 74px);
+  bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #ebefd452;
+  padding-top: 15px;
+  color: #eff2cf;
+  font: 9px/1.5 monospace;
+  letter-spacing: 0.13em;
+}
+.pet-arrival-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.pet-arrival-atmosphere i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff2ae;
+  box-shadow: 0 0 16px 3px #ffef9499;
+  animation: arrival-firefly 7s ease-in-out infinite;
+}
+.pet-arrival-atmosphere i:nth-child(1) {
+  left: 56%;
+  top: 28%;
+  animation-delay: -3s;
+}
+.pet-arrival-atmosphere i:nth-child(2) {
+  left: 72%;
+  top: 61%;
+  animation-delay: -5s;
+}
+.pet-arrival-atmosphere i:nth-child(3) {
+  left: 84%;
+  top: 22%;
+  animation-delay: -1s;
+}
+.pet-arrival-atmosphere i:nth-child(4) {
+  left: 45%;
+  top: 72%;
+  animation-delay: -4s;
+}
+.pet-arrival-atmosphere i:nth-child(5) {
+  left: 91%;
+  top: 48%;
+  animation-delay: -6s;
+}
+.pet-arrival-atmosphere i:nth-child(6) {
+  left: 64%;
+  top: 82%;
+  animation-delay: -2s;
+}
+@keyframes arrival-firefly {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate(0, 0) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(11px, -24px) scale(1);
+  }
+}
+@keyframes arrival-breathe {
+  50% {
+    transform: translateY(-7px);
+  }
+}
+.pet-world .habitat-pet-name {
+  display: none;
+}
+.district-gates {
+  gap: 1px;
+  background: var(--pw-line);
+}
+.district-gates button {
+  position: relative;
+  min-height: 145px;
+  isolation: isolate;
+  overflow: hidden;
+  background: #142e29;
+  color: #fff8e6;
+}
+.district-gates button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.34;
+  transition:
+    transform 0.6s,
+    opacity 0.4s;
+  background-position: center;
+  background-size: cover;
+}
+.district-gates button:nth-child(1)::before {
+  background-image: url("/pets/pixel-hatchery-v2.webp");
+}
+.district-gates button:nth-child(2)::before {
+  background-image: url("/pets/pixel-workshop-v2.webp");
+}
+.district-gates button:nth-child(3)::before {
+  background-image: url("/pets/wildwood/cover.png");
+}
+.district-gates button:hover::before {
+  transform: scale(1.08);
+  opacity: 0.55;
+}
+.district-gates span,
+.district-gates small {
+  color: #e3ecd1;
+  text-shadow: 0 1px 6px #071b16;
+}
+.district-gates strong {
+  color: #fff9e7;
+  text-shadow: 0 2px 12px #071b16;
+}
+.expedition-party {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 24px;
+  border-block: 1px solid #d3e6c626;
+  background: #0c2823;
+  color: #ebf4db;
+}
+.expedition-party > div:first-child {
+  display: grid;
+  gap: 7px;
+  min-width: 210px;
+}
+.expedition-party .pet-eyebrow {
+  color: #a2cba8;
+  font-size: 8px;
+}
+.expedition-party strong {
+  font:
+    19px/1.2 Georgia,
+    serif;
+}
+.expedition-party-list {
+  display: flex;
+  gap: 8px;
+  overflow: auto;
+  scrollbar-width: thin;
+  max-width: 65%;
+  padding: 2px;
+}
+.expedition-party-list button {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  flex: 0 0 68px;
+  min-height: 82px;
+  padding: 7px 4px;
+  border: 1px solid #b6d5b633;
+  border-radius: 9px;
+  background: #102c26;
+  color: #ddeddb;
+  cursor: pointer;
+}
+.expedition-party-list button[aria-pressed="true"] {
+  border-color: #deeda8;
+  background: #324e37;
+  box-shadow: inset 0 0 0 1px #deeda880;
+}
+.expedition-party-list .atlas-pet {
+  width: 42px;
+}
+.expedition-party-list span {
+  font: 9px monospace;
+  white-space: nowrap;
+}
+.portal-pet {
+  position: absolute;
+  right: 8%;
+  top: 14%;
+  z-index: 2;
+  width: 118px;
+  filter: drop-shadow(0 12px 12px #06130cb3);
+  transform: rotate(5deg);
+  transition: transform 0.35s;
+}
+.portal-pet .atlas-pet {
+  width: 100%;
+}
+.arcade-portal:hover .portal-pet {
+  transform: rotate(-5deg) translateY(-10px);
+}
+@media (max-width: 700px) {
+  .pet-world .pet-world-heading {
+    min-height: 580px;
+    padding: 30px 24px;
+    margin-top: 8px;
+    align-items: flex-start;
+    background-position: 62% center;
+  }
+  .pet-world .pet-world-heading::before {
+    background: linear-gradient(
+      180deg,
+      #0c251fd9 0%,
+      #0c251f9e 38%,
+      #0c251f16 72%,
+      #0a241ac9 100%
+    );
+  }
+  .pet-arrival-copy {
+    padding-bottom: 0;
+    max-width: 100%;
+  }
+  .pet-world .pet-world-heading h1 {
+    font-size: clamp(56px, 14vw, 78px);
+    margin: 21px 0 20px;
+  }
+  .pet-world .pet-world-heading h1 em {
+    margin-left: 0.45em;
+  }
+  .pet-world .pet-world-heading p {
+    max-width: 300px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .pet-arrival-actions {
+    gap: 8px;
+    margin-top: 19px;
+  }
+  .pet-arrival-actions button {
+    min-height: 43px;
+    padding: 9px 11px;
+    gap: 8px;
+    font-size: 10px;
+  }
+  .pet-arrival-companion {
+    right: 19%;
+    bottom: 10%;
+    width: 145px;
+  }
+  .pet-arrival-footnote {
+    left: 24px;
+    right: 24px;
+    bottom: 14px;
+    font-size: 7px;
+  }
+  .pet-arrival-footnote span:last-child {
+    display: none;
+  }
+  .district-gates {
+    grid-template-columns: 1fr;
+  }
+  .district-gates button {
+    min-height: 106px;
+    padding: 16px 22px;
+    gap: 4px;
+  }
+  .district-gates strong {
+    font-size: 22px;
+  }
+  .expedition-party {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+  }
+  .expedition-party-list {
+    max-width: 100%;
+  }
+  .portal-pet {
+    width: 88px;
+    top: 11%;
+    right: 9%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pet-arrival-atmosphere i,
+  .pet-arrival-companion {
+    animation: none;
+  }
+  .pet-arrival-actions button,
+  .district-gates button::before,
+  .portal-pet {
+    transition: none;
+  }
+}
 
-.portal-last-beacon .portal-art { background:url('/play/last-beacon/preview.png') center top / cover no-repeat; }
-.portal-orbital-garden .portal-art { background:url('/play/orbital-garden/preview.png') center top / cover no-repeat; }
-.portal-art { transition:transform .8s ease; }
-.arcade-portal:hover .portal-art { transform:scale(1.035); }
-@media(prefers-reduced-motion:reduce) { .portal-art { transition:none; } .arcade-portal:hover .portal-art { transform:none; } }
+.portal-last-beacon .portal-art {
+  background: url("/play/last-beacon/preview.png") center top / cover no-repeat;
+}
+.portal-orbital-garden .portal-art {
+  background: url("/play/orbital-garden/preview.png") center top / cover
+    no-repeat;
+}
+.portal-art {
+  transition: transform 0.8s ease;
+}
+.arcade-portal:hover .portal-art {
+  transform: scale(1.035);
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-art {
+    transition: none;
+  }
+  .arcade-portal:hover .portal-art {
+    transform: none;
+  }
+}
+
+/* Give a single starter egg a proper focal point in the greenhouse. */
+.hatchery-panel .incubator-row[data-count="1"],
+.hatchery-panel .incubator-row[data-count="2"] {
+  justify-content: center;
+}
+.hatchery-panel .incubator-row {
+  align-items: end;
+}
+.hatchery-panel .incubator {
+  max-width: 260px;
+  min-width: 220px;
+  padding: 20px 24px;
+  border-radius: 24px;
+  background: #fffbedf2;
+  border: 1px solid #fff9dc;
+  box-shadow:
+    0 16px 40px #193b2a55,
+    0 0 0 7px #fffce323;
+  backdrop-filter: blur(6px);
+}
+.hatchery-panel .egg-orbit {
+  width: 126px;
+  height: 142px;
+  position: relative;
+}
+.hatchery-panel .egg-orbit::before {
+  content: "";
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  bottom: 5px;
+  height: 28px;
+  border: 1px solid #7da37d85;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    #e3f5b8a8,
+    #9abd9540 58%,
+    transparent 70%
+  );
+  box-shadow: 0 0 30px #d7efa360;
+}
+.hatchery-panel .pixel-egg {
+  width: 84px;
+  height: 102px;
+  z-index: 1;
+  filter: drop-shadow(0 8px 5px #53613a77);
+}
+.workshop-assistants {
+  position: absolute;
+  inset: auto 0 3% 0;
+  display: flex;
+  align-items: end;
+  justify-content: space-evenly;
+  width: 74%;
+  padding-left: 14%;
+  z-index: 3;
+  pointer-events: none;
+}
+.workshop-assistants > .atlas-pet {
+  width: 68px;
+  flex: 0 0 68px;
+  filter: drop-shadow(0 5px 3px #11291b88);
+}
+.workshop-assistants > .atlas-pet:nth-child(2) {
+  transform: translateY(6px);
+}
+.workshop-assistants > .atlas-pet:nth-child(3) {
+  transform: translateY(-6px);
+}
+.workshop .workshop-foreman > .atlas-pet {
+  width: 91px;
+}
+@media (max-width: 700px) {
+  .hatchery-panel .incubator-row {
+    padding-top: 155px;
+    min-height: 440px;
+  }
+  .hatchery-panel .incubator {
+    min-width: 200px;
+    max-width: 230px;
+  }
+  .workshop-assistants {
+    width: 78%;
+    padding-left: 19%;
+    bottom: 4%;
+  }
+  .workshop-assistants > .atlas-pet {
+    width: 44px;
+    flex-basis: 44px;
+  }
+  .workshop .workshop-foreman > .atlas-pet {
+    width: 64px;
+  }
+}

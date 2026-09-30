@@ -63,3 +63,15 @@ amber ancient tree, dark conifer; elevated top-down view, fine painterly pixel-d
 clusters, rooted trunks, moss, dappled upper-left light; transparent background, no ground,
 labels or dividers. Original source alpha verified (background samples 0–1); render crops
 cells directly without modifying source pixels. Procedural trees remain loading fallback.
+
+## Pocket World arrival scene
+
+Built-in imagegen, 2026-09-30. Saved `public/pets/world-arrival.webp` (WebP quality 90,
+608 KB); generated source
+`/home/duyle/.codex/generated_images/01a0e8c1-2d4e-7d80-b088-b5989eab92a6/exec-a2bb270f-8a75-4eea-ae84-a7aabb74ab26.png`.
+Prompt: original wide dreamlike meadow bordering a huge living forest, warm cottage at the
+left, greenhouse at the right, stepping-stone path toward misty sapphire mountains and
+observatory, flowers and mushrooms, morning shafts, hand-painted depth with subtle
+pixel-art edges, dark quiet title zone on the left and clear foreground for the selected
+pet on the right, no characters, animals, text, logo or UI. The actual pet uses the existing
+source atlas and motion strips layered in HTML so its identity and animation stay exact.
