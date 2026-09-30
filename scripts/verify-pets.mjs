@@ -18,7 +18,7 @@ try {
       await page.waitForFunction(() => JSON.parse(localStorage.getItem('duy:pet-world:v1') || '{}').version === 2)
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false)
       await page.screenshot({ path: `${out}/${label}-${theme}-hero.png` })
-      for (const [area, name] of [['hatchery','Eggs & friends'],['factory','Little factory'],['arena','Glitch garden']]) {
+      for (const [area, name] of [['hatchery','Eggs & friends'],['factory','Little factory'],['arena','Wildwood']]) {
         await page.getByRole('button', { name, exact: false }).first().click()
         await page.locator(`#pet-chapter-${area}`).waitFor({ state: 'visible' })
         await page.screenshot({ path: `${out}/${label}-${theme}-${area}.png` })

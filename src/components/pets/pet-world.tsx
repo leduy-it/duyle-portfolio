@@ -33,7 +33,7 @@ const areas: { id: Area; en: string; vi: string; icon: string }[] = [
   { id: 'habitat', en: 'The habitat', vi: 'Ngôi nhà', icon: '⌂' },
   { id: 'hatchery', en: 'Eggs & friends', vi: 'Trứng & bạn bè', icon: '◉' },
   { id: 'factory', en: 'Little factory', vi: 'Xưởng nhỏ', icon: '⚒' },
-  { id: 'arena', en: 'Glitch garden', vi: 'Đấu trường', icon: '✦' },
+  { id: 'arena', en: 'Wildwood', vi: 'Thám hiểm', icon: '✦' },
 ]
 export function PetWorld() {
   const { locale } = useLocale(),
@@ -539,8 +539,8 @@ export function PetWorld() {
               <section id="pet-chapter-arena" className="pet-panel arena-panel pet-chapter">
                 <div className="pet-section-head">
                   <div>
-                    <span className="pet-eyebrow">04 / A LITTLE FRIENDLY CHAOS</span>
-                    <h2>{l('Protect your pocket world.', 'Bảo vệ thế giới nhỏ.')}</h2>
+                    <span className="pet-eyebrow">04 / BEYOND THE GARDEN</span>
+                    <h2>{l('A forest worth getting lost in.', 'Một khu rừng đáng để lạc bước.')}</h2>
                   </div>
                   <span className="pet-pill">+90 ◈ / WIN</span>
                 </div>

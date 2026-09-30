@@ -3,3 +3,5 @@ skills-lock.json
 .worktrees/
 .motion-runs/
 docs/qa/
+
+reference/checkouts/
