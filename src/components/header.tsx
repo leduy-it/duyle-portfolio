@@ -38,10 +38,13 @@ export function Header() {
     { label: t('nav.blog'), href: '/blog' },
     { label: t('nav.cinema'), href: '/movie' },
     { label: 'Pets', href: '/pets' },
+    { label: 'Arcade', href: '/arcade' },
   ]
 
   const brandLower = t('brand.lower')
   const [brandName, brandExt] = brandLower.split('.')
+
+  if (pathname === '/arcade') return null
 
   return (
     <header
