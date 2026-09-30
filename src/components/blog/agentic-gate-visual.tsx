@@ -22,10 +22,15 @@ export default function AgenticGateVisual() {
   const { locale } = useLocale()
   const [activeStage, setActiveStage] = useState(2)
   const activeStageRef = useRef(activeStage)
+  const refreshRef = useRef<() => void>(() => {})
   const [totalCost, setTotalCost] = useState('')
+  const [usableQuestions, setUsableQuestions] = useState('')
   const [webglAvailable, setWebglAvailable] = useState(true)
   const cost = Number(totalCost)
-  const costPerQuestion = Number.isFinite(cost) && cost > 0 ? cost / 50000 : null
+  const questionCount = Number(usableQuestions)
+  const costPerQuestion = Number.isFinite(cost) && cost > 0 && Number.isSafeInteger(questionCount) && questionCount > 0
+    ? cost / questionCount
+    : null
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -66,7 +71,7 @@ export default function AgenticGateVisual() {
       })
       const gate = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.045, 12, 80), material)
       gate.position.set(x, 0, 0)
-      gate.rotation.y = Math.PI / 2
+      gate.rotation.y = Math.PI / 3
       gate.rotation.z = -0.12
       gateMeshes.push(gate)
       gateMaterials.push(material)
@@ -96,26 +101,11 @@ export default function AgenticGateVisual() {
       return { mesh, held, offset: index / 28 }
     })
 
-    const resize = () => {
-      const width = Math.max(1, canvas.clientWidth)
-      const height = Math.max(1, canvas.clientHeight)
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
-      renderer.setSize(width, height, false)
-    }
-    const resizeObserver = new ResizeObserver(resize)
-    resizeObserver.observe(canvas)
-    resize()
-
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let visible = true
-    const visibilityObserver = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting }, { threshold: 0.01 })
-    visibilityObserver.observe(canvas)
+    let visible = false
     const clock = new THREE.Clock()
     let frame = 0
-    const render = () => {
-      frame = requestAnimationFrame(render)
-      if (!visible || document.hidden) return
+    const draw = () => {
       const elapsed = motionQuery.matches ? 0 : clock.getElapsedTime()
       particles.forEach(({ mesh, held, offset }) => {
         const t = (offset + elapsed * 0.065) % 1
@@ -130,12 +120,48 @@ export default function AgenticGateVisual() {
       })
       renderer.render(scene, camera)
     }
-    render()
+    const tick = () => {
+      frame = 0
+      if (!visible || document.hidden || motionQuery.matches) return
+      draw()
+      frame = requestAnimationFrame(tick)
+    }
+    const sync = () => {
+      if (visible && !document.hidden && !motionQuery.matches) {
+        if (!frame) frame = requestAnimationFrame(tick)
+      } else {
+        if (frame) cancelAnimationFrame(frame)
+        frame = 0
+        if (visible && !document.hidden) draw()
+      }
+    }
+    const resize = () => {
+      const width = Math.max(1, canvas.clientWidth)
+      const height = Math.max(1, canvas.clientHeight)
+      camera.aspect = width / height
+      camera.updateProjectionMatrix()
+      renderer.setSize(width, height, false)
+      draw()
+    }
+    const resizeObserver = new ResizeObserver(resize)
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      sync()
+    }, { threshold: 0.01 })
+    refreshRef.current = () => { if (visible && !document.hidden) draw() }
+    resizeObserver.observe(canvas)
+    visibilityObserver.observe(canvas)
+    document.addEventListener('visibilitychange', sync)
+    motionQuery.addEventListener('change', sync)
+    resize()
 
     return () => {
       cancelAnimationFrame(frame)
+      refreshRef.current = () => {}
       visibilityObserver.disconnect()
       resizeObserver.disconnect()
+      document.removeEventListener('visibilitychange', sync)
+      motionQuery.removeEventListener('change', sync)
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
           object.geometry.dispose()
@@ -175,7 +201,7 @@ export default function AgenticGateVisual() {
       <div className="grid gap-5 p-5 sm:p-8">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label={locale === 'vi' ? 'Các cổng kiểm tra' : 'Verification gates'}>
           {STAGES.map((item, index) => (
-            <button key={item.en} type="button" onClick={() => { activeStageRef.current = index; setActiveStage(index) }} aria-pressed={activeStage === index} className={`rounded-xl border px-3 py-3 text-left font-mono text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9af5e6] ${activeStage === index ? 'border-[#80ead9] bg-[#123a42] text-[#eafff9]' : 'border-[#2b4b52] bg-[#0c232d] text-[#a7c2bf] hover:border-[#6fb4aa]'}`}>
+            <button key={item.en} type="button" onClick={() => { activeStageRef.current = index; setActiveStage(index); refreshRef.current() }} aria-pressed={activeStage === index} className={`rounded-xl border px-3 py-3 text-left font-mono text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9af5e6] ${activeStage === index ? 'border-[#80ead9] bg-[#123a42] text-[#eafff9]' : 'border-[#2b4b52] bg-[#0c232d] text-[#a7c2bf] hover:border-[#6fb4aa]'}`}>
               <span className="mr-2 text-[#8bead8]">0{index + 1}</span>{locale === 'vi' ? item.vi : item.en}
             </button>
           ))}
@@ -190,17 +216,21 @@ export default function AgenticGateVisual() {
       </div>
       <div className="border-t border-[#2b4b52] bg-[#0b222c] p-5 sm:p-8">
         <p className="m-0 font-mono text-[10px] uppercase tracking-[0.23em] text-[#f5ba83]">{locale === 'vi' ? 'Chi phí trên mỗi câu hỏi dùng được' : 'Cost per usable question'}</p>
-        <div className="mt-3 flex flex-wrap items-end gap-3">
-          <label className="flex-1 text-xs leading-relaxed text-[#bfd5d1]">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="text-xs leading-relaxed text-[#bfd5d1]">
             {locale === 'vi' ? 'Nhập tổng chi phí kỳ đo (VND)' : 'Enter total period cost (VND)'}
             <input type="number" min="0" step="1000" inputMode="numeric" value={totalCost} onChange={(event) => setTotalCost(event.target.value)} placeholder={locale === 'vi' ? 'Chưa có số công khai' : 'No public cost figure yet'} className="mt-2 block w-full rounded-lg border border-[#45656b] bg-[#102d37] px-3 py-2 font-mono text-sm text-white placeholder:text-[#819d9e] focus:outline-2 focus:outline-[#8bead8]" />
           </label>
-          <div className="min-w-[170px] rounded-lg border border-[#4e554b] bg-[#1d2b2b] px-4 py-3">
-            <strong className="block font-mono text-lg text-[#f6c393]">{costPerQuestion === null ? '—' : `≤${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(costPerQuestion)} ₫`}</strong>
-            <span className="text-[11px] text-[#c4d5cf]">{locale === 'vi' ? 'mỗi câu hỏi, với mẫu số ≥50.000' : 'per question, denominator ≥50,000'}</span>
+          <label className="text-xs leading-relaxed text-[#bfd5d1]">
+            {locale === 'vi' ? 'Câu hỏi dùng được trong cùng kỳ' : 'Usable questions in that same period'}
+            <input type="number" min="1" step="1" inputMode="numeric" value={usableQuestions} onChange={(event) => setUsableQuestions(event.target.value)} placeholder={locale === 'vi' ? 'Nhập số đã kiểm chứng' : 'Enter verified count'} className="mt-2 block w-full rounded-lg border border-[#45656b] bg-[#102d37] px-3 py-2 font-mono text-sm text-white placeholder:text-[#819d9e] focus:outline-2 focus:outline-[#8bead8]" />
+          </label>
+          <div className="rounded-lg border border-[#4e554b] bg-[#1d2b2b] px-4 py-3 sm:col-span-2">
+            <strong className="block font-mono text-lg text-[#f6c393]">{costPerQuestion === null ? '—' : `≈${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(costPerQuestion)} ₫`}</strong>
+            <span className="text-[11px] text-[#c4d5cf]">{locale === 'vi' ? 'trên mỗi câu hỏi dùng được' : 'per usable question'}</span>
           </div>
         </div>
-        <p className="mb-0 mt-3 text-[11px] leading-relaxed text-[#9fb8b2]">{locale === 'vi' ? 'Tổng chi phí cần gồm crawl + model + review + hạ tầng cùng kỳ; nếu chỉ nhập tiền API, kết quả chỉ là chi phí API/câu hỏi.' : 'Use crawl + model + review + infrastructure costs from the same period. Entering API spend alone gives only API cost per question.'}</p>
+        <p className="mb-0 mt-3 text-[11px] leading-relaxed text-[#9fb8b2]">{locale === 'vi' ? '50k+ là số câu hỏi đã populate, chưa xác nhận là số câu hỏi dùng được cùng kỳ. Tổng chi phí nên gồm crawl + model + review + hạ tầng; chỉ nhập tiền API thì kết quả chỉ là chi phí API/câu hỏi.' : '50k+ is a populated count, not a verified same-period usable count. Total cost should include crawl + model + review + infrastructure; API spend alone yields API cost per question.'}</p>
       </div>
     </figure>
   )
