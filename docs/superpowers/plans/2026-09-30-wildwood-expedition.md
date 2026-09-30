@@ -7,7 +7,7 @@ and deployment. Continue the existing Pets game improvement without another appr
 **Architecture:** Deterministic simulation/world geometry separate from Canvas renderer and React input/HUD.
 **Constraints:** Keep original pet atlas/motion identity, bilingual UI, keyboard/touch, reduced motion,
 real collision and traversable paths, explicit sound opt-in, local run checkpoint, once-only Pets reward.
-**References:** Understory live play; SURGE-for-Oinja; awesome-gpt-6-astra, cloned under reference/checkouts.
+**References:** Understory live visual inspection; SURGE-for-Oinja; awesome-gpt-6-astra, cloned under reference/checkouts.
 
 - [x] Research reference games, record provenance/licenses; generate original cover art.
 - [x] World: 3200×2400 forest, stream/bridges, 3 guarded shrines and boss grove; collision, pickups.
@@ -15,7 +15,7 @@ real collision and traversable paths, explicit sound opt-in, local run checkpoin
 - [x] Renderer: following camera, depth-sorted forest/ruins, water, light/fog/particles, minimap.
 - [x] UI: title screen, objective HUD, responsive fullscreen, touch joystick/actions, pause/save/resume.
 - [x] Verify simulation/completion, browser combat/controls/save, screenshots desktop/mobile; final review.
-- [ ] Merge and deploy; exercise the production game.
+- [x] Merge and deploy; exercise the production game.
 
 Success means the player travels beyond the viewport through meaningful destinations and can complete
 an expedition, make combat decisions, see attacks coming, collect growth and resume after reload.
@@ -38,3 +38,13 @@ References inform design; unlicensed source/art is not redistributed. No unrelat
   replaced expansion with a native modal dialog top layer and rechecked actual visibility.
 - Generated cover and four-tree RGBA atlas are originals. Alpha samples verified; original
   assets remain intact and Next image optimization delivers the runtime versions.
+
+## Production delivery
+
+- PR #5 merged: https://github.com/leduy-it/duyle-portfolio/pull/5
+- Implementation commit `9176829`; main merge `de3ae80`.
+- Vercel deployment `dpl_9BHnDNXntuK4trBQhyNA8ZPNW4kE` reached READY.
+- Explicitly assigned `https://leduy.vercel.app` to this deployment.
+- Production browser verification passed at 390×844 and 1440×1000: movement,
+  dash, checkpoint resume, combat, expanded viewport and no JavaScript errors.
+- Production screenshots inspected at `/tmp/wildwood-production/`.
