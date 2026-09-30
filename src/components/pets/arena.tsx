@@ -1,368 +1,664 @@
-'use client'
-import { useEffect, useRef, useState } from 'react'
-import { PETS } from '@/data/pets/catalog'
-import { createArena, stepArena, type ArenaState } from '@/lib/pets/arena-engine'
-import type { OwnedPet } from '@/lib/pets/save'
-import { usePetSave } from '@/lib/pets/pet-save-provider'
-import { awardArenaWin } from '@/lib/pets/progression'
-import { useHomeMotionPreferences } from '@/components/home/home-motion'
-import { palette, pixels } from './pixel-art'
-import { petAppearance } from '@/lib/pets/appearance'
-import { motionCatalog } from './motion-pet'
+"use client";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { PETS } from "@/data/pets/catalog";
+import type { OwnedPet } from "@/lib/pets/save";
+import { usePetSave } from "@/lib/pets/pet-save-provider";
+import { awardArenaWin } from "@/lib/pets/progression";
+import { useHomeMotionPreferences } from "@/components/home/home-motion";
+import {
+  createExpedition,
+  EMPTY_INPUT,
+  restoreRun,
+  RUN_KEY,
+  serializeRun,
+  stepExpedition,
+  upgrade,
+  type Expedition,
+  type Input,
+} from "@/lib/pets/expedition/engine";
+import { ExpeditionRenderer } from "./expedition-renderer";
+import "./expedition.css";
 
-function draw(
-  ctx: CanvasRenderingContext2D,
-  s: ArenaState,
-  still: boolean,
-  bunny?: HTMLImageElement,
-  scenery?: HTMLImageElement,
-  walking?: HTMLImageElement
-) {
-  ctx.imageSmoothingEnabled = false
-  if (scenery?.complete && scenery.naturalWidth) {
-    ctx.drawImage(scenery, 0, 0, 640, 360)
-  } else {
-  ctx.fillStyle = '#254b45'
-  ctx.fillRect(0, 0, 640, 360)
-  for (let x = 0; x < 640; x += 32)
-    for (let y = 0; y < 360; y += 32) {
-      ctx.fillStyle = (x / 32 + y / 32) % 2 ? '#2b5148' : '#2e554b'
-      ctx.fillRect(x + 1, y + 1, 30, 30)
-      if ((x + y) % 96 === 0) {
-        ctx.fillStyle = '#496e53'
-        ctx.fillRect(x + 7, y + 10, 3, 4)
-        ctx.fillRect(x + 11, y + 8, 2, 5)
-      }
-    }
-  }
-  ctx.strokeStyle = '#a9c77b55'
-  ctx.lineWidth = 2
-  ctx.strokeRect(13, 13, 614, 334)
-  const bob = still ? 0 : Math.sin(s.time * 8) * 2
-  for (const e of s.enemies) {
-    const x = Math.round(e.x),
-      y = Math.round(e.y + bob)
-    ctx.fillStyle = '#132f3a55'
-    ctx.fillRect(x - 14, y + 9, 28, 4)
-    ctx.fillStyle = e.flash
-      ? '#fff4d6'
-      : e.kind === 'brute'
-        ? '#dc9cab'
-        : e.kind === 'wisp'
-          ? '#e1cd85'
-          : '#b8a4d8'
-    ctx.fillRect(x - 13, y - 9, 26, 18)
-    ctx.fillRect(x - 9, y - 15, 18, 8)
-    ctx.fillRect(x - 9, y + 7, 6, 5)
-    ctx.fillRect(x + 4, y + 7, 6, 5)
-    ctx.fillStyle = '#39304e'
-    ctx.fillRect(x - 7, y - 5, 3, 4)
-    ctx.fillRect(x + 5, y - 5, 3, 4)
-    ctx.fillRect(x - 2, y + 2, 5, 2)
-  }
-  for (const p of s.projectiles) {
-    ctx.fillStyle = '#fff1b6'
-    ctx.fillRect(Math.round(p.x) - 4, Math.round(p.y) - 4, 8, 8)
-    ctx.fillStyle = '#ddae72'
-    ctx.fillRect(Math.round(p.x) - 2, Math.round(p.y) - 2, 4, 4)
-  }
-  const x = Math.round(s.player.x),
-    y = Math.round(s.player.y)
-  if (s.slash > 0) {
-    ctx.strokeStyle = `rgba(237,221,153,${s.slash / 0.22})`
-    ctx.lineWidth = 5
-    ctx.beginPath()
-    ctx.arc(x, y, 61 * (1 - s.slash / 0.3), -0.5, 5.5)
-    ctx.stroke()
-  }
-  ctx.globalAlpha =
-    s.player.invincible > 0 && !still ? 0.55 + 0.45 * Math.abs(Math.sin(s.time * 20)) : 1
-  if (walking?.complete && walking.naturalWidth && s.slash <= 0 && s.status === 'running') {
-    const frame = still ? 0 : Math.floor(s.time / .12) % 8
-    ctx.drawImage(walking, frame * 192, 0, 192, 208, x - 30, y - 43, 60, 65)
-  } else if (bunny?.complete && bunny.naturalWidth) {
-    const row = s.slash > 0 ? 4 : s.status === 'lost' ? 5 : 0
-    const frame = still ? 0 : Math.floor(s.time * 7) % (row === 4 ? 5 : row === 5 ? 8 : 6)
-    ctx.drawImage(bunny, frame * 192, row * 208, 192, 208, x - 30, y - 43, 60, 65)
-  } else {
-    const colors = palette(s.species)
-    for (const p of pixels(s.species)) {
-      ctx.fillStyle = colors[p.key] || colors.A
-      ctx.fillRect(x - 20 + p.x * 2, y - 29 + p.y * 2 + bob, 2, 2)
-    }
-  }
-  ctx.globalAlpha = 1
-}
 export function PetArena({ pet, vi }: { pet: OwnedPet; vi: boolean }) {
   const { update } = usePetSave(),
-    { prefersReducedMotion } = useHomeMotionPreferences()
-  const canvas = useRef<HTMLCanvasElement>(null),
-    root = useRef<HTMLDivElement>(null)
-  const game = useRef(createArena(pet.species, pet.stage)),
+    { prefersReducedMotion } = useHomeMotionPreferences();
+  const l = (en: string, vn: string) => (vi ? vn : en);
+  const root = useRef<HTMLDialogElement>(null),
+    canvas = useRef<HTMLCanvasElement>(null),
+    viewport = useRef<HTMLDivElement>(null);
+  const game = useRef(createExpedition(pet.species, pet.stage)),
     keys = useRef(new Set<string>()),
-    run = useRef(''),
-    claimed = useRef(false)
-  const [hud, setHud] = useState(() => createArena(pet.species, pet.stage)),
-    [paused, setPaused] = useState(false)
-  const pausedRef = useRef(false)
-  const updateRef = useRef(update)
+    touch = useRef({ x: 0, y: 0 });
+  const expandedRef = useRef(false),
+    automaticPause = useRef(false);
+  const paused = useRef(true),
+    updateRef = useRef(update),
+    claimed = useRef(false),
+    sound = useRef<AudioContext | null>(null),
+    soundOn = useRef(false);
+  const [hud, setHud] = useState<Expedition>(() =>
+      createExpedition(pet.species, pet.stage),
+    ),
+    [isPaused, setPaused] = useState(true),
+    [expanded, setExpanded] = useState(false),
+    [muted, setMuted] = useState(true),
+    [storageError, setStorageError] = useState(false);
+  const upgradePanel = useRef<HTMLDivElement>(null);
+  const [stick, setStick] = useState({ x: 0, y: 0 });
   useEffect(() => {
-    updateRef.current = update
-  }, [update])
-  function pause(value: boolean) {
-    pausedRef.current = value
-    setPaused(value)
-    keys.current.clear()
+    if (hud.choice)
+      upgradePanel.current
+        ?.querySelector("button")
+        ?.focus({ preventScroll: true });
+  }, [hud.choice]);
+  const storageKey = `${RUN_KEY}:${pet.id}`;
+  useEffect(() => {
+    updateRef.current = update;
+  }, [update]);
+  function persist() {
+    try {
+      if (game.current.status !== "ready")
+        localStorage.setItem(storageKey, serializeRun(game.current));
+    } catch {
+      setStorageError(true);
+    }
+  }
+  function clearInput() {
+    keys.current.clear();
+    touch.current = { x: 0, y: 0 };
+    setStick({ x: 0, y: 0 });
+  }
+  function pause(value: boolean, automatic = false) {
+    automaticPause.current = automatic;
+    paused.current = value;
+    setPaused(value);
+    clearInput();
+    if (value) persist();
+    else canvas.current?.focus({ preventScroll: true });
   }
   function start() {
     game.current = {
-      ...createArena(pet.species, pet.stage, pet.xp),
-      status: 'running',
+      ...createExpedition(pet.species, pet.stage, crypto.randomUUID()),
+      status: "running",
+    };
+    claimed.current = false;
+    pause(false);
+    setHud(game.current);
+    persist();
+  }
+  function tone(frequency: number, volume: number, length = 0.08) {
+    const a = sound.current;
+    if (!a || !soundOn.current || a.state !== "running") return;
+    const oscillator = a.createOscillator(),
+      gain = a.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, a.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      frequency * 0.55,
+      a.currentTime + length,
+    );
+    gain.gain.setValueAtTime(volume, a.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, a.currentTime + length);
+    oscillator.connect(gain);
+    gain.connect(a.destination);
+    oscillator.start();
+    oscillator.stop(a.currentTime + length);
+  }
+  async function toggleSound() {
+    try {
+      if (!sound.current) sound.current = new AudioContext();
+      await sound.current.resume();
+      soundOn.current = !soundOn.current;
+      setMuted(!soundOn.current);
+    } catch {
+      setMuted(true);
+      soundOn.current = false;
     }
-    run.current = crypto.randomUUID()
-    claimed.current = false
-    pause(false)
-    setHud(game.current)
-    canvas.current?.focus()
   }
   useEffect(() => {
-    const ctx = canvas.current?.getContext('2d')
-    if (!ctx) return
-    const bunny = new Image()
-    const appearance = petAppearance(pet.species, pet.stage)
-    bunny.src = `/pets/hatch-pet-plus/${appearance.pet}/${appearance.file}`
-    const scenery = new Image()
-    scenery.src = '/pets/pixel-arena-v2.webp'
-    const walks = new Map<string, HTMLImageElement>()
-    const heldKeys = keys.current
+    return () => {
+      void sound.current?.close();
+    };
+  }, []);
+  useEffect(() => {
+    const node = root.current;
+    if (!node) return;
+    if (!expanded) {
+      if (!node.open) node.setAttribute("open", "");
+      return;
+    }
+    node.close();
+    node.showModal();
+    const old = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    canvas.current?.focus({ preventScroll: true });
+    return () => {
+      node.close();
+      node.setAttribute("open", "");
+      document.body.style.overflow = old;
+    };
+  }, [expanded]);
+  useEffect(() => {
+    const node = canvas.current,
+      container = viewport.current;
+    if (!node || !container) return;
+    const c = node.getContext("2d");
+    if (!c) return;
+    let restored: Expedition | null = null;
+    try {
+      restored = restoreRun(
+        localStorage.getItem(storageKey),
+        pet.species,
+        pet.stage,
+      );
+    } catch {
+      /* private browsing keeps the current visit playable */
+    }
+    const live = restoreRun(serializeRun(game.current), pet.species, pet.stage);
+    game.current = live ?? restored ?? createExpedition(pet.species, pet.stage);
+    paused.current = true;
+    const initialFrame = requestAnimationFrame(() => {
+      setPaused(true);
+      setHud(game.current);
+    });
+    const heldKeys = keys.current;
+    const renderer = new ExpeditionRenderer(game.current);
     let frame = 0,
       previous = 0,
       accumulator = 0,
       lastHud = 0,
-      inView = false
+      lastSave = 0,
+      inView = false,
+      width = 900,
+      height = 620,
+      pixelRatio = 1;
+    const resize = new ResizeObserver(([entry]) => {
+      width = entry.contentRect.width;
+      height = entry.contentRect.height;
+      pixelRatio = Math.min(2, devicePixelRatio || 1);
+      node.width = Math.round(width * pixelRatio);
+      node.height = Math.round(height * pixelRatio);
+    });
+    resize.observe(container);
     function loop(time: number) {
-      const dt = previous ? Math.min(0.1, (time - previous) / 1000) : 0
-      previous = time
-      if (!pausedRef.current && game.current.status === 'running') {
-        const k = keys.current
-        accumulator += dt
-        const input = {
-          x: Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a')),
-          y: Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w')),
-          attack: k.has(' '),
-        }
+      const dt = previous ? Math.min(0.08, (time - previous) / 1000) : 1 / 60;
+      previous = time;
+      if (
+        !paused.current &&
+        game.current.status === "running" &&
+        !game.current.choice
+      ) {
+        const k = keys.current,
+          input: Input = {
+            ...EMPTY_INPUT,
+            x:
+              touch.current.x ||
+              Number(k.has("d") || k.has("ArrowRight")) -
+                Number(k.has("a") || k.has("ArrowLeft")),
+            y:
+              touch.current.y ||
+              Number(k.has("s") || k.has("ArrowDown")) -
+                Number(k.has("w") || k.has("ArrowUp")),
+            attack: k.has(" ") || k.has("j"),
+            dash: k.has("Shift") || k.has("k"),
+            burst: k.has("e") || k.has("l"),
+          };
+        accumulator += dt;
+        const old = game.current;
         while (accumulator >= 1 / 60) {
-          game.current = stepArena(game.current, input, 1 / 60)
-          accumulator -= 1 / 60
+          game.current = stepExpedition(game.current, input, 1 / 60);
+          accumulator -= 1 / 60;
         }
-        if (game.current.status === 'won' && !claimed.current) {
-          claimed.current = true
-          updateRef.current((s) => awardArenaWin(s, pet.id, run.current))
-        }
-      } else accumulator = 0
-      const dx = Number(keys.current.has('ArrowRight') || keys.current.has('d')) - Number(keys.current.has('ArrowLeft') || keys.current.has('a'))
-      const dy = Number(keys.current.has('ArrowDown') || keys.current.has('s')) - Number(keys.current.has('ArrowUp') || keys.current.has('w'))
-      const direction = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'][(Math.round(Math.atan2(dx, -dy) / (Math.PI / 4)) + 8) % 8]
-      const clip = motionCatalog[appearance.pet]?.[`walk-${direction}`]
-      let walking: HTMLImageElement | undefined
-      if ((dx || dy) && clip && !pausedRef.current) {
-        if (!walks.has(direction)) {
-          const sprite = new Image()
-          sprite.src = `/pets/hatch-pet-plus/${appearance.pet}/motion/${clip.file}`
-          walks.set(direction, sprite)
-        }
-        walking = walks.get(direction)
+        if (game.current.player.combo !== old.player.combo)
+          tone(260 + game.current.player.combo * 70, 0.035);
+        if (game.current.kills > old.kills) tone(720, 0.045, 0.18);
+        if (game.current.player.hp < old.player.hp) tone(110, 0.06, 0.16);
+      } else accumulator = 0;
+      if (game.current.status === "won" && !claimed.current) {
+        claimed.current = true;
+        const completedRun = game.current.run;
+        void updateRef.current((s) => awardArenaWin(s, pet.id, completedRun));
+        persist();
       }
-      draw(ctx!, game.current, prefersReducedMotion, bunny, scenery, walking)
+      c!.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      renderer.draw(
+        c!,
+        game.current,
+        width,
+        height,
+        prefersReducedMotion,
+        vi,
+        dt,
+      );
       if (time - lastHud > 100) {
-        setHud(game.current)
-        lastHud = time
+        setHud(game.current);
+        lastHud = time;
       }
-      if (!document.hidden && inView) frame = requestAnimationFrame(loop)
+      if (time - lastSave > 2500) {
+        persist();
+        lastSave = time;
+      }
+      if (inView && !document.hidden) frame = requestAnimationFrame(loop);
     }
     function visibility() {
-      if (document.hidden) {
-        cancelAnimationFrame(frame)
-        pause(true)
-      } else if (inView) {
-        previous = 0
-        frame = requestAnimationFrame(loop)
-      }
+      cancelAnimationFrame(frame);
+      previous = 0;
+      if (document.hidden) pause(true);
+      else if (inView) frame = requestAnimationFrame(loop);
     }
     function blur() {
-      pause(true)
+      pause(true);
     }
     const observer = new IntersectionObserver(([entry]) => {
-      inView = entry.isIntersecting
-      cancelAnimationFrame(frame)
-      previous = 0
-      if (!inView) pause(true)
-      else if (!document.hidden) frame = requestAnimationFrame(loop)
-    })
-    if (root.current) observer.observe(root.current)
-    document.addEventListener('visibilitychange', visibility)
-    window.addEventListener('blur', blur)
+      inView = expandedRef.current || entry.isIntersecting;
+      cancelAnimationFrame(frame);
+      previous = 0;
+      if (!inView) pause(true, true);
+      else if (!document.hidden) frame = requestAnimationFrame(loop);
+    });
+    observer.observe(container);
+    document.addEventListener("visibilitychange", visibility);
+    window.addEventListener("blur", blur);
     return () => {
-      cancelAnimationFrame(frame)
-      observer.disconnect()
-      heldKeys.clear()
-      document.removeEventListener('visibilitychange', visibility)
-      window.removeEventListener('blur', blur)
-    }
-  }, [pet.id, pet.species, pet.stage, prefersReducedMotion])
-  const inputKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', ' ']
-  function control(key: string, label: string, glyph: string) {
+      persist();
+      cancelAnimationFrame(initialFrame);
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      resize.disconnect();
+      heldKeys.clear();
+      document.removeEventListener("visibilitychange", visibility);
+      window.removeEventListener("blur", blur);
+    };
+    // Input and persistence use refs so a HUD render never restarts the simulation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pet.id, pet.species, pet.stage, prefersReducedMotion, vi]);
+  function choose(pick: "power" | "haste" | "vitality") {
+    game.current = upgrade(game.current, pick);
+    setHud(game.current);
+    clearInput();
+    persist();
+    canvas.current?.focus({ preventScroll: true });
+  }
+  function action(key: string, label: string, glyph: string, cooldown: number) {
     return (
       <button
         type="button"
+        className={`wild-action ${cooldown > 0 ? "cooling" : ""}`}
         aria-label={label}
-        className={key === ' ' ? 'arena-attack' : 'arena-direction'}
         onPointerDown={(e) => {
-          e.preventDefault()
-          e.currentTarget.setPointerCapture(e.pointerId)
-          keys.current.add(key)
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          keys.current.add(key);
         }}
         onPointerUp={() => keys.current.delete(key)}
         onPointerCancel={() => keys.current.delete(key)}
         onLostPointerCapture={() => keys.current.delete(key)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            keys.current.add(key)
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            keys.current.add(key);
           }
         }}
         onKeyUp={() => keys.current.delete(key)}
       >
-        {glyph}
+        <b>{cooldown > 0 ? cooldown.toFixed(1) : glyph}</b>
+        <small>{label}</small>
       </button>
-    )
+    );
   }
+  const ready = hud.status === "ready",
+    terminal = hud.status === "won" || hud.status === "lost",
+    overlay = ready || terminal || isPaused;
+  const messages = {
+    start: l(
+      "Follow the path. Awaken the three shrines.",
+      "Theo đường mòn. Đánh thức ba ngôi đền.",
+    ),
+    shrine: l(
+      "A shrine remembers its light.",
+      "Một ngôi đền đã tìm lại ánh sáng.",
+    ),
+    boss: l(
+      "The Hollow Warden has awakened. Follow the compass.",
+      "Hộ Vệ Rỗng đã thức giấc. Đi theo la bàn.",
+    ),
+    upgrade: l(
+      "A little stronger. A little braver.",
+      "Mạnh hơn một chút. Can đảm hơn một chút.",
+    ),
+    win: l("The forest is breathing again.", "Khu rừng lại được hồi sinh."),
+    none: "",
+  };
   return (
-    <div
+    <dialog
+      open
       ref={root}
-      className="pet-arena"
+      onCancel={(e) => e.preventDefault()}
+      aria-label={l("Wildwood expedition", "Thám hiểm Wildwood")}
+      className={`wildwood ${expanded ? "is-expanded" : ""}`}
       onKeyDown={(e) => {
-        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
-        if (inputKeys.includes(key) && e.target === canvas.current) {
-          e.preventDefault()
-          keys.current.add(key)
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        if (
+          e.target === canvas.current &&
+          [
+            "w",
+            "a",
+            "s",
+            "d",
+            "ArrowUp",
+            "ArrowDown",
+            "ArrowLeft",
+            "ArrowRight",
+            " ",
+            "Shift",
+            "e",
+            "j",
+            "k",
+            "l",
+          ].includes(key)
+        ) {
+          e.preventDefault();
+          keys.current.add(key);
         }
-        if (e.key === 'Escape') pause(!pausedRef.current)
+        if (e.key === "Escape" && !ready && !terminal) {
+          e.preventDefault();
+          pause(!paused.current);
+        }
       }}
-      onKeyUp={(e) => keys.current.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key)}
+      onKeyUp={(e) =>
+        keys.current.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key)
+      }
     >
-      <div className="arena-hud">
-        <span>
-          ♡ {hud.player.hp}/{hud.player.maxHp} <b>{PETS[pet.species].name}</b>
-        </span>
-        <span>
-          {vi ? 'Đợt' : 'Wave'} {hud.wave}/3 · {hud.kills} ✦
-        </span>
-        <button type="button" onClick={() => pause(!paused)} disabled={hud.status !== 'running'}>
-          {paused ? (vi ? 'Tiếp tục' : 'Resume') : vi ? 'Tạm dừng' : 'Pause'}
-        </button>
+      <div className="wild-topline">
+        <div>
+          <span className="wild-dot" /> WILDWOOD <small>EXPEDITION / 01</small>
+        </div>
+        <div>
+          <button onClick={toggleSound} aria-pressed={!muted}>
+            {muted ? l("Sound off", "Tắt âm") : l("Sound on", "Bật âm")}
+          </button>
+          <button
+            onClick={() => {
+              if (expanded) pause(true);
+              else if (
+                automaticPause.current &&
+                game.current.status === "running"
+              )
+                pause(false);
+              expandedRef.current = !expanded;
+              setExpanded(!expanded);
+            }}
+            aria-label={
+              expanded
+                ? l("Exit expanded view", "Thu nhỏ")
+                : l("Expand game", "Mở rộng game")
+            }
+          >
+            {expanded ? "↙" : "⛶"}
+          </button>
+          {!ready && !terminal && (
+            <button
+              onClick={() => pause(!paused.current)}
+              aria-label={l("Pause expedition", "Tạm dừng")}
+            >
+              {isPaused ? "▶" : "Ⅱ"}
+            </button>
+          )}
+        </div>
       </div>
-      <div className="arena-screen">
+      <div className="wild-viewport" ref={viewport}>
         <canvas
           ref={canvas}
-          width={640}
-          height={360}
           tabIndex={0}
-          aria-label={
-            vi
-              ? 'Đấu trường. Di chuyển bằng WASD hoặc phím mũi tên. Space tấn công. Escape tạm dừng.'
-              : 'Arena. Move with WASD or arrow keys. Space to attack. Escape to pause.'
-          }
+          aria-label={l(
+            "Wildwood expedition. WASD to move, Space to strike, Shift to dash, E for moonburst.",
+            "Thám hiểm Wildwood. WASD di chuyển, Space đánh, Shift lướt, E nguyệt bộc.",
+          )}
+          data-status={hud.status}
+          data-x={Math.round(hud.player.x)}
+          data-y={Math.round(hud.player.y)}
+          data-kills={hud.kills}
+          onPointerDown={() => canvas.current?.focus({ preventScroll: true })}
         />
-        {(hud.status !== 'running' || paused) && (
-          <div className="arena-overlay">
-            <span className="pet-eyebrow">
-              {hud.status === 'won'
-                ? '✦ VICTORY ✦'
-                : hud.status === 'lost'
-                  ? 'A LITTLE NAP'
-                  : paused
-                    ? 'TAKE A BREATHER'
-                    : 'THE GLITCH GARDEN'}
-            </span>
-            <h3>
-              {hud.status === 'won'
-                ? vi
-                  ? 'Khu vườn an toàn rồi!'
-                  : 'Garden, protected.'
-                : hud.status === 'lost'
-                  ? vi
-                    ? 'Nghỉ xíu, làm lại thôi.'
-                    : 'A nap. Then a comeback.'
-                  : paused
-                    ? vi
-                      ? 'Đã tạm dừng'
-                      : 'On a little break.'
-                    : vi
-                      ? 'Nhỏ xíu. Đánh cũng ghê.'
-                      : 'Tiny paws. Big courage.'}
-            </h3>
+        {!ready && (
+          <div className="wild-hud">
+            <div className="wild-vitals">
+              <span>
+                {PETS[pet.species].name} <b>LV {hud.level}</b>
+              </span>
+              <progress
+                aria-label={l("Health", "Máu")}
+                value={hud.player.hp}
+                max={hud.player.maxHp}
+              />
+              <small>
+                ♡ {hud.player.hp} / {hud.player.maxHp}
+                <i>
+                  {hud.kills} {l("defeated", "đã hạ")}
+                </i>
+              </small>
+              <progress
+                className="wild-xp"
+                aria-label={l("Experience", "Kinh nghiệm")}
+                value={hud.xp}
+                max={hud.level * 9}
+              />
+            </div>
+            <div className="wild-objective">
+              <span>{l("RESTORE THE FOREST", "HỒI SINH KHU RỪNG")}</span>
+              <strong>
+                {hud.shrines.filter(Boolean).length} / 3{" "}
+                <small>{l("shrines", "ngôi đền")}</small>
+              </strong>
+              <div>
+                {hud.shrines.map((lit, i) => (
+                  <i key={i} className={lit ? "lit" : ""}>
+                    ◇
+                  </i>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {!overlay && hud.messageTime > 0 && (
+          <div className="wild-announcement" role="status">
+            {messages[hud.message]}
+          </div>
+        )}
+        {overlay && (
+          <div className={`wild-overlay ${ready ? "wild-title" : ""}`}>
+            {ready && (
+              <Image
+                src="/pets/wildwood/cover.png"
+                alt=""
+                fill
+                sizes="(max-width: 700px) 100vw, 1400px"
+                quality={90}
+                className="wild-cover"
+              />
+            )}
+            <div className="wild-title-copy">
+              <span className="wild-kicker">
+                {ready
+                  ? "A POCKET WORLD ADVENTURE"
+                  : hud.status === "won"
+                    ? "EXPEDITION COMPLETE"
+                    : hud.status === "lost"
+                      ? "THE FOREST WILL WAIT"
+                      : "TAKE A BREATH"}
+              </span>
+              <h3>
+                {ready ? (
+                  <>
+                    Wild<em>wood.</em>
+                  </>
+                ) : hud.status === "won" ? (
+                  l("Light returns.", "Ánh sáng trở về.")
+                ) : hud.status === "lost" ? (
+                  l("Rest. Rise again.", "Nghỉ chút. Đi tiếp.")
+                ) : (
+                  l("Your journey awaits.", "Hành trình còn đó.")
+                )}
+              </h3>
+              <p>
+                {ready
+                  ? l(
+                      "Beyond the garden, an ancient forest has forgotten its light. Take your companion. Find the three shrines. Face what waits beneath the roots.",
+                      "Bên kia khu vườn, một khu rừng cổ đã quên mất ánh sáng. Mang theo pet, tìm ba ngôi đền và đối mặt thứ đang chờ dưới những rễ cây.",
+                    )
+                  : hud.status === "won"
+                    ? l(
+                        "Three shrines awakened. One forest saved. +90 coins · +12 gems · +25 XP.",
+                        "Ba đền thức tỉnh. Khu rừng hồi sinh. +90 xu · +12 ngọc · +25 XP.",
+                      )
+                    : hud.status === "lost"
+                      ? l(
+                          "Read the warning circles. Dash through danger. Your next expedition starts with a fresh trail.",
+                          "Chú ý vùng cảnh báo. Lướt qua hiểm nguy. Chuyến thám hiểm mới đang chờ bạn.",
+                        )
+                      : l(
+                          "Your expedition is saved in this browser. Pick up where you left off.",
+                          "Hành trình được lưu trên trình duyệt này. Tiếp tục từ nơi bạn dừng lại.",
+                        )}
+              </p>
+              <button
+                className="wild-enter"
+                onClick={ready || terminal ? start : () => pause(false)}
+              >
+                {ready
+                  ? l("Begin expedition", "Bắt đầu thám hiểm")
+                  : terminal
+                    ? l("New expedition", "Thám hiểm lần nữa")
+                    : l("Continue expedition", "Tiếp tục thám hiểm")}{" "}
+                <span>↗</span>
+              </button>
+              {ready && (
+                <div className="wild-chapters">
+                  <span>01 / {l("Explore", "Khám phá")}</span>
+                  <span>02 / {l("Awaken", "Thức tỉnh")}</span>
+                  <span>03 / {l("Confront", "Đối mặt")}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {!overlay && hud.choice && (
+          <div
+            ref={upgradePanel}
+            className="wild-upgrade"
+            role="dialog"
+            aria-label={l("Choose an upgrade", "Chọn nâng cấp")}
+          >
+            <span className="wild-kicker">LEVEL {hud.level}</span>
+            <h3>{l("What will you become?", "Bạn sẽ trở thành ai?")}</h3>
             <p>
-              {hud.status === 'won'
-                ? '+90 coins · +12 gems · +25 XP'
-                : vi
-                  ? 'Di chuyển, né quái, giữ Space để xoay đánh. Né tia sáng của tinh linh. Ba đợt quái, không mất tài nguyên.'
-                  : 'Move, dodge, hold Space to spin. Dodge the wisps’ sparks. Three waves. Nothing to lose.'}
+              {l(
+                "Choose a gift. The forest waits while you decide.",
+                "Chọn một món quà. Khu rừng đợi bạn quyết định.",
+              )}
             </p>
-            <button
-              type="button"
-              className="pet-button primary"
-              onClick={
-                paused && hud.status === 'running'
-                  ? () => {
-                      pause(false)
-                      canvas.current?.focus()
+            <div>
+              {(["power", "haste", "vitality"] as const).map((pick, i) => (
+                <button key={pick} onClick={() => choose(pick)}>
+                  <b>{["✧", "↯", "♡"][i]}</b>
+                  <strong>
+                    {
+                      [
+                        l("Moonfang", "Nanh Trăng"),
+                        l("Windstep", "Bước Gió"),
+                        l("Wildheart", "Tim Rừng"),
+                      ][i]
                     }
-                  : start
-              }
-            >
-              {paused && hud.status === 'running'
-                ? vi
-                  ? 'Tiếp tục'
-                  : 'Resume'
-                : vi
-                  ? 'Vào đấu trường'
-                  : 'Let’s play'}{' '}
-              ↗
-            </button>
+                  </strong>
+                  <small>
+                    {
+                      [
+                        l(
+                          "Stronger strikes & moonburst",
+                          "Tăng sát thương đánh và kỹ năng",
+                        ),
+                        l(
+                          "Faster attacks, dash & collection",
+                          "Đánh, lướt và hút vật phẩm nhanh hơn",
+                        ),
+                        l(
+                          "+3 max health · Heal 5",
+                          "+3 máu tối đa · Hồi 5 máu",
+                        ),
+                      ][i]
+                    }
+                  </small>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
-      <div className="arena-bottom">
-        <p>
-          {vi
-            ? 'WASD / mũi tên: di chuyển · Space: đánh · Esc: nghỉ'
-            : 'WASD / arrows to move · Space to attack · Esc to pause'}
-          <small>{vi ? 'Hoặc dùng các nút bên dưới.' : 'Or use the controls below.'}</small>
-        </p>
-        <div className="arena-touch">
-          <div className="arena-dpad">
-            {control('ArrowUp', vi ? 'Lên' : 'Up', '↑')}
-            <div>
-              {control('ArrowLeft', vi ? 'Trái' : 'Left', '←')}
-              {control('ArrowDown', vi ? 'Xuống' : 'Down', '↓')}
-              {control('ArrowRight', vi ? 'Phải' : 'Right', '→')}
-            </div>
+      <div className="wild-controls">
+        <div className="wild-controls-copy">
+          <strong>{l("Follow the light.", "Đi theo ánh sáng.")}</strong>
+          <p>
+            <kbd>WASD</kbd> {l("move", "đi")} <kbd>SPACE</kbd>{" "}
+            {l("strike", "đánh")} <kbd>SHIFT</kbd> {l("dash", "lướt")}{" "}
+            <kbd>E</kbd> {l("moonburst", "kỹ năng")}
+          </p>
+          <small>
+            {storageError
+              ? l(
+                  "Storage unavailable — this visit only.",
+                  "Không lưu được — chỉ trong lần ghé này.",
+                )
+              : l(
+                  "Autosaved locally · Defeat the guardians, then approach each shrine.",
+                  "Tự lưu trên máy · Hạ vệ binh, rồi đến gần từng ngôi đền.",
+                )}
+          </small>
+        </div>
+        <div
+          className="wild-touch"
+          aria-label={l("Touch controls", "Điều khiển cảm ứng")}
+        >
+          <button
+            className="wild-stick"
+            aria-label={l("Movement joystick", "Cần di chuyển")}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.currentTarget.setPointerCapture(e.pointerId);
+            }}
+            onPointerMove={(e) => {
+              if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+              const r = e.currentTarget.getBoundingClientRect(),
+                dx = e.clientX - r.left - r.width / 2,
+                dy = e.clientY - r.top - r.height / 2,
+                norm = Math.max(30, Math.hypot(dx, dy));
+              touch.current = { x: dx / norm, y: dy / norm };
+              setStick({ x: (dx / norm) * 23, y: (dy / norm) * 23 });
+            }}
+            onPointerUp={() => {
+              touch.current = { x: 0, y: 0 };
+              setStick({ x: 0, y: 0 });
+            }}
+            onPointerCancel={() => {
+              touch.current = { x: 0, y: 0 };
+              setStick({ x: 0, y: 0 });
+            }}
+            onLostPointerCapture={() => {
+              touch.current = { x: 0, y: 0 };
+              setStick({ x: 0, y: 0 });
+            }}
+          >
+            <span style={{ transform: `translate(${stick.x}px,${stick.y}px)` }}>
+              ✥
+            </span>
+          </button>
+          <div>
+            {action("Shift", l("Dash", "Lướt"), "↯", hud.player.dashCooldown)}
+            {action("e", l("Burst", "Bộc"), "✧", hud.player.burstCooldown)}
+            {action(" ", l("Strike", "Đánh"), "✦", 0)}
           </div>
-          {control(' ', vi ? 'Giữ để tấn công' : 'Hold to attack', '✦')}
         </div>
       </div>
-      <p role="status" className="sr-only">
-        {hud.status === 'won'
-          ? vi
-            ? 'Chiến thắng. Đã nhận thưởng.'
-            : 'Victory. Rewards collected.'
-          : hud.status === 'lost'
-            ? vi
-              ? 'Hết máu. Thử lại nhé.'
-              : 'Out of hearts. Try again.'
-            : ''}
-      </p>
-    </div>
-  )
+    </dialog>
+  );
 }

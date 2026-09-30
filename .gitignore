@@ -65,3 +65,6 @@ tasks/
 /data/
 
 .artifacts/
+
+# Local upstream research checkouts
+/reference/checkouts/

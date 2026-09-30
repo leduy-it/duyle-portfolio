@@ -44,3 +44,22 @@ final deployment verification is tracked in `../superpowers/plans/pets-v2-execut
 Reproduce the asset sync with `node scripts/sync-pet-motion.mjs ../hatch-pet-plus`
 after committing the accepted source assets. It records the exact source commit
 and SHA-256 digests, and refuses uncommitted motion packs.
+
+## Wildwood expedition — original generated illustration
+
+Built-in imagegen, 2026-09-30. Saved `public/pets/wildwood/cover.png`.
+Prompt: original premium indie fantasy action adventure title-screen illustration; tiny moon-blue
+rabbit seen from behind entering a vast ancient forest; colossal twisted trees, moss, ferns,
+winding amber-lit stone path toward a distant ruined moon shrine and turquoise crystal;
+petrol green, olive, ivory light shafts, blue mist; painterly pixel-dither texture, cinematic
+depth; subdued center-left for HTML title; no words, UI, logos or borders.
+
+The playable map is separate original procedural geometry. Collision uses the same forest,
+rock, path and river coordinates as rendering. Trees fade when obscuring the player.
+
+Environment sprite sheet: `public/pets/wildwood/trees.png`, built-in imagegen, RGBA 1536×1024,
+2×2 equal cells. Prompt: four isolated full ancient trees, emerald oak, cool moon forest,
+amber ancient tree, dark conifer; elevated top-down view, fine painterly pixel-dither leaf
+clusters, rooted trunks, moss, dappled upper-left light; transparent background, no ground,
+labels or dividers. Original source alpha verified (background samples 0–1); render crops
+cells directly without modifying source pixels. Procedural trees remain loading fallback.
