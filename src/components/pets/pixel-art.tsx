@@ -3,7 +3,7 @@ import { AtlasPet } from './atlas-pet'
 import { PETS, type Species } from '@/data/pets/catalog'
 
 // Original 20x22 sprites, shared by SVG habitat and Canvas arena.
-const faces: Record<Species, string[]> = {
+const faces: Partial<Record<Species, string[]>> = {
   gracie: [
     '     oo     oo      ',
     '    oAAo   oAAo     ',
@@ -150,7 +150,7 @@ const faces: Record<Species, string[]> = {
   ],
 }
 export function pixels(species: Species) {
-  return faces[species].flatMap((row, y) =>
+  return (faces[species] || faces.gracie!).flatMap((row, y) =>
     [...row].flatMap((key, x) => (key === ' ' ? [] : [{ x, y, key }]))
   )
 }

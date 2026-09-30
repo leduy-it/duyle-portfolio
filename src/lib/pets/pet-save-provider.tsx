@@ -8,12 +8,12 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { createStarterSave, PET_SAVE_KEY, type PetWorldSaveV1 } from './save'
+import { createStarterSave, PET_SAVE_KEY, type PetWorldSave } from './save'
 import { loadPetWorld, receivePetWorld, updatePetWorld, type Persistence } from './persistence'
 interface WorldContext {
-  save: PetWorldSaveV1
+  save: PetWorldSave
   storage: Persistence
-  update: (fn: (s: PetWorldSaveV1) => PetWorldSaveV1) => PetWorldSaveV1
+  update: (fn: (s: PetWorldSave) => PetWorldSave) => Promise<PetWorldSave>
   reset: () => void
 }
 const Context = createContext<WorldContext | null>(null)
@@ -28,11 +28,17 @@ export function PetSaveProvider({ children }: { children: ReactNode }) {
   }, [])
   useEffect(() => {
     // Hydrate after the first paint; never read browser storage during SSR.
+    let mounted = true
     const frame = requestAnimationFrame(() => {
-      const next = loadPetWorld(() => localStorage)
-      current.current = next.save
-      setSave(next.save)
-      persistence(next.status)
+      const hydrate = () => {
+        if (!mounted) return
+        const next = loadPetWorld(() => localStorage)
+        current.current = next.save
+        setSave(next.save)
+        persistence(next.status)
+      }
+      if (navigator.locks) void navigator.locks.request(PET_SAVE_KEY, hydrate)
+      else hydrate()
     })
     function onStorage(e: StorageEvent) {
       if (e.key !== PET_SAVE_KEY) return
@@ -43,12 +49,14 @@ export function PetSaveProvider({ children }: { children: ReactNode }) {
     }
     window.addEventListener('storage', onStorage)
     return () => {
+      mounted = false
       cancelAnimationFrame(frame)
       window.removeEventListener('storage', onStorage)
     }
   }, [persistence])
   const update = useCallback(
-    (fn: (s: PetWorldSaveV1) => PetWorldSaveV1) => {
+    async (fn: (s: PetWorldSave) => PetWorldSave) => {
+      const commit = () => {
       const next = updatePetWorld(
         () => localStorage,
         { save: current.current, status: status.current },
@@ -58,6 +66,9 @@ export function PetSaveProvider({ children }: { children: ReactNode }) {
       setSave(next.save)
       persistence(next.status)
       return next.save
+      }
+      // A single read-modify-write owner across tabs on supported browsers.
+      return navigator.locks ? navigator.locks.request(PET_SAVE_KEY, commit) : commit()
     },
     [persistence]
   )

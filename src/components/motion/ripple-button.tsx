@@ -1,5 +1,7 @@
 'use client'
 
+import { useHomeMotionPreferences } from '@/components/home/home-motion'
+
 import {
   useRef,
   useState,
@@ -7,7 +9,7 @@ import {
   type PointerEvent,
   type ReactNode,
 } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { easeOutExpo, motionDurations } from './easings'
 
 type Ripple = {
@@ -27,7 +29,7 @@ function joinClasses(...classes: Array<string | undefined>) {
 }
 
 export function RippleButton({ children, className }: RippleButtonProps) {
-  const reducedMotion = useReducedMotion()
+  const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
   const nextRippleId = useRef(0)
   const [ripples, setRipples] = useState<Ripple[]>([])
 

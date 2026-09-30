@@ -1,11 +1,13 @@
 'use client'
 
-import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react'
+import { useHomeMotionPreferences } from '@/components/home/home-motion'
+
+import { motion, useMotionValue, useSpring } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { easeSpringSoft } from './easings'
 
 export function CursorGlow() {
-  const reducedMotion = useReducedMotion()
+  const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
   const [coarsePointer, setCoarsePointer] = useState(false)
   const [visible, setVisible] = useState(false)
   const x = useMotionValue(-999)

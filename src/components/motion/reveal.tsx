@@ -1,6 +1,8 @@
 'use client'
 
-import { motion, useReducedMotion } from 'motion/react'
+import { useHomeMotionPreferences } from '@/components/home/home-motion'
+
+import { motion } from 'motion/react'
 import {
   Children,
   isValidElement,
@@ -28,7 +30,7 @@ export function Reveal({
   staggerChildren = 0,
   threshold = 0.2,
 }: RevealProps) {
-  const reducedMotion = useReducedMotion()
+  const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
   const ref = useRef<HTMLDivElement | null>(null)
   const [isVisible, setIsVisible] = useState(reducedMotion)
   const childCount = Children.count(children)

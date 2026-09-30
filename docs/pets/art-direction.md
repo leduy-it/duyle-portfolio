@@ -1,0 +1,46 @@
+# Pocket World art direction
+
+2026-09-29: continuous scroll journey through the habitat, greenhouse hatchery,
+workshop, arena and collection. Backgrounds use a consistent sage/cream/amber
+pixel-art environment; original character atlas styles are preserved.
+
+## Generated background assets
+
+Built-in imagegen was used. No external image API or credentials were used.
+
+- `public/pets/pixel-garden-v2.webp`: alpine meadow, cottage left, stream and bridge
+  right, open central clearing, warm morning light; no baked characters or UI.
+- `public/pets/pixel-hatchery-v2.webp`: botanical greenhouse, cream stone arches,
+  timber side benches, vines, open moss-green tiled floor; no eggs or characters.
+
+Source generation dimensions: 1536×1024. WebP quality 90, Pillow 11.1.0.
+Scene artwork stays separate from pet atlases. Twilight uses an overlay rather
+than rotating the palette of the whole scene. Backgrounds do not move under
+pointer input; motion is reserved for living characters and small ambient details.
+
+## Interaction and performance
+
+- All chapters remain mounted; navigation scrolls to a chapter.
+- Below-fold chapters reveal once; reduced-motion users see them immediately.
+- Atlas playback pauses off-screen. Arena pauses when it leaves the viewport.
+- A companion retains its own global selection across the site.
+- Original source atlases keep their 8×11 geometry and aspect ratio.
+- Motion extensions are accepted independently before use.
+
+## Verification evidence
+
+Initial production build and 28 tests passed. Local browser checks at 390, 768
+and 1440px showed no horizontal overflow or page errors. Additional asset and
+final deployment verification is tracked in `../superpowers/plans/pets-v2-execution.md`.
+
+- `public/pets/pixel-workshop-v2.webp`: cozy timber inventors' workshop, arched
+  mountain-view windows, cream walls, sage drawers, copper pipes and empty wooden
+  floor. Runtime machines and pets are layered separately over the scene.
+
+- `public/pets/pixel-arena-v2.webp`: moonlit forest courtyard, clear mossy stone
+  fighting area with border lanterns and blue flowers. Arena movement now chooses
+  approved directional motion strips where available.
+
+Reproduce the asset sync with `node scripts/sync-pet-motion.mjs ../hatch-pet-plus`
+after committing the accepted source assets. It records the exact source commit
+and SHA-256 digests, and refuses uncommitted motion packs.

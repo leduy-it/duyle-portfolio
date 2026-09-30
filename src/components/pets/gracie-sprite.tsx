@@ -1,8 +1,10 @@
 'use client'
+import { MotionPet, motionCatalog } from './motion-pet'
 import { AtlasPet, type PetLane } from './atlas-pet'
 export type GraciePose =
-  'idle' | 'greeting' | 'thinking' | 'ready' | 'error' | 'left' | 'right' | 'waiting'
+  'rest' | 'sleep' | 'idle' | 'greeting' | 'thinking' | 'ready' | 'error' | 'left' | 'right' | 'waiting'
 const lanes: Record<GraciePose, PetLane> = {
+  rest: 'idle', sleep: 'idle',
   idle: 'idle',
   greeting: 'waving',
   thinking: 'running',
@@ -26,6 +28,7 @@ export function GracieSprite({
   reducedMotion?: boolean
   className?: string
 }) {
+  if (!reducedMotion && (pose === 'rest' || pose === 'sleep') && motionCatalog[pet]?.[pose]) return <span className={`gracie-art ${className}`}><MotionPet pet={pet} clip={pose} /></span>
   return (
     <AtlasPet
       pet={pet}

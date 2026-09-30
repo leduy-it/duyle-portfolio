@@ -4,6 +4,17 @@ import { useCompanionSelection } from '@/lib/pets/companion-selection'
 import { useCompanionPreference } from '@/lib/pets/companion-preference'
 import catalog from '@/data/pets/atlas-catalog.json'
 import { AtlasPet, LANES, type PetLane } from './atlas-pet'
+import { MotionPet, motionCatalog } from './motion-pet'
+const stateNames: Record<string, [string, string]> = {
+  idle: ['Idle', 'Thảnh thơi'], 'running-right': ['Scamper →', 'Chạy →'], 'running-left': ['← Scamper', '← Chạy'],
+  waving: ['Say hello', 'Chào bạn'], jumping: ['Little jump', 'Nhảy vui'], failed: ['Oops', 'Úi chà'],
+  waiting: ['Hang out', 'Đợi chút'], running: ['At work', 'Làm việc'], review: ['Curious', 'Tò mò'],
+  'walk-n': ['↑ Walk', '↑ Đi'], 'walk-ne': ['↗ Walk', '↗ Đi'], 'walk-e': ['→ Walk', '→ Đi'],
+  'walk-se': ['↘ Walk', '↘ Đi'], 'walk-s': ['↓ Walk', '↓ Đi'], 'walk-sw': ['↙ Walk', '↙ Đi'],
+  'walk-w': ['← Walk', '← Đi'], 'walk-nw': ['↖ Walk', '↖ Đi'],
+  'start-s': ['First step', 'Bước đầu'], 'stop-s': ['Slow down', 'Dừng lại'],
+  rest: ['Take a seat', 'Ngồi nghỉ'], sleep: ['Sweet dreams', 'Ngủ ngon'], carry: ['Special delivery', 'Mang quà'], celebrate: ['Celebrate', 'Ăn mừng'],
+}
 export function SourceGallery({ vi }: { vi: boolean }) {
   const companion = useCompanionSelection()
   const { setVisible } = useCompanionPreference()
@@ -29,6 +40,7 @@ export function SourceGallery({ vi }: { vi: boolean }) {
     window.addEventListener('hashchange', openGuide)
     return () => { cancelAnimationFrame(frame); window.removeEventListener('hashchange', openGuide) }
   }, [])
+  const [motionClip, setMotionClip] = useState('')
   const [lane, setLane] = useState<PetLane>('idle')
   const [transition, setTransition] = useState(0)
   const pet = catalog.find((p) => p.id === selected)!
@@ -39,6 +51,7 @@ export function SourceGallery({ vi }: { vi: boolean }) {
   }
   const choose = (id: string) => {
     setSelected(id)
+    setMotionClip('')
     setStage(0)
     setTransition((v) => v + 1)
   }
@@ -73,7 +86,7 @@ export function SourceGallery({ vi }: { vi: boolean }) {
           <div className="studio-orbit orbit-one" />
           <div className="studio-orbit orbit-two" />
           <div className="studio-pet" key={`${selected}:${transition}`}>
-            <AtlasPet pet={pet.id} file={form.spritesheetPath} lane={lane} follow />
+            {motionClip && motionCatalog[pet.id]?.[motionClip] ? <MotionPet pet={pet.id} clip={motionClip} /> : <AtlasPet pet={pet.id} file={form.spritesheetPath} lane={lane} follow />}
           </div>
           <div className="studio-platform" />
           <span className="studio-spark spark-a">✧</span>
@@ -169,9 +182,10 @@ export function SourceGallery({ vi }: { vi: boolean }) {
       <div className="studio-motion-bar">
         <span>{vi ? 'CHUYỂN ĐỘNG' : 'MOTION LAB'}</span>
         <div className="pet-source-controls" aria-label="Animation states">
+          {Object.keys(motionCatalog[pet.id] || {}).map(clip => <button key={clip} aria-pressed={motionClip === clip} onClick={() => { setMotionClip(clip); setTransition(v => v + 1) }}>{stateNames[clip]?.[vi ? 1 : 0] || clip} ✦</button>)}
           {LANES.map((value) => (
-            <button key={value} aria-pressed={lane === value} onClick={() => setLane(value)}>
-              {value}
+            <button key={value} aria-pressed={!motionClip && lane === value} onClick={() => { setMotionClip(''); setLane(value) }}>
+              {stateNames[value]?.[vi ? 1 : 0] || value}
             </button>
           ))}
         </div>

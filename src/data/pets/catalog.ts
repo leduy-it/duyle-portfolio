@@ -71,6 +71,21 @@ export const PETS = {
     speed: 145,
     power: 3,
   },
+  "blip": {"name": "Blip", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Blip", "Blip II", "Blip III"], "hp": 6, "speed": 145, "power": 2},
+  "bot-3d-toy": {"name": "Sprocket Toy", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprocket Toy", "Sprocket Toy II", "Sprocket Toy III"], "hp": 6, "speed": 145, "power": 2},
+  "bot-clay": {"name": "Sprocket Clay", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprocket Clay", "Sprocket Clay II", "Sprocket Clay III"], "hp": 6, "speed": 145, "power": 2},
+  "bot-flat-vector": {"name": "Sprocket Vector", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprocket Vector", "Sprocket Vector II", "Sprocket Vector III"], "hp": 6, "speed": 145, "power": 2},
+  "bot-pixel": {"name": "Sprocket Pixel", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprocket Pixel", "Sprocket Pixel II", "Sprocket Pixel III"], "hp": 6, "speed": 145, "power": 2},
+  "bot-plush": {"name": "Sprocket Plush", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprocket Plush", "Sprocket Plush II", "Sprocket Plush III"], "hp": 6, "speed": 145, "power": 2},
+  "bot-sticker": {"name": "Sprocket Sticker", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprocket Sticker", "Sprocket Sticker II", "Sprocket Sticker III"], "hp": 6, "speed": 145, "power": 2},
+  "cobble": {"name": "Cobble", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Cobble", "Cobble II", "Cobble III"], "hp": 6, "speed": 145, "power": 2},
+  "inko": {"name": "Inko", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Inko", "Inko II", "Inko III"], "hp": 6, "speed": 145, "power": 2},
+  "kiln": {"name": "Kiln", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Kiln", "Kiln II", "Kiln III"], "hp": 6, "speed": 145, "power": 2},
+  "mossback": {"name": "Mossback", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Mossback", "Mossback II", "Mossback III"], "hp": 6, "speed": 145, "power": 2},
+  "classic-pip": {"name": "Pip", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Pip", "Pip II", "Pip III"], "hp": 6, "speed": 145, "power": 2},
+  "sprig": {"name": "Sprig", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprig", "Sprig II", "Sprig III"], "hp": 6, "speed": 145, "power": 2},
+  "sprocket-evo": {"name": "Sprocket", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Sprocket 8-bit", "Sprocket Vector", "Sprocket HD"], "hp": 6, "speed": 145, "power": 2},
+  "wisp": {"name": "Wisp", "species": "Pocket companion", "vi": "B\u1ea1n nh\u1ecf", "color": "#d5dfbe", "accent": "#84b39c", "drop": "Stardust", "forms": ["Wisp", "Wisp II", "Wisp III"], "hp": 6, "speed": 145, "power": 2},
 } as const
 export type Species = keyof typeof PETS
 export const SPECIES = Object.keys(PETS) as Species[]
@@ -97,7 +112,7 @@ export const EGGS = {
     price: 240,
     wait: 120_000,
     color: '#c8b6eb',
-    roster: ['mochi', 'pip', 'boba', 'ember', 'gracie', 'tofu'],
+    roster: SPECIES,
   },
 } as const
 export type EggTier = keyof typeof EGGS

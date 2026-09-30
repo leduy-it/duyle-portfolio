@@ -1,6 +1,8 @@
 'use client'
 
-import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react'
+import { useHomeMotionPreferences } from '@/components/home/home-motion'
+
+import { motion, useMotionValue, useSpring } from 'motion/react'
 import { useEffect, useState, type PropsWithChildren } from 'react'
 import { easeSpringSoft } from './easings'
 
@@ -20,7 +22,7 @@ export function Magnetic({
   disabled = false,
   strength = 6,
 }: MagneticProps) {
-  const reducedMotion = useReducedMotion()
+  const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
   const [coarsePointer, setCoarsePointer] = useState(false)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
