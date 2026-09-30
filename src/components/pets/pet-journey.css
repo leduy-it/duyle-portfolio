@@ -143,3 +143,10 @@
 @media(max-width:600px) {
   .pet-world-heading .pet-heading-stamp > .atlas-pet { display:block; background-color:transparent; border-radius:0; padding:0; }
 }
+.pet-world-heading .pet-heading-stamp > .atlas-pet {
+  background-color:transparent;
+  background-size:800% 1100%;
+  background-repeat:no-repeat;
+  padding:0;
+  border-radius:0;
+}
