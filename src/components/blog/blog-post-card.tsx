@@ -27,22 +27,6 @@ interface BlogPostCardProps {
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const
 const EASE_OUT_QUART = [0.25, 1, 0.5, 1] as const
 
-function formatDate(dateStr: string, locale: string): string {
-  const date = new Date(dateStr)
-  if (locale === 'vi') {
-    return date.toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
 export default function BlogPostCard({ post }: BlogPostCardProps) {
   const { locale, t } = useLocale()
   const shouldReduceMotion = useReducedMotion()
@@ -136,12 +120,8 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
         <div className="flex flex-1 flex-col p-7 sm:p-8">
           {/* Meta row */}
           <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-xs text-[rgb(var(--text-muted))]">
-            <span>{formatDate(post.date, locale)}</span>
             {post.readingMinutes ? (
-              <>
-                <span aria-hidden>·</span>
-                <span>{post.readingMinutes} {t('blog.minRead')}</span>
-              </>
+              <span>{post.readingMinutes} {t('blog.minRead')}</span>
             ) : null}
           </div>
 

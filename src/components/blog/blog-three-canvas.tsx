@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
+import { useTheme } from 'next-themes'
 import * as THREE from 'three'
 
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const
@@ -9,6 +10,7 @@ const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const
 export default function BlogThreeCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const shouldReduceMotion = useReducedMotion()
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -23,7 +25,8 @@ export default function BlogThreeCanvas() {
       .getPropertyValue('--accent')
       .trim()
     const [r, g, b] = accentRaw.split(' ').map((v) => parseInt(v, 10) / 255)
-    const accentColor = new THREE.Color(r, g, b)
+    const isLight = resolvedTheme === 'light' || document.documentElement.classList.contains('light')
+    const accentColor = isLight ? new THREE.Color('#087c78') : new THREE.Color(r, g, b)
 
     // Renderer
     const dpr = Math.min(window.devicePixelRatio, 2)
@@ -46,7 +49,7 @@ export default function BlogThreeCanvas() {
       color: accentColor,
       wireframe: true,
       transparent: true,
-      opacity: 0.55,
+      opacity: isLight ? 0.85 : 0.55,
     })
     const mesh = new THREE.Mesh(geom, mat)
     scene.add(mesh)
@@ -67,19 +70,13 @@ export default function BlogThreeCanvas() {
       color: accentColor,
       size: 0.03,
       transparent: true,
-      opacity: 0.45,
+      opacity: isLight ? 0.6 : 0.45,
       sizeAttenuation: true,
     })
     const particles = new THREE.Points(pGeom, pMat)
     scene.add(particles)
 
-    // Render one static frame if reduced motion
-    if (prefersReducedMotion) {
-      renderer.render(scene, camera)
-      return
-    }
-
-    let rafId: number
+    let rafId = 0
 
     const animate = () => {
       if (document.hidden) {
@@ -104,7 +101,8 @@ export default function BlogThreeCanvas() {
       rafId = requestAnimationFrame(animate)
     }
 
-    rafId = requestAnimationFrame(animate)
+    if (prefersReducedMotion) renderer.render(scene, camera)
+    else rafId = requestAnimationFrame(animate)
 
     // Resize handler
     const onResize = () => {
@@ -113,6 +111,7 @@ export default function BlogThreeCanvas() {
       camera.aspect = nw / nh
       camera.updateProjectionMatrix()
       renderer.setSize(nw, nh, false)
+      if (prefersReducedMotion) renderer.render(scene, camera)
     }
     window.addEventListener('resize', onResize)
 
@@ -125,7 +124,7 @@ export default function BlogThreeCanvas() {
       pMat.dispose()
       renderer.dispose()
     }
-  }, [])
+  }, [resolvedTheme])
 
   return (
     <motion.canvas

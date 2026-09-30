@@ -6,7 +6,7 @@ import { buildMetadataOg } from '@/lib/og-meta'
 
 export const metadata: Metadata = buildMetadataOg({
   title: 'Research — long-form notes from the production floor',
-  description: 'OCR backbones, agent design, latency war stories — field notes from shipping AI in Vietnam.',
+  description: 'Agentic gates, evaluation economics, OCR backbones, and field notes from shipping AI in Vietnam.',
   route: 'blog',
 })
 
