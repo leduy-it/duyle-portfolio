@@ -1,3 +1,4 @@
+import { banterInstruction } from '@/lib/chat/banter'
 import { appendEvent, type TrackEvent } from '@/lib/tracking/store'
 import { trackingContext } from '@/lib/tracking/server-context'
 import { newTurn, saveTurn, validRecordId, type ConversationTurn, type TurnStatus } from '@/lib/tracking/conversations'
@@ -172,6 +173,7 @@ export async function POST(request: Request) {
     return failTurn('temporarily_unavailable', 503)
   }
   const latestQuestion = [...messages].reverse().find(message=>message.role === 'user')?.content || ''
+  if (!edit) prompt += banterInstruction(latestQuestion)
   const playfulReply = !edit ? appearanceReply(latestQuestion) : null
   if (playfulReply) {
     try { await record(playfulReply, 'complete', 'curated-owner-voice') } catch { return failure('history_unavailable',503) }
