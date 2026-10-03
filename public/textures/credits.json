@@ -1,0 +1,6 @@
+{
+  "jupiter-cassini.jpg": {"credit":"NASA/JPL/Space Science Institute","source":"https://science.nasa.gov/photojournal/cassinis-best-maps-of-jupiter-cylindrical-map/","image":"PIA07782","modifications":"None; applied to a decorative Three.js sphere"},
+  "stars-milky-way.jpg": {"credit":"Solar System Scope / INOVE","source":"https://ssi.solarsystemscope.com/textures/","license":"CC BY 4.0","licenseUrl":"https://creativecommons.org/licenses/by/4.0/","modifications":"None; displayed with a dark overlay"},
+  "earth-day.jpg": {"credit":"Three.js example planet textures","source":"https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"},
+  "earth-normal.jpg": {"credit":"Three.js example planet textures","source":"https://threejs.org/examples/textures/planets/earth_normal_2048.jpg"}
+}
