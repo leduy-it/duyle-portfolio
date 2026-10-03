@@ -70,3 +70,24 @@ test('English latest question overrides Vietnamese history and retrieves grounde
     assert.doesNotMatch(sent.messages[0].content,/RESEND_API_KEY|JINA_API_KEY|ADMIN_SECRET/)
   }finally{global.fetch=original;delete process.env.OPENROUTER_API_KEY}
 })
+
+test('server saves submitted turns and partial failed stream replies before finishing the request',async()=>{
+  const env={...process.env},fetch=global.fetch
+  const saved:{status:string;user:string;assistant:string}[]=[]
+  try {
+    Object.assign(process.env,{NODE_ENV:'production',OPENROUTER_API_KEY:'test-only',TRACKING_SALT:'test-only-salt',UPSTASH_REDIS_REST_URL:'https://redis.example',UPSTASH_REDIS_REST_TOKEN:'test-only'})
+    global.fetch=async(url,init)=>{
+      const payload=JSON.parse(String(init?.body))
+      if(String(url)==='https://redis.example') {
+        if(payload[0]==='EVAL' && String(payload[3]).includes(':conversations:')) saved.push(JSON.parse(payload[8]))
+        return Response.json({result:1})
+      }
+      return new Response('data: {"choices":[{"delta":{"content":"Partial Unicode: Chào bạn"}}]}\n\n')
+    }
+    const response=await POST(new Request('https://portfolio.example/api/chat',{method:'POST',headers:{'user-agent':'Mozilla/5.0 (browser verification)'},body:JSON.stringify({conversationId:crypto.randomUUID(),turnId:crypto.randomUUID(),messages:[{role:'user',content:'hi'}],stream:true})}))
+    const output=await response.text()
+    assert.match(output,/Partial Unicode/);assert.match(output,/event: error/)
+    assert.equal(saved[0].user,'hi');assert.equal(saved[0].status,'receiving')
+    assert.equal(saved.at(-1)?.status,'error');assert.equal(saved.at(-1)?.assistant,'Partial Unicode: Chào bạn')
+  }finally{process.env=env;global.fetch=fetch}
+})
