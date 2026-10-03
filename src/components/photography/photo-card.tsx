@@ -1,9 +1,8 @@
 'use client'
 
-import { type MouseEvent, useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { motion, useReducedMotion } from 'motion/react'
 import { useLocale } from '@/lib/i18n'
 import { pickLocalized } from '@/lib/i18n'
@@ -39,10 +38,8 @@ interface PhotoCardProps {
 
 export default function PhotoCard({ film, index }: PhotoCardProps) {
   const { locale, t } = useLocale()
-  const router = useRouter()
   const prefersReducedMotion = useReducedMotion()
   const [isLoaded, setIsLoaded] = useState(false)
-  const navigationTimeoutRef = useRef<number | null>(null)
   const title = pickLocalized(film as unknown as Record<string, unknown>, 'title', locale)
   const tagline = pickLocalized(film as unknown as Record<string, unknown>, 'tagline', locale)
   const story = pickLocalized(film as unknown as Record<string, unknown>, 'story', locale)
@@ -51,57 +48,13 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
   const hasCaption = Boolean(tagline)
   const href = `/movie/${film.slug}`
 
-  useEffect(() => {
-    return () => {
-      if (navigationTimeoutRef.current !== null) {
-        window.clearTimeout(navigationTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  const navigateToDetail = () => {
-    if (!prefersReducedMotion && typeof document.startViewTransition === 'function') {
-      document.startViewTransition(() => {
-        router.push(href)
-      })
-      return
-    }
-
-    router.push(href)
-  }
-
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.currentTarget.target === '_blank'
-    ) {
-      return
-    }
-
-    event.preventDefault()
-
-    if (navigationTimeoutRef.current !== null) {
-      window.clearTimeout(navigationTimeoutRef.current)
-    }
-
-    navigationTimeoutRef.current = window.setTimeout(
-      navigateToDetail,
-      prefersReducedMotion ? 0 : 110
-    )
-  }
-
   return (
     <GalleryReveal
       className="h-full"
-      delay={Math.min(index * 0.07, 0.49)}
-      y={18}
+      delay={(index % 3) * .055}
+      index={index}
     >
-      <Link href={href} className="group block h-full" onClick={handleClick}>
+      <Link href={href} className="group block h-full">
         <motion.div
           className="flex h-full flex-col overflow-hidden rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface-card))] transition-[border-color,box-shadow] duration-300 hover:border-[rgb(var(--accent))] hover:shadow-lg"
           initial={false}
@@ -115,14 +68,14 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
             <motion.div
               className="absolute inset-0"
               transition={{
-                duration: prefersReducedMotion ? 0 : 0.7,
+                duration: prefersReducedMotion ? 0 : 0.35,
                 ease: APPLE_EASE_OUT_QUART,
               }}
               variants={
                 prefersReducedMotion
                   ? undefined
                   : {
-                      hover: { scale: 1.04 },
+                      hover: { scale: 1.015 },
                     }
               }
             >
@@ -140,7 +93,7 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
                 }}
               >
                 <Image
-                  src={film.image}
+                  src={film.image.replace('/t/p/original/', '/t/p/w500/')}
                   alt={alt}
                   fill
                   className="object-cover object-center"

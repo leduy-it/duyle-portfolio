@@ -11,6 +11,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { entrancePose,settledPose,useMotionSeed,motionPattern } from './entrance-patterns'
 import { easeOutExpo, motionDurations } from './easings'
 
 type RevealProps = {
@@ -31,6 +32,7 @@ export function Reveal({
   threshold = 0.2,
 }: RevealProps) {
   const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
+  const seed=useMotionSeed()
   const ref = useRef<HTMLDivElement | null>(null)
   const [isVisible, setIsVisible] = useState(reducedMotion)
   const childCount = Children.count(children)
@@ -79,24 +81,22 @@ export function Reveal({
 
   const containerVariants = shouldStagger
     ? {
-        hidden: { opacity: 0, y: 18 },
+        hidden: { opacity: 1, y: 0 },
         visible: {
-          opacity: 1,
-          y: 0,
+          ...settledPose,
           transition: {
             delay,
             duration: motionDurations.reveal,
             ease: easeOutExpo,
-            staggerChildren,
-            delayChildren: delay,
+            staggerChildren:0,
+            delayChildren:0,
           },
         },
       }
     : {
-        hidden: { opacity: 0, y: 18 },
+        hidden:entrancePose(seed),
         visible: {
-          opacity: 1,
-          y: 0,
+          ...settledPose,
           transition: {
             delay,
             duration: motionDurations.reveal,
@@ -106,15 +106,8 @@ export function Reveal({
       }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 14 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: motionDurations.reveal,
-        ease: easeOutExpo,
-      },
-    },
+    hidden:(index:number)=>entrancePose(seed,index),
+    visible:(index:number)=>({...settledPose,transition:{duration:motionDurations.reveal,ease:easeOutExpo,delay:delay+Math.min(staggerChildren,.04)*(index%6)}}),
   }
 
   const renderedChildren = shouldStagger
@@ -133,7 +126,7 @@ export function Reveal({
 
   return (
     <motion.div
-      ref={ref}
+      ref={ref} data-entrance-pattern={motionPattern(seed)}
       className={className}
       initial="hidden"
       animate={reducedMotion || isVisible ? 'visible' : 'hidden'}
@@ -141,7 +134,7 @@ export function Reveal({
     >
       {shouldStagger
         ? Children.map(renderedChildren, (child, index) => (
-            <motion.div key={`reveal-wrap-${index}`} variants={itemVariants}>
+            <motion.div key={`reveal-wrap-${index}`} custom={index} variants={itemVariants}>
               {child}
             </motion.div>
           ))

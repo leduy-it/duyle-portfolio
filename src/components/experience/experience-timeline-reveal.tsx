@@ -1,5 +1,6 @@
 'use client'
 
+import { entrancePose,settledPose,useMotionSeed,motionPattern } from '@/components/motion/entrance-patterns'
 import type { ReactNode } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 
@@ -19,17 +20,21 @@ interface ExperienceRevealProps {
   y?: number
   duration?: number
   amount?: number
+  index?: number
 }
 
 export function ExperienceReveal({
   children,
   className,
   delay = 0,
-  x = 0,
-  y = 16,
+  index=0,
+  x,
+  y,
   duration = 0.58,
   amount = 0.25,
 }: ExperienceRevealProps) {
+  const seed=useMotionSeed()
+  const pose={...entrancePose(seed,index),...(x===undefined ? {} : {x}),...(y===undefined ? {} : {y})}
   const shouldReduceMotion = useReducedMotion()
 
   if (shouldReduceMotion) {
@@ -38,9 +43,9 @@ export function ExperienceReveal({
 
   return (
     <motion.div
-      className={className}
-      initial={{ opacity: 0, x, y }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      className={className} data-entrance-pattern={motionPattern(seed)}
+      initial={pose}
+      whileInView={settledPose}
       viewport={{ once: true, amount }}
       transition={{ duration, delay, ease: EASE_OUT_EXPO }}
     >
@@ -66,9 +71,8 @@ export function ExperienceTimelineReveal({
     <ExperienceReveal
       className={className}
       delay={delay}
-      x={direction === 'right' ? 12 : -12}
-      y={0}
-      duration={0.58}
+      index={Math.round(delay*20)+(direction==='right' ? 1 : 0)}
+      duration={0.45}
       amount={0.18}
     >
       {children}

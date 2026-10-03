@@ -1,5 +1,6 @@
 'use client'
 
+import { entrancePose,settledPose,useMotionSeed,motionPattern } from '@/components/motion/entrance-patterns'
 import { motion, useReducedMotion } from 'motion/react'
 import BlogPostCard from '@/components/blog/blog-post-card'
 import { useLocale } from '@/lib/i18n'
@@ -25,6 +26,7 @@ interface BlogListStaggerProps {
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const
 
 export default function BlogListStagger({ posts }: BlogListStaggerProps) {
+  const seed=useMotionSeed()
   const shouldReduceMotion = useReducedMotion()
   const { locale } = useLocale()
 
@@ -33,10 +35,10 @@ export default function BlogListStagger({ posts }: BlogListStaggerProps) {
       <div className="pointer-events-none absolute bottom-12 left-[11px] top-5 hidden w-px bg-[rgb(var(--border))] md:block" aria-hidden="true" />
       {posts.map((post, index) => (
         <motion.div
-          key={post.slug}
+          key={post.slug} data-entrance-pattern={motionPattern(seed)}
           className="relative grid gap-4 md:grid-cols-[156px_minmax(0,1fr)] md:gap-8"
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
-          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          initial={shouldReduceMotion ? false : entrancePose(seed,index)}
+          whileInView={shouldReduceMotion ? undefined : settledPose}
           viewport={
             shouldReduceMotion
               ? undefined
@@ -46,8 +48,8 @@ export default function BlogListStagger({ posts }: BlogListStaggerProps) {
             shouldReduceMotion
               ? undefined
               : {
-                  duration: 0.52,
-                  delay: index * 0.08,
+                  duration: 0.65,
+                  delay: Math.min(index * 0.04, 0.16),
                   ease: EASE_OUT_EXPO,
                 }
           }

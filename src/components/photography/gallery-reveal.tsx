@@ -1,5 +1,6 @@
 'use client'
 
+import { entrancePose,settledPose,useMotionSeed,motionPattern } from '@/components/motion/entrance-patterns'
 import type { HTMLMotionProps, Transition } from 'motion/react'
 import { motion, useInView, useReducedMotion } from 'motion/react'
 import { type ReactNode, useRef } from 'react'
@@ -14,16 +15,19 @@ export const SOFT_SPRING: Transition = {
 const REVEAL_MARGIN = '0px 0px -10% 0px' as const
 
 interface GalleryRevealProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
+  index?: number
   amount?: number | 'some' | 'all'
   children: ReactNode
   delay?: number
   duration?: number
   once?: boolean
+  x?: number
   y?: number
 }
 
 export function GalleryReveal({
   amount = 0.2,
+  index=0,
   animate,
   children,
   delay = 0,
@@ -31,9 +35,12 @@ export function GalleryReveal({
   initial,
   once = true,
   transition,
-  y = 18,
+  x,
+  y,
   ...rest
 }: GalleryRevealProps) {
+  const seed=useMotionSeed()
+  const pose={...entrancePose(seed,index),...(x===undefined ? {} : {x}),...(y===undefined ? {} : {y})}
   const ref = useRef<HTMLDivElement | null>(null)
   const prefersReducedMotion = useReducedMotion()
   const isInView = useInView(ref, { amount, margin: REVEAL_MARGIN, once })
@@ -41,9 +48,9 @@ export function GalleryReveal({
 
   return (
     <motion.div
-      ref={ref}
-      animate={animate ?? (isRevealed ? { opacity: 1, y: 0 } : { opacity: 0, y })}
-      initial={initial ?? (prefersReducedMotion ? false : { opacity: 0, y })}
+      ref={ref} data-entrance-pattern={motionPattern(seed)}
+      animate={animate ?? (isRevealed ? settledPose : pose)}
+      initial={initial ?? (prefersReducedMotion ? false : pose)}
       transition={
         transition ?? {
           duration: prefersReducedMotion ? 0 : duration,

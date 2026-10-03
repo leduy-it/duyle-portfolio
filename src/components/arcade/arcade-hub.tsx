@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {motion,useReducedMotion} from 'motion/react'
+import {entrancePose,settledPose,useMotionSeed,motionPattern} from '@/components/motion/entrance-patterns'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -21,6 +23,8 @@ const filters: { id: ArcadeCategory; en: string; vi: string }[] = [
 ]
 
 export function ArcadeHub({initialGame}: {initialGame?:string}) {
+  const seed=useMotionSeed()
+  const reduced=useReducedMotion()
   const { locale } = useLocale()
   const vi = locale === 'vi'
   const { save } = usePetSave()
@@ -109,7 +113,7 @@ export function ArcadeHub({initialGame}: {initialGame?:string}) {
         </div>
         <div className="arcade-grid">
           {shown.map((game, index) => (
-            <article className={`arcade-card arcade-card-${game.category} ${game.local ? '' : 'has-preview'}`} key={game.id} style={{ '--game-accent': game.accent, '--card-index': index } as React.CSSProperties}>
+            <motion.article data-entrance-pattern={motionPattern(seed)} initial={reduced ? false : entrancePose(seed,index)} whileInView={settledPose} viewport={{once:true,amount:.12}} transition={{duration:.7,ease:[.16,1,.3,1],delay:reduced ? 0 : (index%6)*.035}} className={`arcade-card arcade-card-${game.category} ${game.local ? '' : 'has-preview'}`} key={game.id} style={{ '--game-accent': game.accent, '--card-index': index } as React.CSSProperties}>
               <div className="arcade-card-art" aria-hidden="true">{!game.local && <Image className="arcade-card-image" src={`/arcade/previews/${game.id}.${game.id === 'surge' || game.id === 'astra-floor' ? 'png' : 'jpg'}`} alt="" fill sizes="(max-width: 720px) 100vw, (max-width: 1020px) 50vw, 33vw" />}<span className="arcade-card-art-mark">{game.mark}</span><span className="arcade-card-art-ring" /><span className="arcade-card-art-index">{String(index + 1).padStart(2, '0')} / {String(shown.length).padStart(2, '0')}</span></div>
               <div className="arcade-card-body">
                 <div className="arcade-card-meta"><span>{game.category.toUpperCase()}</span><span>{game.device === 'desktop' ? (vi ? 'MÁY TÍNH' : 'DESKTOP') : (vi ? 'MỌI THIẾT BỊ' : 'DESKTOP + TOUCH')}</span></div>
@@ -117,7 +121,7 @@ export function ArcadeHub({initialGame}: {initialGame?:string}) {
                 <p>{game.description[vi ? 'vi' : 'en']}</p>
                 <div className="arcade-card-bottom"><span>{vi ? 'Tác giả' : 'Created by'} <strong>{game.creator}</strong></span><button type="button" onClick={(event) => launch(game, event.currentTarget)} aria-label={`${vi ? 'Chơi' : 'Play'} ${game.title}`}>{vi ? 'Chơi ngay' : 'Play now'} <span>↗</span></button></div>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       </section>
