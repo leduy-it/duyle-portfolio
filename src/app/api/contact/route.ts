@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server'
-import { createHash } from 'node:crypto'
-import { allowRequest, requestIdentity, sameOrigin } from '@/lib/server/redis'
+import { trackingContext } from '@/lib/tracking/server-context'
+import { newTurn, saveTurn, readTurn, validRecordId, type ConversationTurn } from '@/lib/tracking/conversations'
+import { appendEvent } from '@/lib/tracking/store'
+import { emailConfiguration, deliverEmail } from '@/lib/contact/provider'
+import { createHash, randomUUID } from 'node:crypto'
+import { allowRequest, requestIdentity, sameOrigin, redisConfigured, redisCommand } from '@/lib/server/redis'
 export const runtime = 'nodejs'
 export const maxDuration = 20
 const fail = (error: string, status: number) => NextResponse.json({ ok: false, error }, { status })
 export async function GET() {
-  const available = !!process.env.RESEND_API_KEY && !!process.env.CONTACT_FROM_EMAIL && !/[\r\n]/.test(process.env.CONTACT_FROM_EMAIL)
-  return NextResponse.json({ available }, { headers: { 'Cache-Control': 'no-store' } })
+  const deliveryAvailable=emailConfiguration().available
+  return NextResponse.json({available:deliveryAvailable || redisConfigured(),deliveryAvailable,inboxAvailable:redisConfigured()}, {headers:{'Cache-Control':'no-store'}})
 }
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail('invalid_origin', 403)
@@ -20,7 +24,7 @@ export async function POST(request: Request) {
     return fail('invalid_request', 400)
   }
   if (!data || typeof data !== 'object') return fail('invalid_request', 400)
-  const { email, subject, message, requestId, website } = data
+  const { email, subject, message, requestId, website, conversationId } = data
   if (
     typeof email !== 'string' ||
     email.length > 254 ||
@@ -38,38 +42,48 @@ export async function POST(request: Request) {
   )
     return fail('invalid_fields', 400)
   if (website) return fail('invalid_request', 400)
-  const apiKey = process.env.RESEND_API_KEY,
-    from = process.env.CONTACT_FROM_EMAIL
-  if (!apiKey || !from || /[\r\n]/.test(from)) return fail('delivery_unconfigured', 503)
+  let turn:ConversationTurn | undefined
+  let lockKey=''
+  let lockToken=''
   try {
-    if (!(await allowRequest('contact', requestIdentity(request), 5, 3600)))
-      return fail('rate_limited', 429)
-    const payload = {
-      from,
-      to: ['levduyit@gmail.com'],
-      reply_to: email.trim(),
-      subject: `Portfolio / ${subject.trim()}`,
-      text: message.trim(),
+    if (!(await allowRequest('contact',requestIdentity(request),5,3600))) return fail('rate_limited',429)
+    const context=await trackingContext(request)
+    // Contact contents are voluntarily submitted to the owner even when analytics is opted out.
+    const contactContext=context || {ts:new Date().toISOString(),path:'/',visitorId:'contact-only',sessionId:requestId,referrer:null,userAgent:null,country:null,locale:null,screenWidth:null,screenHeight:null}
+    turn=newTurn(contactContext,validRecordId(conversationId) ? conversationId : requestId,requestId,message.trim(),'contact')
+    if(redisConfigured()) {
+      lockKey=`duyportfolio:${process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'}:contact-lock:${turn.conversationId}:${requestId}`
+      lockToken=randomUUID()
+      if(!await redisCommand(['SET',lockKey,lockToken,'NX','EX',60])) return fail('delivery_in_progress',409)
     }
-    const fingerprint = createHash('sha256')
-      .update(JSON.stringify(payload))
-      .digest('hex')
-      .slice(0, 24)
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Idempotency-Key': `portfolio-${requestId}-${fingerprint}`,
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(12_000),
-    })
-    const receipt = await response.json().catch(() => null)
-    if (!response.ok || typeof receipt?.id !== 'string' || !receipt.id)
-      return fail('delivery_unavailable', 502)
-    return NextResponse.json({ ok: true, status: 'accepted' })
-  } catch {
-    return fail('delivery_unavailable', 503)
+    const prior=await readTurn(turn.conversationId,requestId)
+    if(prior && (prior.user!==message.trim() || prior.email!==email.trim() || prior.subject!==subject.trim())) return fail('request_conflict',409)
+    if(prior?.providerId) return NextResponse.json({ok:true,status:'accepted'})
+    turn={...turn,ts:prior?.ts || turn.ts,email:email.trim(),subject:subject.trim()}
+    await saveTurn(turn)
+    const event=async(kind:'contact_submitted'|'contact_accepted'|'contact_failed',status:string) => {
+      if(context) await appendEvent({...context,ts:new Date().toISOString(),kind,targetId:'contact:send',eventId:`${turn!.conversationId}:${requestId}:${kind}`,details:{requestId,status,conversationId:turn!.conversationId,turnId:requestId}})
+    }
+    await event('contact_submitted','submitted')
+    if(!emailConfiguration().available) {
+      turn={...turn,status:'error',error:'delivery_unconfigured',finishedAt:new Date().toISOString()}
+      await saveTurn(turn);await event('contact_failed','delivery_unconfigured')
+      return NextResponse.json({ok:true,status:'stored',delivery:'unconfigured'},{status:202})
+    }
+    const fingerprint=createHash('sha256').update(JSON.stringify([email.trim(),subject.trim(),message.trim()])).digest('hex').slice(0,24)
+    const idempotencyKey=`portfolio-${requestId}-${fingerprint}`
+    try {
+      const receipt=await deliverEmail({email:email.trim(),subject:subject.trim(),message:message.trim(),idempotencyKey})
+      turn={...turn,status:'complete',providerId:receipt.id,model:receipt.provider,finishedAt:new Date().toISOString()}
+      await saveTurn(turn);await event('contact_accepted','accepted')
+      return NextResponse.json({ok:true,status:'accepted'})
+    } catch {
+      turn={...turn,status:'error',error:'delivery_unavailable',finishedAt:new Date().toISOString()}
+      await saveTurn(turn);await event('contact_failed','delivery_unavailable')
+      return fail('delivery_unavailable',502)
+    }
+  } catch {return fail('storage_unavailable',503)}
+  finally {
+    if(lockKey && lockToken) await redisCommand(['EVAL',"if redis.call('GET',KEYS[1])==ARGV[1] then return redis.call('DEL',KEYS[1]) end; return 0",1,lockKey,lockToken]).catch(()=>{})
   }
 }

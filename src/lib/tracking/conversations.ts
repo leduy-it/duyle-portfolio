@@ -71,3 +71,12 @@ export async function conversationPage(page = 1, anchor?: number, conversationId
   } else records = all.slice(start,end).reverse()
   return { records, page:safePage,total,anchor:total,hasNext:start>0 }
 }
+
+export async function readTurn(conversationId:string,id:string):Promise<ConversationTurn | null> {
+  requireStorage()
+  if(redisConfigured()) {
+    const raw=await redisCommand<string | null>(['HGET',`${PREFIX}:${conversationId}:records`,id])
+    return raw ? JSON.parse(raw) : null
+  }
+  return (await localTurns()).find(turn=>turn.conversationId===conversationId && turn.id===id) || null
+}
