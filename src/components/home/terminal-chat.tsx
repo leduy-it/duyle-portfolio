@@ -1,5 +1,6 @@
 'use client'
 
+import { chatTrackingPayload, trackingHeaders } from '@/lib/tracking/chat-client'
 import { createPortal } from 'react-dom'
 import { ChatReplyText, ChatReplyCards } from '@/components/chat/rich-message'
 import { readChatSession, saveChatSession } from '@/lib/chat/session'
@@ -358,8 +359,8 @@ export function TerminalChat() {
 
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: chatRequestTurns(history), stream: true }),
+        headers: trackingHeaders(),
+        body: JSON.stringify({ ...chatTrackingPayload(), messages: chatRequestTurns(history), stream: true }),
         signal: chatRequest.current.signal,
       })
 
@@ -431,8 +432,8 @@ export function TerminalChat() {
 
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'compose', messages: history }),
+        headers: trackingHeaders(),
+        body: JSON.stringify({ ...chatTrackingPayload(), mode: 'compose', messages: history }),
       })
 
       if (!res.ok) throw await chatResponseError(res)
@@ -463,8 +464,9 @@ export function TerminalChat() {
 
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: trackingHeaders(),
         body: JSON.stringify({
+          ...chatTrackingPayload(),
           mode: 'refine',
           messages: history,
           body: currentBody,
@@ -512,8 +514,9 @@ export function TerminalChat() {
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: trackingHeaders(),
         body: JSON.stringify({
+          ...chatTrackingPayload(),
           email: compose.email.trim(),
           subject: compose.subject,
           message: compose.body,
@@ -783,6 +786,9 @@ export function TerminalChat() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                <p className="px-4 py-1.5 text-[10px] leading-relaxed text-[rgb(var(--text-muted))]" data-chat-storage-notice>
+                  {locale === 'vi' ? 'Hội thoại được lưu để Duy xem lại và cải thiện trợ lý. Đừng gửi mật khẩu hay thông tin nhạy cảm.' : 'Conversations are saved for Michael to review and improve the assistant. Please avoid passwords or sensitive information.'}
+                </p>
                 <motion.div
                   className="flex items-center gap-2 border-t px-4 py-3"
                   style={{

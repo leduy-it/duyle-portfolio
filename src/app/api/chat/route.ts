@@ -1,3 +1,5 @@
+import { trackingContext } from '@/lib/tracking/server-context'
+import { newTurn, saveTurn, validRecordId, type ConversationTurn, type TurnStatus } from '@/lib/tracking/conversations'
 import { NextResponse } from 'next/server'
 import { appearanceReply } from '@/lib/chat/personality'
 import { retrieveKnowledge } from '@/lib/chat/retrieval'
@@ -17,11 +19,13 @@ interface ClientMessage {
 const failure = (error: string, status = 502) => NextResponse.json({ error }, { status })
 
 /** Expose only text deltas; provider diagnostics never reach the public client. */
-function proxyStream(body: ReadableStream<Uint8Array>) {
+function proxyStream(body: ReadableStream<Uint8Array>, record?: (text: string, status: TurnStatus) => Promise<void>) {
   const reader = body.getReader()
   const decoder = new TextDecoder()
   const encoder = new TextEncoder()
   let cancelled = false
+  let accumulated = ''
+  let checkpoint = 0
   return new ReadableStream<Uint8Array>({
     async start(controller) {
       let buffer = ''
@@ -48,6 +52,7 @@ function proxyStream(body: ReadableStream<Uint8Array>) {
           const delta = data.choices?.[0]?.delta?.content
           if (typeof delta === 'string' && delta) {
             hasText = true
+            accumulated += delta
             emit(`data: ${JSON.stringify({ delta })}\n\n`)
           }
         }
@@ -55,6 +60,9 @@ function proxyStream(body: ReadableStream<Uint8Array>) {
       try {
         while (!finished && !cancelled) {
           const { done, value } = await reader.read()
+          if (record && accumulated && Date.now() - checkpoint > 2000) {
+            await record(accumulated, 'receiving'); checkpoint = Date.now()
+          }
           buffer += decoder.decode(value, { stream: !done })
           if (buffer.length > 100_000) throw new Error('frame_too_large')
           let boundary
@@ -69,8 +77,10 @@ function proxyStream(body: ReadableStream<Uint8Array>) {
         }
         if (!hasText) throw new Error('empty')
         if (!finished) throw new Error('incomplete')
+        await record?.(accumulated, 'complete')
         emit('event: done\ndata: [DONE]\n\n')
       } catch {
+        await record?.(accumulated, cancelled ? 'aborted' : 'error').catch(() => {})
         emit('event: error\ndata: {"error":"chat_unavailable"}\n\n')
       } finally {
         await reader.cancel().catch(() => {})
@@ -78,9 +88,10 @@ function proxyStream(body: ReadableStream<Uint8Array>) {
         if (!cancelled) controller.close()
       }
     },
-    cancel() {
+    async cancel() {
       cancelled = true
-      return reader.cancel().catch(() => {})
+      await reader.cancel().catch(() => {})
+      await record?.(accumulated, 'aborted').catch(() => {})
     },
   })
 }
@@ -131,17 +142,35 @@ export async function POST(request: Request) {
     })
   }
   if (!messages.length) return failure('empty', 400)
+  if ((body.conversationId !== undefined && !validRecordId(body.conversationId)) || (body.turnId !== undefined && !validRecordId(body.turnId))) return failure('bad_request', 400)
+  let turn: ConversationTurn | undefined
+  try {
+    if (validRecordId(body.conversationId) && validRecordId(body.turnId)) {
+      const context = await trackingContext(request)
+      if (context) {
+        turn = newTurn(context, body.conversationId, body.turnId, messages.at(-1)!.content, body.mode === 'compose' ? 'compose' : body.mode === 'refine' ? 'refine' : 'chat')
+        await saveTurn(turn)
+      }
+    }
+  } catch { return failure('history_unavailable', 503) }
+  const record = async (text: string, status: TurnStatus, model?: string) => {
+    if (!turn) return
+    turn = { ...turn, assistant: text, status, model: model || turn.model, ...(status === 'receiving' ? {} : { finishedAt: new Date().toISOString() }) }
+    await saveTurn(turn)
+  }
+  const failTurn = async (error: string, status = 502) => { if (turn) turn.error = error; await record('', 'error').catch(() => {}); return failure(error, status) }
   const apiKey = process.env.OPENROUTER_API_KEY
-  if (!apiKey) return failure('unconfigured', 503)
+  if (!apiKey) return failTurn('unconfigured', 503)
   try {
     if (!(await allowRequest('chat', requestIdentity(request), 40, 900)))
-      return failure('rate_limited', 429)
+      return failTurn('rate_limited', 429)
   } catch {
-    return failure('temporarily_unavailable', 503)
+    return failTurn('temporarily_unavailable', 503)
   }
   const latestQuestion = [...messages].reverse().find(message=>message.role === 'user')?.content || ''
   const playfulReply = !edit ? appearanceReply(latestQuestion) : null
   if (playfulReply) {
+    try { await record(playfulReply, 'complete', 'curated-owner-voice') } catch { return failure('history_unavailable',503) }
     if (body.stream === true) return new Response(`data: ${JSON.stringify({delta:playfulReply})}\n\nevent: done\ndata: [DONE]\n\n`,{headers:{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','X-Retrieval':'curated'}})
     return NextResponse.json({reply:playfulReply,model:'curated-owner-voice'})
   }
@@ -195,15 +224,15 @@ export async function POST(request: Request) {
         break
       }
       await response.body?.cancel()
-      if (response.status === 401) return failure('unavailable')
+      if (response.status === 401) return failTurn('unavailable')
     } catch {
       /* A timeout or unavailable provider can fall through to the next free model. */
     }
   }
-  if (!upstream) return failure('all_models_unavailable')
+  if (!upstream) return failTurn('all_models_unavailable')
   if (wantStream) {
-    if (!upstream.body) return failure('empty_reply')
-    return new Response(proxyStream(upstream.body), {
+    if (!upstream.body) return failTurn('empty_reply')
+    return new Response(proxyStream(upstream.body, (text, status) => record(text, status, chosenModel)), {
       headers: {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform',
@@ -212,5 +241,6 @@ export async function POST(request: Request) {
       },
     })
   }
+  try { await record(completedReply, 'complete', chosenModel) } catch { return failure('history_unavailable',503) }
   return NextResponse.json({ reply: completedReply, model: chosenModel })
 }
