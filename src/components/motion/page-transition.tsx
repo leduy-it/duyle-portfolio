@@ -8,18 +8,27 @@ import { useEffect,useState,type PropsWithChildren } from 'react'
 import { MotionSeedContext,entrancePose,nextMotionSeed,motionPattern } from './entrance-patterns'
 import { easeInOutQuart, easeOutExpo, motionDurations } from './easings'
 
+// Retain the last choice across client remounts. Server rendering always starts at zero.
+let lastClientSeed=0
+
 export function PageTransition({ children }: PropsWithChildren) {
   const pathname = usePathname()
   const { prefersReducedMotion: reducedMotion } = useHomeMotionPreferences()
 
   const [seed,setSeed]=useState(0)
-  useEffect(()=>{const frame=requestAnimationFrame(()=>setSeed(previous=>nextMotionSeed(previous)));return()=>cancelAnimationFrame(frame)},[pathname])
+  useEffect(()=>{
+    const frame=requestAnimationFrame(()=>{
+      lastClientSeed=nextMotionSeed(lastClientSeed)
+      setSeed(lastClientSeed)
+    })
+    return()=>cancelAnimationFrame(frame)
+  },[pathname])
   const pose=entrancePose(seed)
   const x=pose.x*.25,y=pose.y*.25
 
   return (
-    <MotionSeedContext.Provider value={seed}><AnimatePresence initial={false} mode="wait">
-      <motion.div data-motion-pattern={motionPattern(seed)}
+    <div style={{overflowX:'clip'}}><MotionSeedContext.Provider value={seed}><AnimatePresence initial={false} mode="wait">
+      <motion.div data-motion-pattern={motionPattern(seed)} data-motion-path={pathname} data-motion-seed={seed}
         key={pathname}
         initial={reducedMotion ? false : { opacity: 0, x, y }}
         animate={{
@@ -48,6 +57,6 @@ export function PageTransition({ children }: PropsWithChildren) {
       >
         {children}
       </motion.div>
-    </AnimatePresence></MotionSeedContext.Provider>
+    </AnimatePresence></MotionSeedContext.Provider></div>
   )
 }
