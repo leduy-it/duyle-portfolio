@@ -33,3 +33,22 @@ test('life engagement and social campaigns do not inflate pageview totals', asyn
     process.env = original
   }
 })
+
+test('clicks and contact funnel use matching sessions without inflating life or pageviews', async () => {
+  const original={...process.env},fetch=global.fetch
+  const base={ts:new Date().toISOString(),path:'/',referrer:null,country:null,locale:'vi',userAgent:'Mozilla/5.0',visitorId:'v1',sessionId:'session-1',screenWidth:390,screenHeight:844}
+  const events:TrackEvent[]=[
+    {...base,kind:'pageview'}, {...base,kind:'ui_click',targetId:'pet:feed'}, {...base,kind:'ui_click',targetId:'pet:feed'},
+    {...base,kind:'contact_open',targetId:'contact:compose'}, {...base,kind:'contact_submitted'}, {...base,kind:'contact_accepted'},
+    {...base,kind:'contact_accepted',sessionId:'unrelated'}, {...base,kind:'chat_sent'}, {...base,kind:'chat_completed'},
+  ]
+  try {
+    Object.assign(process.env,{NODE_ENV:'production',UPSTASH_REDIS_REST_URL:'https://redis.example',UPSTASH_REDIS_REST_TOKEN:'test'})
+    global.fetch=async(_url,init)=>Response.json({result:JSON.parse(String(init?.body))[0]==='LRANGE' ? events.map(event=>JSON.stringify(event)) : 1})
+    const summary=await buildSummary({range:'7d'})
+    assert.equal(summary.totals.pageviews,1); assert.equal(summary.life.topContent.length,0)
+    assert.deepEqual(summary.interactions.topButtons,[{label:'pet:feed',count:2}])
+    assert.deepEqual(summary.interactions.funnel.map(item=>item.count),[1,1,1]); assert.equal(summary.interactions.contactAccepted,2)
+    assert.equal(summary.interactions.chatQuestions,1);assert.equal(summary.interactions.chatReplies,1)
+  } finally {process.env=original;global.fetch=fetch}
+})

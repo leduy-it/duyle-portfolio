@@ -22,8 +22,10 @@ const SALT_FILE = path.join(DATA_DIR, '.salt')
 const MAX_FILE_BYTES = 50 * 1024 * 1024
 
 export interface TrackEvent {
-  kind?: 'pageview' | 'life_story_view' | 'life_video_play' | 'life_video_complete' | 'life_source_click'
+  kind?: 'pageview' | 'life_story_view' | 'life_video_play' | 'life_video_complete' | 'life_source_click' | 'ui_click' | 'chat_open' | 'chat_sent' | 'chat_completed' | 'chat_failed' | 'contact_open' | 'contact_submitted' | 'contact_accepted' | 'contact_failed' | 'mailapp_open'
   targetId?: string | null
+  eventId?: string
+  details?: {label?:string;href?:string;element?:string;status?:string;conversationId?:string;turnId?:string;requestId?:string}
   ts: string
   path: string
   referrer: string | null
@@ -99,10 +101,12 @@ export async function appendEvent(evt: TrackEvent): Promise<void> {
   if (redisConfigured()) {
     await redisCommand([
       'EVAL',
-      "redis.call('RPUSH',KEYS[1],ARGV[1]); redis.call('PERSIST',KEYS[1]); return 1",
-      1,
+      "if ARGV[2]~='' and redis.call('HSETNX',KEYS[2],ARGV[2],'1')==0 then return 0 end; redis.call('RPUSH',KEYS[1],ARGV[1]); redis.call('PERSIST',KEYS[1]); return 1",
+      2,
       REDIS_KEY,
+      REDIS_KEY + ':ids',
       JSON.stringify(evt),
+      evt.eventId || '',
     ])
     return
   }
@@ -142,10 +146,16 @@ export async function readActiveEvents(): Promise<TrackEvent[]> {
   return events.sort((a, b) => a.ts.localeCompare(b.ts))
 }
 
-export async function readEventPage(page: number, pageSize = 50, anchor?: number): Promise<{ events: TrackEvent[]; total: number; page: number; hasNext: boolean; anchor: number }> {
+export async function readEventPage(page: number, pageSize = 50, anchor?: number, sessionId?: string): Promise<{ events: TrackEvent[]; total: number; page: number; hasNext: boolean; anchor: number }> {
   requireDurableInProduction()
   const safePage = Math.max(1, Math.floor(page))
   const safeSize = Math.min(50, Math.max(1, Math.floor(pageSize)))
+  if (sessionId) {
+    const all = (await readActiveEvents()).filter(event => event.sessionId === sessionId)
+    const total = anchor === undefined ? all.length : Math.min(all.length,Math.max(0,Math.floor(anchor)))
+    const end = total - (safePage - 1)*safeSize
+    return {events:end<=0 ? [] : all.slice(Math.max(0,end-safeSize),end).reverse(),total,page:safePage,hasNext:end>safeSize,anchor:total}
+  }
   if (redisConfigured()) {
     await redisCommand(['PERSIST', REDIS_KEY])
     const total = Number(await redisCommand<number>(['LLEN', REDIS_KEY]))
@@ -165,5 +175,5 @@ export async function readEventPage(page: number, pageSize = 50, anchor?: number
 }
 
 export async function rateLimitOk(visitorId: string) {
-  return allowRequest('tracking', visitorId, 60, 60)
+  return allowRequest('tracking', visitorId, 180, 60)
 }

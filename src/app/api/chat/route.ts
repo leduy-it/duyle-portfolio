@@ -1,3 +1,4 @@
+import { appendEvent, type TrackEvent } from '@/lib/tracking/store'
 import { trackingContext } from '@/lib/tracking/server-context'
 import { newTurn, saveTurn, validRecordId, type ConversationTurn, type TurnStatus } from '@/lib/tracking/conversations'
 import { NextResponse } from 'next/server'
@@ -144,12 +145,14 @@ export async function POST(request: Request) {
   if (!messages.length) return failure('empty', 400)
   if ((body.conversationId !== undefined && !validRecordId(body.conversationId)) || (body.turnId !== undefined && !validRecordId(body.turnId))) return failure('bad_request', 400)
   let turn: ConversationTurn | undefined
+  let context: TrackEvent | null = null
   try {
     if (validRecordId(body.conversationId) && validRecordId(body.turnId)) {
-      const context = await trackingContext(request)
+      context = await trackingContext(request)
       if (context) {
         turn = newTurn(context, body.conversationId, body.turnId, messages.at(-1)!.content, body.mode === 'compose' ? 'compose' : body.mode === 'refine' ? 'refine' : 'chat')
         await saveTurn(turn)
+        await appendEvent({...context,kind:'chat_sent',targetId:turn.mode,eventId:`${turn.conversationId}:${turn.id}:sent`,details:{conversationId:turn.conversationId,turnId:turn.id}})
       }
     }
   } catch { return failure('history_unavailable', 503) }
@@ -157,6 +160,7 @@ export async function POST(request: Request) {
     if (!turn) return
     turn = { ...turn, assistant: text, status, model: model || turn.model, ...(status === 'receiving' ? {} : { finishedAt: new Date().toISOString() }) }
     await saveTurn(turn)
+    if (context && status !== 'receiving') await appendEvent({...context,ts:new Date().toISOString(),kind:status === 'complete' ? 'chat_completed' : 'chat_failed',targetId:turn.mode,eventId:`${turn.conversationId}:${turn.id}:${status}`,details:{conversationId:turn.conversationId,turnId:turn.id,status}})
   }
   const failTurn = async (error: string, status = 502) => { if (turn) turn.error = error; await record('', 'error').catch(() => {}); return failure(error, status) }
   const apiKey = process.env.OPENROUTER_API_KEY

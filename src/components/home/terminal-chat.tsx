@@ -1,5 +1,6 @@
 'use client'
 
+import { trackAction } from '@/lib/tracking/action-client'
 import { chatTrackingPayload, trackingHeaders } from '@/lib/tracking/chat-client'
 import { createPortal } from 'react-dom'
 import { ChatReplyText, ChatReplyCards } from '@/components/chat/rich-message'
@@ -411,6 +412,7 @@ export function TerminalChat() {
   }
 
   async function openCompose() {
+    trackAction('contact_open','contact:compose')
     setCompose({
       subject: t('compose.subjectDefault'),
       body: '',
@@ -849,6 +851,7 @@ export function TerminalChat() {
                   />
                   <button
                     type="button"
+                    data-track="chat:send"
                     onClick={() => sendMessage(input)}
                     disabled={busy || !input.trim()}
                     aria-label="Send chat"
@@ -1036,7 +1039,7 @@ export function TerminalChat() {
                   <p className="font-mono text-xs text-[rgb(var(--text-secondary))]">
                     {deliveryError}{' '}
                     <motion.a
-                      href={compose.error}
+                      href={compose.error} data-track="contact:mailapp" onClick={() => trackAction('mailapp_open','contact:mailapp')}
                       className="text-[rgb(var(--accent))] underline transition-colors duration-200 hover:text-[rgb(var(--accent-hover))]"
                       whileHover={reducedMotion ? undefined : { y: -1 }}
                       whileTap={reducedMotion ? undefined : { scale: 0.98 }}
@@ -1086,7 +1089,7 @@ export function TerminalChat() {
                     {t('compose.refine')}
                   </MagneticButton>
                   {deliveryAvailable === false ? <a className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))]" href={`mailto:levduyit@gmail.com?subject=${encodeURIComponent(compose.subject)}&body=${encodeURIComponent(compose.body)}`}>{locale === 'vi' ? 'Mở ứng dụng email ↗' : 'Open email app ↗'}</a> : <MagneticButton
-                    onClick={sendContact}
+                    data-track="contact:send" onClick={sendContact}
                     disabled={deliveryAvailable !== true || !compose.email.trim() || compose.composing || compose.sending}
                     pull={5}
                     className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))] transition-all duration-200 ease-[var(--ease-out-quart)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"

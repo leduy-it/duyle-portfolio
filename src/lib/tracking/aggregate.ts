@@ -34,6 +34,12 @@ export interface Summary {
     perDay: { date: string; views: number; plays: number; completions: number }[]
     topContent: { id: string; views: number; plays: number; completions: number; clicks: number }[]
   }
+  interactions: {
+    clicks: number; chatQuestions: number; chatReplies: number; chatErrors: number
+    contactOpens: number; contactSubmissions: number; contactAccepted: number; contactErrors: number; mailAppOpens: number
+    topButtons: {label:string;count:number}[]; perDay: {date:string;views:number;uniques:number}[]
+    funnel: {label:string;count:number}[]
+  }
   range: RangeKey
   pathContains: string | null
   totalEventsAllTime: number
@@ -111,7 +117,7 @@ export async function buildSummary(opts: { range: RangeKey; pathContains?: strin
   const content = new Map<string, { views: number; plays: number; completions: number; clicks: number }>()
   const lifeDays = new Map<string, { views: number; plays: number; completions: number }>()
   for (const e of actions) {
-    if (!e.targetId) continue
+    if (!e.targetId || !e.kind?.startsWith('life_')) continue
     const item = content.get(e.targetId) || { views: 0, plays: 0, completions: 0, clicks: 0 }
     const day = lifeDays.get(dayKey(e.ts)) || { views: 0, plays: 0, completions: 0 }
     if (e.kind === 'life_story_view') { item.views++; day.views++ }
@@ -223,7 +229,25 @@ export async function buildSummary(opts: { range: RangeKey; pathContains?: strin
     const journey = journeys.get(e.sessionId) || []
     journey.push(e); journeys.set(e.sessionId, journey)
   }
+  const actionCount = (kind: TrackEvent['kind']) => actions.filter(event => event.kind === kind).length
+  const buttons = new Map<string,number>()
+  const interactionDays = new Map<string,{views:number;visitors:Set<string>}>()
+  for (const event of actions) {
+    const day = interactionDays.get(dayKey(event.ts)) || {views:0,visitors:new Set<string>()}
+    day.views++;day.visitors.add(event.visitorId);interactionDays.set(dayKey(event.ts),day)
+    if (event.kind === 'ui_click') {const label=event.targetId || 'Unknown';buttons.set(label,(buttons.get(label)||0)+1)}
+  }
+  const contactSessions = new Set(actions.filter(event => event.kind === 'contact_open').map(event => event.sessionId))
+  const submittedSessions = new Set(actions.filter(event => event.kind === 'contact_submitted' && contactSessions.has(event.sessionId)).map(event => event.sessionId))
+  const acceptedSessions = new Set(actions.filter(event => event.kind === 'contact_accepted' && submittedSessions.has(event.sessionId)).map(event => event.sessionId))
   return {
+    interactions: {
+      clicks:actionCount('ui_click'),chatQuestions:actionCount('chat_sent'),chatReplies:actionCount('chat_completed'),chatErrors:actionCount('chat_failed'),
+      contactOpens:actionCount('contact_open'),contactSubmissions:actionCount('contact_submitted'),contactAccepted:actionCount('contact_accepted'),contactErrors:actionCount('contact_failed'),mailAppOpens:actionCount('mailapp_open'),
+      topButtons:[...buttons].map(([label,count])=>({label,count})).sort((a,b)=>b.count-a.count).slice(0,30),
+      perDay:[...interactionDays].sort(([a],[b])=>a.localeCompare(b)).map(([date,value])=>({date,views:value.views,uniques:value.visitors.size})),
+      funnel:[{label:'Opened contact · sessions',count:contactSessions.size},{label:'Then submitted · sessions',count:submittedSessions.size},{label:'Then provider accepted · sessions',count:acceptedSessions.size}],
+    },
     insights: {
       firstRecorded: all[0]?.ts || null,
       lastRecorded: all.at(-1)?.ts || null,

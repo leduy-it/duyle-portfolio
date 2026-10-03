@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { actionTarget, trackAction } from '@/lib/tracking/action-client'
 import { usePathname } from 'next/navigation'
 
 const ADMIN_FLAG_KEY = 'pf_admin_self'
@@ -56,6 +57,22 @@ export function VisitorTracker() {
     return () => window.clearTimeout(t)
   }, [pathname])
 
+  useEffect(() => {
+    if (pathname.startsWith('/admin')) return
+    const clicked = (event: MouseEvent) => {
+      const target = event.target instanceof Element ? event.target.closest('button,a,[role="button"],[data-track]') : null
+      if (!target || target.closest('[data-no-track]') || target instanceof HTMLButtonElement && target.disabled) return
+      const {targetId,details} = actionTarget(target)
+      trackAction('ui_click',targetId,details)
+    }
+    const doubleClicked = (event: MouseEvent) => {
+      const target = event.target instanceof Element ? event.target.closest('[data-track]') : null
+      if (target && target.getAttribute('data-track')?.startsWith('pet:')) trackAction('chat_open','pet:double-click-chat')
+    }
+    document.addEventListener('click',clicked,true)
+    document.addEventListener('dblclick',doubleClicked,true)
+    return () => { document.removeEventListener('click',clicked,true); document.removeEventListener('dblclick',doubleClicked,true) }
+  },[pathname])
   return null
 }
 

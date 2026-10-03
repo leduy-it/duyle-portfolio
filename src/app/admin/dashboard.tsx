@@ -183,6 +183,7 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
   const [eventPage, setEventPage] = useState(initialEventPage)
   const [range, setRange] = useState<RangeKey>(initialSummary.range)
   const [pathFilter, setPathFilter] = useState(initialSummary.pathContains || '')
+  const [sessionFilter,setSessionFilter] = useState('')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [selfTrack, setSelfTrack] = useState(true)
@@ -221,15 +222,15 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
     }
   }, [])
 
-  const fetchEventPage = useCallback(async (page: number, anchor?: number) => {
+  const fetchEventPage = useCallback(async (page: number, anchor?: number, session = sessionFilter) => {
     try {
-      const res = await fetch(`/api/admin/events?page=${page}${anchor === undefined ? '' : `&anchor=${anchor}`}`, { cache: 'no-store' })
+      const res = await fetch(`/api/admin/events?page=${page}${anchor === undefined ? '' : `&anchor=${anchor}`}${session ? `&session=${encodeURIComponent(session)}` : ''}`, { cache: 'no-store' })
       if (!res.ok) throw new Error('Could not load event history.')
       setEventPage(await res.json())
     } catch (error) {
       setErr(error instanceof Error ? error.message : 'Could not load event history.')
     }
-  }, [])
+  }, [sessionFilter])
 
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current)
@@ -367,6 +368,20 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
         {err && <span className="text-[11px] text-[rgb(var(--terminal-red))]">{err}</span>}
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <StatCard label="button / link clicks" value={summary.interactions.clicks} />
+        <StatCard label="chat questions" value={summary.interactions.chatQuestions} />
+        <StatCard label="completed chat replies" value={summary.interactions.chatReplies} sub={`${summary.interactions.chatErrors} failed / interrupted`} />
+        <StatCard label="email submissions" value={summary.interactions.contactSubmissions} sub={`${summary.interactions.contactAccepted} provider accepted · ${summary.interactions.contactErrors} failed`} />
+      </div>
+      <div className="grid lg:grid-cols-2 gap-4 mb-6">
+        <Section title="most used buttons / links"><HorizontalBars data={summary.interactions.topButtons} /></Section>
+        <Section title="contact funnel · same session">
+          <HorizontalBars data={summary.interactions.funnel} />
+          <p className="mt-3 text-[11px] leading-relaxed">{summary.interactions.contactOpens} form opens · {summary.interactions.mailAppOpens} mail app opens. Provider acceptance does not confirm inbox delivery. Earlier clicks and conversations were not collected.</p>
+        </Section>
+      </div>
+      <Section title="interaction activity per day"><BarChart data={summary.interactions.perDay} label="interaction events per day" secondaryLabel="visitors" /></Section>
       {empty ? (
         <div
           className="rounded-lg border p-10 text-center"
@@ -537,6 +552,11 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
         title="event history"
         right={<span className="text-[10px] text-[rgb(var(--text-muted))]">50 records per page · newest first</span>}
       >
+        <form className="flex flex-wrap gap-2 mb-4" onSubmit={event => {event.preventDefault();void fetchEventPage(1,undefined,sessionFilter)}}>
+          <input aria-label="Session ID" value={sessionFilter} onChange={event => setSessionFilter(event.target.value)} placeholder="Filter by session ID" className="border rounded bg-transparent px-3 py-2 text-xs" />
+          <button className="border rounded px-3 py-2 text-xs" type="submit">Show journey</button>
+          <button className="border rounded px-3 py-2 text-xs" type="button" onClick={() => {setSessionFilter('');void fetchEventPage(1,undefined,'')}}>All sessions</button>
+        </form>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead className="text-[rgb(var(--text-muted))]">
@@ -572,9 +592,9 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
                     <td className="py-1.5 pr-3 truncate max-w-[200px]" title={e.path}>
                       {e.path}
                     </td>
-                    <td className="py-1.5 pr-3 whitespace-nowrap">{e.kind || 'pageview'}{e.targetId ? ` · ${e.targetId}` : ''}</td>
+                    <td className="py-1.5 pr-3 max-w-[300px] break-words">{e.kind || 'pageview'}{e.targetId ? ` · ${e.targetId}` : ''}{e.details && <details className="mt-1 text-[10px]"><summary>Details</summary><pre className="whitespace-pre-wrap">{JSON.stringify(e.details,null,2)}</pre></details>}</td>
                     <td className="py-1.5 pr-3 font-mono text-[rgb(var(--text-muted))]">
-                      {e.visitorId.slice(0, 8)}
+                      {e.visitorId.slice(0, 8)}<br /><button type="button" className="text-[10px] underline" title={e.sessionId} onClick={() => {setSessionFilter(e.sessionId);void fetchEventPage(1,undefined,e.sessionId)}}>{e.sessionId.slice(0,8)} · journey</button>
                     </td>
                     <td className="py-1.5 pr-3">
                       {flagFor(e.country) || ''} {[e.city, e.region, e.country].filter(Boolean).join(', ') || '—'}

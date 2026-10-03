@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1)
     const rawAnchor = searchParams.get('anchor')
     const anchor = rawAnchor && /^\d+$/.test(rawAnchor) ? Number(rawAnchor) : undefined
-    const result = await readEventPage(page, 50, anchor)
+    const session = searchParams.get('session') || undefined
+    if (session && !/^[a-zA-Z0-9-]{8,64}$/.test(session)) return NextResponse.json({error:'invalid_session'},{status:400})
+    const result = await readEventPage(page, 50, anchor, session)
     return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store' } })
   } catch {
     return NextResponse.json(

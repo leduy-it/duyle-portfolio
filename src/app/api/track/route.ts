@@ -14,6 +14,8 @@ const SESSION_TTL = 60 * 30
 interface IncomingPing {
   kind?: unknown
   targetId?: unknown
+  details?: unknown
+  eventId?: unknown
   path?: unknown
   referrer?: unknown
   screenWidth?: unknown
@@ -26,6 +28,7 @@ interface IncomingPing {
 }
 
 const lifeIds = new Set([...lifeStories, ...lifeHighlights].map(item => item.id))
+const clientActions = new Set(['ui_click','chat_open','contact_open','mailapp_open'])
 const lifeActions = new Set(['life_story_view', 'life_video_play', 'life_video_complete', 'life_source_click'])
 
 function clientIp(req: NextRequest): string {
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, skipped: 'admin' })
     }
 
-    if (req.headers.get('dnt') === '1') return NextResponse.json({ ok: true, skipped: 'dnt' })
+    if ((req.headers.get('dnt') === '1' || req.headers.get('x-portfolio-dnt') === '1')) return NextResponse.json({ ok: true, skipped: 'dnt' })
     const ua = req.headers.get('user-agent')?.slice(0, 512) || null
     if (isBotUA(ua)) {
       return NextResponse.json({ ok: true, skipped: 'bot' })
@@ -85,11 +88,14 @@ export async function POST(req: NextRequest) {
     const path = safePath(body.path)
     if (!path) return NextResponse.json({ error: 'bad path' }, { status: 400 })
     const kind = body.kind == null || body.kind === 'pageview' ? 'pageview' : body.kind
-    if (typeof kind !== 'string' || (kind !== 'pageview' && !lifeActions.has(kind)))
+    if (typeof kind !== 'string' || (kind !== 'pageview' && !lifeActions.has(kind) && !clientActions.has(kind)))
       return NextResponse.json({ error: 'bad event kind' }, { status: 400 })
-    if (kind !== 'pageview' && (path !== '/life' || typeof body.targetId !== 'string' || !lifeIds.has(body.targetId)))
+    if (lifeActions.has(kind) && (path !== '/life' || typeof body.targetId !== 'string' || !lifeIds.has(body.targetId)))
       return NextResponse.json({ error: 'bad event target' }, { status: 400 })
 
+    if (clientActions.has(kind) && (typeof body.targetId !== 'string' || body.targetId.length > 180 || !body.targetId.trim())) return NextResponse.json({error:'bad event target'},{status:400})
+    const details = body.details && typeof body.details === 'object' ? body.details as Record<string,unknown> : {}
+    const safeDetails = Object.fromEntries(['label','href','element'].flatMap(key => typeof details[key] === 'string' ? [[key, (details[key] as string).slice(0,180).split(/[?#]/)[0]]] : []))
     let referrer: string | null = null
     try {
       const ref = new URL(typeof body.referrer === 'string' ? body.referrer : '')
@@ -126,6 +132,8 @@ export async function POST(req: NextRequest) {
     const campaignTag = (value: unknown) => typeof value === 'string'
       ? value.replace(/[^a-zA-Z0-9_. -]/g, '').slice(0, 80) || null : null
     const evt: TrackEvent = {
+      eventId: typeof body.eventId === 'string' && /^[a-f0-9-]{36}$/i.test(body.eventId) ? body.eventId : undefined,
+      details: clientActions.has(kind) ? safeDetails : undefined,
       kind: kind as TrackEvent['kind'],
       targetId: kind === 'pageview' ? null : body.targetId as string,
       city: geo('x-vercel-ip-city'),
