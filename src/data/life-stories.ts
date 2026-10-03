@@ -23,8 +23,8 @@ export const lifeStories: LifeStory[] = [
     sourceUrl: 'https://www.facebook.com/stories/2285337778144852/UzpfSVNDOjEwODA0NTQwMjQ4ODI2MTU=?view_single=false',
     title: { en: 'Camera on, one take', vi: 'Bật máy quay, nói một lần' },
     summary: {
-      en: 'A small experiment in talking to the camera. A public Facebook Story from today.',
-      vi: 'Một lần thử nói chuyện trước máy quay. Story Facebook công khai của hôm nay.',
+      en: 'A small experiment in talking to the camera, shared as a public Facebook Story.',
+      vi: 'Một lần thử nói chuyện trước máy quay, chia sẻ bằng một Story Facebook công khai.',
     },
   },
   {
