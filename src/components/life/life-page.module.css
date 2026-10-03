@@ -81,6 +81,8 @@
 .storyFooter a { color: var(--life-orange); font-size: 12px; text-decoration: underline; text-underline-offset: 5px; }
 .storyFooter a:hover { color: #ffcfaa; }
 .storyFooter small { color: #89908f; font-size: 11px; }
+.attachment { max-width: 520px; margin: 20px 0 0; }
+.attachment img { width: 100%; height: auto; object-fit: contain; }
 .highlightsSection { padding: 70px 0 105px; border-top: 1px solid #ffffff22; }
 .highlightsIntro { max-width: 1280px; margin: 0 auto 34px; padding: 0 clamp(24px, 6vw, 96px); }
 .highlightsIntro h2 { max-width: 700px; margin: 16px 0; font-size: clamp(2.5rem, 5vw, 5rem); font-weight: 550; line-height: 1.04; letter-spacing: -.06em; }

@@ -635,3 +635,10 @@
 .companion-discovery{position:fixed;right:20px;bottom:174px;display:flex;align-items:center;gap:6px;max-width:calc(100vw - 32px);border:1px solid rgb(var(--border));border-radius:24px;background:rgb(var(--surface-card));color:rgb(var(--text-secondary));box-shadow:0 4px 20px #0002;font-size:11px;z-index:45;}
 .companion-discovery a{padding:10px 4px 10px 14px;display:flex;gap:7px;align-items:center;}.companion-discovery button{padding:8px 12px;border:0;background:none;color:inherit;cursor:pointer;}.companion-discovery a:hover{color:rgb(var(--accent));}.companion-discovery :focus-visible{outline:2px solid rgb(var(--accent));outline-offset:2px;border-radius:20px;}
 @media(max-width:640px){.companion-discovery{right:14px;bottom:150px;}}
+
+.gracie-return-hint { position:absolute; bottom:145px; right:0; width:230px; padding:10px 12px; border:1px solid rgb(var(--border)); border-radius:14px; background:rgb(var(--surface-card)/.96); color:rgb(var(--text-secondary)); font-size:11px; line-height:1.6; }
+.gracie-return-hint button { display:block; color:rgb(var(--accent)); margin-top:5px; cursor:pointer; }
+.gracie-hide svg { width:14px; height:14px; }
+.gracie-chat-log .chat-cards { display:flex; flex-direction:column; }
+.gracie-chat-log .chat-card p { white-space:normal; }
+@media(max-width:480px) { .gracie-return-hint { width:200px; bottom:125px; } }

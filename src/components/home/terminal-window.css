@@ -1,0 +1,9 @@
+
+.terminal-window { display:flex; flex-direction:column; min-width: min(300px, 100%); max-width:100%; height:480px; min-height:300px; max-height:calc(100dvh - 32px); resize:both; }
+.terminal-window[data-maximized="true"] { resize:none; min-width:0; max-width:calc(100vw - 32px); }
+.terminal-log { overflow-wrap:anywhere; }
+.terminal-restore { padding:4px 8px; border-radius:8px; color:rgb(var(--text-secondary)); cursor:pointer; }
+.terminal-restore:hover,.terminal-restore:focus-visible { background:rgb(var(--accent)/.12); color:rgb(var(--accent)); }
+@media(max-width:600px) { .terminal-window { width:100%; max-width:calc(100vw - 32px); min-height:260px; height:440px; } }
+
+.terminal-window[data-window-state="minimized"] { height:auto; min-height:0; resize:none; }

@@ -1,11 +1,14 @@
 'use client'
 
+import { ChatReplyText, ChatReplyCards } from '@/components/chat/rich-message'
+import { readChatSession, saveChatSession } from '@/lib/chat/session'
+import { CompanionIcon } from './companion-icon'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useLocale } from '@/lib/i18n'
 import { consumeChatStream } from '@/lib/chat/stream'
-import { stageChatHandoff, type ChatTurn } from '@/lib/chat/handoff'
+import { chatRequestTurns, stageChatHandoff, type ChatTurn } from '@/lib/chat/handoff'
 import { useHomeMotionPreferences } from '@/components/home/home-motion'
 import { usePetSave } from '@/lib/pets/pet-save-provider'
 import { useCompanionPreference } from '@/lib/pets/companion-preference'
@@ -25,6 +28,7 @@ export function GracieCompanion() {
   const { save } = usePetSave()
   const stage = save.pets.find((pet) => pet.species === 'gracie')?.stage ?? 0
   const vi = locale === 'vi'
+  const [hasConversation, setHasConversation] = useState(false)
   const [open, setOpen] = useState(false)
   const [turns, setTurns] = useState<ChatTurn[]>([])
   const [input, setInput] = useState('')
@@ -112,13 +116,15 @@ export function GracieCompanion() {
   }, [open, busy, dragPose, visible, prefersReducedMotion])
 
   function fullChat() {
-    const draft = busy ? pendingText.current : input
-    const history = busy ? beforeRequest.current : turnsRef.current
+    const latest = !open && !busy ? readChatSession() : null
+    const draft = latest?.draft ?? (busy ? pendingText.current : input)
+    const history = latest?.messages ?? (busy ? beforeRequest.current : turnsRef.current)
     requestId.current += 1
     controller.current?.abort()
     setBusy(false)
     setPose('idle')
     updateTurns(history)
+    saveChatSession({messages:history,draft})
     stageChatHandoff({ messages: history, draft })
     setInput('')
     setOpen(false)
@@ -142,6 +148,7 @@ export function GracieCompanion() {
       return
     }
     lastClick.current = now
+    if (!open && !busy) { const latest = readChatSession(); if (latest) { updateTurns(latest.messages); setInput(latest.draft) } }
     setOpen((value) => !value)
     if (!busy) setPose('greeting')
   }
@@ -153,7 +160,7 @@ export function GracieCompanion() {
     const previous = turnsRef.current
     beforeRequest.current = previous
     pendingText.current = text
-    const history: ChatTurn[] = [...previous, { role: 'user' as const, content: text }].slice(-14)
+    const history: ChatTurn[] = [...previous, { role: 'user' as const, content: text }].slice(-30)
     updateTurns([...history, { role: 'assistant', content: '' }])
     setInput('')
     setError('')
@@ -164,7 +171,7 @@ export function GracieCompanion() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, stream: true }),
+        body: JSON.stringify({ messages: chatRequestTurns(history), stream: true }),
         signal: controller.current.signal,
       })
       if (!response.ok) throw await chatResponseError(response)
@@ -187,7 +194,19 @@ export function GracieCompanion() {
     }
   }
 
-  if (!visible || pathname.startsWith('/admin') || pathname === '/arcade') return null
+  useEffect(() => {
+    setHasConversation(!!readChatSession()?.messages.length)
+    setOpen(false)
+  }, [pathname])
+  useEffect(() => {
+    if (open && !busy && (turns.length || input.trim())) {
+      saveChatSession({messages:turns,draft:input})
+      setHasConversation(turns.length > 0)
+    }
+  }, [turns,input,open,busy])
+  function navigate(newTab = false) { saveChatSession({messages:turnsRef.current,draft:input}); if (!newTab) setOpen(false) }
+
+  if (!visible || pathname.startsWith('/admin')) return null
 
   return (
     <div
@@ -201,6 +220,7 @@ export function GracieCompanion() {
       }
     >
       <CompanionDiscovery enabled={!open && !busy && pathname !== '/pets'} vi={vi} current={companion.pet.id} />
+      {!open && pathname !== '/' && hasConversation && <aside className="gracie-return-hint" aria-label={vi ? 'Quay lại trò chuyện' : 'Return to conversation'}><span>{vi ? 'Nhấp đúp pet để quay lại chat' : 'Double-click your pet to return to chat'}</span><button type="button" onClick={fullChat}>{vi ? 'Quay lại chat' : 'Resume chat'} ↗</button></aside>}
       {open && (
         <section
           id="gracie-chat"
@@ -269,7 +289,7 @@ export function GracieCompanion() {
             {turns.map((turn, i) => (
               <div key={i} className={`gracie-message gracie-message-${turn.role}`}>
                 {turn.content ? (
-                  turn.content.replace(/^\[(?:Duy's agent|trợ lí của Duy)\]\s*/i, '')
+                  turn.role === 'user' ? turn.content : <><ChatReplyText text={turn.content.replace(/^\[(?:Duy's agent|trợ lí của Duy)\]\s*/i, '')} onNavigate={navigate} /><ChatReplyCards text={turn.content} question={turns.slice(0,i).reverse().find(t => t.role === 'user')?.content} vi={vi} streaming={busy && i === turns.length-1} onNavigate={navigate} /></>
                 ) : (
                   <span className="gracie-typing" aria-label={vi ? 'Đang nghĩ' : 'Thinking'}>
                     <i />
@@ -344,7 +364,7 @@ export function GracieCompanion() {
           }
           title={vi ? `Ẩn ${companion.name}` : `Hide ${companion.name}`}
         >
-          ×
+          <CompanionIcon hidden />
         </button>
         <span className="gracie-hint" role="tooltip" id="gracie-hint">
           {vi

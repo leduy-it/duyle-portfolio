@@ -125,6 +125,9 @@ function StoryRow({ story, index, locale }: { story: LifeStory; index: number; l
             <span className={styles.videoLabel}>{copy.video} <span>↗</span></span>
           </a>
         )}
+        {story.attachments?.map(item => <figure className={styles.attachment} key={item.image}>
+          <Image src={item.image} alt={item.alt} width={800} height={566} sizes="(max-width: 780px) 85vw, 520px" />
+        </figure>)}
         <div className={styles.storyFooter}>
           {story.kind === 'video' ? <small>{copy.storyNote}</small> : (
             <a href={story.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackLifeAction('life_source_click', story.id)}>

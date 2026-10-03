@@ -17,12 +17,12 @@ const filters: { id: ArcadeCategory; en: string; vi: string }[] = [
   { id: 'worlds', en: 'Pocket worlds', vi: 'Thế giới pet' },
 ]
 
-export function ArcadeHub() {
+export function ArcadeHub({initialGame}: {initialGame?:string}) {
   const { locale } = useLocale()
   const vi = locale === 'vi'
   const { save } = usePetSave()
   const [filter, setFilter] = useState<ArcadeCategory>('all')
-  const [active, setActive] = useState<ArcadeGame | null>(null)
+  const [active, setActive] = useState<ArcadeGame | null>(()=>arcadeGames.find(game=>game.id === initialGame) || null)
   const [loaded, setLoaded] = useState(false)
   const [slow, setSlow] = useState(false)
   const [attempt, setAttempt] = useState(0)

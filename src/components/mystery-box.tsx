@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
 import { setAdminSelfFlag } from './visitor-tracker'
 
-const TRIGGER = 'leduy'
-const BUFFER_LEN = 8
+const TRIGGER = 'leduyleduy'
+const BUFFER_LEN = 10
 
 function isTypingTarget(t: EventTarget | null): boolean {
   if (!t || !(t instanceof HTMLElement)) return false
@@ -31,7 +31,8 @@ export function MysteryBox() {
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (isTypingTarget(e.target)) return
-      if (!e.key || e.key.length !== 1) return
+      if (e.key === 'Escape') { setOpen(false); bufferRef.current = ''; return }
+      if (!e.key || e.key.length !== 1 || /\s/.test(e.key)) return
       const next = (bufferRef.current + e.key.toLowerCase()).slice(-BUFFER_LEN)
       bufferRef.current = next
       if (next.endsWith(TRIGGER)) {

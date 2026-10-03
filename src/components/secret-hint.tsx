@@ -1,73 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale } from '@/lib/i18n'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
 
-const HINT_SEEN_KEY = 'pf_hint_seen_v1'
+const HINT_SEEN_KEY = 'pf_hint_seen_v2'
 const ADMIN_FLAG_KEY = 'pf_admin_self'
 
-const HINTS: { id: string; lines: string[]; tag: string; flavor: 'sys' | 'whisper' | 'glitch' }[] = [
-  {
-    id: 'plain',
-    tag: 'PSST',
-    flavor: 'sys',
-    lines: [
-      "hi — there's a hidden page on this site.",
-      'type my name anywhere to unlock it:',
-      '> leduy',
-    ],
-  },
-  {
-    id: 'plain-vi',
-    tag: 'BÍ MẬT',
-    flavor: 'whisper',
-    lines: [
-      'site này có một trang ẩn.',
-      'gõ tên của mình ở bất kỳ đâu để mở:',
-      '> leduy',
-    ],
-  },
-  {
-    id: 'cheatcode',
-    tag: 'CHEAT.SYS',
-    flavor: 'sys',
-    lines: [
-      'this is the 9x era. cheat-codes still work.',
-      'magic word: leduy',
-      'type it anywhere on the page.',
-    ],
-  },
-  {
-    id: 'broadcast',
-    tag: 'BROADCAST',
-    flavor: 'glitch',
-    lines: [
-      '… …kkrrhh… signal incoming…',
-      'KEYWORD = "leduy" (lowercase, no spaces).',
-      'type it anywhere. signal cuts.',
-    ],
-  },
-  {
-    id: 'kernel',
-    tag: 'KERNEL',
-    flavor: 'sys',
-    lines: [
-      '[ DEBUG ] easter-egg trigger detected.',
-      "owner's name = leduy",
-      'type 5 letters anywhere → admin door opens.',
-    ],
-  },
-  {
-    id: 'whisper',
-    tag: 'TRANSMISSION',
-    flavor: 'whisper',
-    lines: [
-      '// psst — owner here.',
-      '// my name is leduy. gõ vào bất kỳ chỗ nào trên trang.',
-      '// 5 chữ cái, không dấu, viết thường.',
-    ],
-  },
+const HINTS: Hint[] = [
+  { id:'plain', tag:'PSST', flavor:'sys', lines:["There's a hidden door here.", 'Outside text fields, type the name twice:', '> leduy leduy', 'Owner login still needs a passphrase.'] },
+  { id:'plain-vi', tag:'BÍ MẬT', flavor:'whisper', lines:['Trang này có một cánh cửa ẩn.', 'Ở ngoài ô nhập, gõ tên hai lần:', '> leduy leduy', 'Đăng nhập chủ trang vẫn cần mật khẩu.'] },
 ]
 
 interface Hint {
@@ -77,9 +20,7 @@ interface Hint {
   lines: string[]
 }
 
-function pickHint(): Hint {
-  return HINTS[Math.floor(Math.random() * HINTS.length)]
-}
+function pickHint(vi: boolean): Hint { return HINTS[vi ? 1 : 0] }
 
 function isAdminFlagSet(): boolean {
   if (typeof window === 'undefined') return false
@@ -111,6 +52,7 @@ function deriveTyped(lines: string[], totalChars: number): { typed: number[]; cu
 
 export function SecretHint() {
   const pathname = usePathname()
+  const { locale } = useLocale()
   const [open, setOpen] = useState(false)
   const [hint, setHint] = useState<Hint | null>(null)
   const [progress, setProgress] = useState(0)
@@ -137,17 +79,23 @@ export function SecretHint() {
     if (Number.isFinite(seenAt) && Date.now() - seenAt < cooldown) return
 
     armed.current = true
-    const delay = 18_000 + Math.random() * 24_000
-    timerRef.current = window.setTimeout(() => {
-      setHint(pickHint())
+    let elapsed = 0
+    timerRef.current = window.setInterval(() => {
+      if (document.hidden || document.querySelector('#gracie-chat,[data-maximized="true"],dialog[open]')) return
+      elapsed += 1000
+      if (elapsed < 30000) return
+      setHint(pickHint(locale === 'vi'))
       setProgress(0)
       setOpen(true)
-    }, delay)
+      try { localStorage.setItem(HINT_SEEN_KEY,String(Date.now())) } catch {}
+      if (timerRef.current) window.clearInterval(timerRef.current)
+    },1000)
 
     return () => {
-      if (timerRef.current) window.clearTimeout(timerRef.current)
+      if (timerRef.current) window.clearInterval(timerRef.current)
+      armed.current = false
     }
-  }, [onAdminPage])
+  }, [onAdminPage, locale])
 
   useEffect(() => {
     if (!open || !hint) return
@@ -186,7 +134,7 @@ export function SecretHint() {
     }
   }, [])
 
-  if (!hint) return null
+  if (!hint || onAdminPage) return null
 
   const { typed, current: currentLine } = deriveTyped(hint.lines, progress)
 
@@ -207,6 +155,8 @@ export function SecretHint() {
           transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
           className="fixed bottom-5 left-5 z-[55] pointer-events-auto w-[min(360px,calc(100vw-2.5rem))] font-mono"
           aria-live="polite"
+          role="status"
+          aria-label={locale === 'vi' ? 'Gợi ý tính năng ẩn' : 'Hidden feature hint'}
         >
           <div
             className="rounded-md border backdrop-blur-md p-3 shadow-[0_16px_48px_-16px_rgba(0,0,0,0.55)]"
@@ -227,7 +177,7 @@ export function SecretHint() {
                 type="button"
                 onClick={() => dismiss(true)}
                 className="text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] text-sm leading-none"
-                aria-label="dismiss hint"
+                aria-label={locale === 'vi' ? 'Ẩn gợi ý bí mật' : 'Dismiss hidden feature hint'}
               >
                 ×
               </button>
@@ -261,7 +211,7 @@ export function SecretHint() {
                 className="text-[10px] tracking-wide uppercase hover:opacity-100 opacity-70 transition-opacity"
                 style={{ color: accent }}
               >
-                acknowledge
+                {locale === 'vi' ? 'Đã hiểu' : 'Got it'}
               </button>
             </div>
           </div>

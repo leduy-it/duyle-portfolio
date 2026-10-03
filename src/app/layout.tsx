@@ -5,6 +5,7 @@ import { LocaleProvider } from '@/lib/i18n'
 import { Header } from '@/components/header'
 import { CursorGlow, PageTransition } from '@/components/motion'
 import { VisitorTracker } from '@/components/visitor-tracker'
+import { SecretHint } from '@/components/secret-hint'
 import { MysteryBox } from '@/components/mystery-box'
 import { GracieCompanion } from '@/components/pets/gracie-companion'
 import { PetSaveProvider } from '@/lib/pets/pet-save-provider'
@@ -44,6 +45,7 @@ export default function RootLayout({
             </main>
             <VisitorTracker />
             <MysteryBox />
+            <SecretHint />
             <GracieCompanion />
           </PetSaveProvider>
           </LocaleProvider>

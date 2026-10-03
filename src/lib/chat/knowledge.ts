@@ -1,5 +1,10 @@
 import films from '@/data/films.json'
 import posts from '@/data/blog-posts.json'
+import experiences from '@/data/experience.json'
+import { lifeHighlights, lifeStories } from '@/data/life-stories'
+import { chatCatalog } from './catalog'
+
+const careerKnowledge = experiences.map(item => `${item.company} — ${item.title} (${item.dates})\n${item.quote}\n${item.missions.join('\n')}\n${item.metrics?.map(metric => `${metric.value} ${metric.label}`).join('; ') || ''}\nRead: /experience/${item.slug}`).join('\n\n')
 
 // Public portfolio facts. Unknown personal details must never be invented.
 export const PORTFOLIO_KNOWLEDGE = `Identity & contact
@@ -7,21 +12,9 @@ export const PORTFOLIO_KNOWLEDGE = `Identity & contact
 - Full name: Le Van Duy. Display name: Duy Le. HCMC, Vietnam.
 - Email: levduyit@gmail.com. LinkedIn: linkedin.com/in/leduy-it. GitHub: github.com/leduy-it.
 
-— Current role —
-- **Full-Stack AI Engineer** at GrowtricsAI (Dec 2025 – Present). Duy is an early engineer hire — NOT a founder, NOT a co-founder, NOT a founding engineer. He works at startup pace: propose, build, ship, iterate crazy fast across the whole stack. NEVER refer to him as "founder", "co-founder", or "founding engineer".
-  • Built a document-parsing pipeline that converts unstructured educational content into structured Q&A data — ~83% conversion rate, 10k+ questions populated.
-  • Built an agentic research + crawling system with provenance-grade source verification: planner-driven multi-hop search, syllabus-mapping agents, citation tracking, every generated explanation traceable.
-  • Built the observability + orchestration backbone: end-to-end traces, cost dashboards, schedulers, single platform to operate every model/tool/workflow.
-
-— Past roles (do NOT describe as current) —
-- AI Engineer at GMO-Z.com RUNSYSTEM (Aug 2024 – Nov 2025). Multilingual OCR + Document AI for enterprise. This is a PAST role — Duy is no longer there. Refer to it in past tense.
-  • Built multilingual OCR (Vietnamese/Japanese), iterative data pipeline, Triton + TensorRT/ONNX deployment. Accuracy 94% → 98%, throughput up significantly.
-  • End-to-end CV pipelines (YOLO, RT-DETR, SAM) for CAD/technical drawings, object measurement, license plates, structured doc extraction.
-  • Production document-parsing pipeline (FastAPI, PostgreSQL, Docker, S3) producing Markdown/HTML/JSON + schema extracts via cloud LLM APIs and in-house VLMs, normalized for RAG.
-  • Agent-driven Text-to-SQL workflow for stock analysis: semantic table/row search, metadata enrichment, expert few-shots, LLM self-correction/cross-reflection.
-  • Cut OCR inference latency ~40% via dynamic resizing + autoregressive decoder loop optimisation.
-  • Customers: Shinhan Bank, LPBank, ABBANK, Maybank, VCB, MCredit, CITEK, HCMC DOST, Wifeed, RKKCS (JP), YAMAZEN (JP), SRA (JP).
-- AI Engineer at SmartPay JSC (Mar 2024 – Aug 2024, PAST). Real-time fraud detection pipeline with Airflow-driven retraining; LLM workflow that interprets merchant contracts and configures internal fee-setting.
+— Career and project facts from the current site —
+${careerKnowledge}
+Duy is an engineer, not a founder or co-founder. Only a role marked Present in the supplied data is current.
 
 — Recognition —
 - 3rd Prize, Vietnamese Handwritten Recognition track, Naver × SoICT Hackathon 2023.
@@ -48,10 +41,17 @@ export const PORTFOLIO_KNOWLEDGE = `Identity & contact
 — Explore this portfolio —
 - /experience: career stories, project architecture and shipped results.
 - /blog: Duy's engineering writing. Articles: ${posts.map((post) => `${post.title} (/blog/${post.slug}) — ${post.excerpt}`).join('\n')}
-- /movie: Duy's cinema wall, not a photography gallery. Personal watchlist: ${films.map((film) => film.title).join(', ')}. A watchlist entry is not proof a film is already released or watched.
+- /movie: Duy's cinema notes and watchlist. A watchlist entry is not proof a film is already released or watched.\n${films.map(film => `${film.title} (/movie/${film.slug}): ${film.hook} Tags: ${film.tags.join(', ')}.`).join('\n')}
+- /arcade: a playable game hub. Link visitors here when they want to play. Specific game links in the catalog open the selected game. Credit third-party game creators; don't claim Duy authored every game.
+- /life: Duy's visual diary and local videos with original sound. ${lifeStories.map(story => `${story.title.en} (${story.date}, ${story.source}) — ${story.summary.en} /life#${story.id}`).join('\n')}
+- Video highlights: ${lifeHighlights.map(item => `${item.title.en}, ${item.source}, ${item.date} (/life#${item.id})`).join('; ')}
 - /pets: a pixel hatchery with Gracie, eggs, housing, a factory, evolution, and a playful arena. Pet progress is saved in the visitor's browser, not across devices.
 - Gracie's quick chat and the home terminal reach the same assistant. Double-click Gracie or use Open full chat to move the conversation into the terminal.
-- Send to Duy opens an email draft; a visitor must review and send it. Never claim a message was sent just because it appeared in chat.
+- Send to Duy opens a draft for review. Direct send is available only when the email provider is configured; otherwise use the visitor’s email app. Never claim a message was sent just because it appeared in chat.
+— Cards and canonical destinations —
+For media preview emit [[card:ID]] using an exact ID below. At most four cards per reply. The UI supplies the actual media; never invent image/video URLs.
+${chatCatalog.map(card => `${card.id}: [${card.title.en}](${card.href}) — ${card.description.en.slice(0, 240)}${card.source ? ` Source: ${card.source}.` : ''}`).join('\n')}
+
 - The current repository is https://github.com/leduy-it/duyle-portfolio.
 - Rates, current availability, relationship status, number of partners, and private company information are not disclosed.
 `

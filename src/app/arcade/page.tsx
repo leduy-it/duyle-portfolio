@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description: 'A collection of playable worlds, from quiet flights to tactical battles. Play inside the portfolio.',
 }
 
-export default function ArcadePage() {
-  return <ArcadeHub />
+export default async function ArcadePage({searchParams}: {searchParams: Promise<{game?:string}>}) {
+  const {game} = await searchParams
+  return <ArcadeHub key={game || 'all'} initialGame={game} />
 }

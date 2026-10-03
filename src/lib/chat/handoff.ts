@@ -12,7 +12,7 @@ let memoryHandoff: ChatHandoff | null = null
 
 export function stageChatHandoff(value: ChatHandoff) {
   memoryHandoff = {
-    messages: value.messages.slice(-14),
+    messages: value.messages.slice(-30),
     draft: value.draft.slice(0, 2000),
   }
   try {
@@ -42,9 +42,21 @@ export function consumeChatHandoff(): ChatHandoff | null {
           !!turn &&
           (turn.role === 'user' || turn.role === 'assistant') &&
           typeof turn.content === 'string' &&
-          turn.content.length <= 2000
+          turn.content.length <= (turn.role === 'assistant' ? 6000 : 2000)
       )
-      .slice(-14),
+      .slice(-30),
     draft: typeof candidate.draft === 'string' ? candidate.draft.slice(0, 2000) : '',
   }
+}
+
+/** Keep full display history locally; bound only the provider request payload. */
+export function chatRequestTurns(turns:ChatTurn[]):ChatTurn[] {
+  const selected:ChatTurn[]=[]
+  let total=0
+  for(const turn of [...turns].slice(-14).reverse()) {
+    const content=turn.content.slice(0,turn.role==='assistant'?6000:2000)
+    if(total+content.length>10000)break
+    selected.unshift({...turn,content});total+=content.length
+  }
+  return selected
 }

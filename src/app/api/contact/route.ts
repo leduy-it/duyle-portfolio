@@ -4,6 +4,10 @@ import { allowRequest, requestIdentity, sameOrigin } from '@/lib/server/redis'
 export const runtime = 'nodejs'
 export const maxDuration = 20
 const fail = (error: string, status: number) => NextResponse.json({ ok: false, error }, { status })
+export async function GET() {
+  const available = !!process.env.RESEND_API_KEY && !!process.env.CONTACT_FROM_EMAIL && !/[\r\n]/.test(process.env.CONTACT_FROM_EMAIL)
+  return NextResponse.json({ available }, { headers: { 'Cache-Control': 'no-store' } })
+}
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail('invalid_origin', 403)
   if (Number(request.headers.get('content-length')) > 14_000) return fail('too_large', 413)

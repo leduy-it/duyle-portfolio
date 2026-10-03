@@ -3,11 +3,12 @@ export type LifeStory = {
   date: string
   displayDate: string
   kind: 'photo' | 'video' | 'external-video'
-  source: 'Instagram' | 'Facebook'
+  source: 'Instagram' | 'Facebook' | 'LinkedIn'
   sourceUrl: string
   image?: string
   imageAlt?: string
   video?: string
+  attachments?: { image: string; alt: string }[]
   title: { en: string; vi: string }
   summary: { en: string; vi: string }
 }
@@ -28,6 +29,21 @@ export const lifeStories: LifeStory[] = [
     summary: {
       en: 'A small experiment in talking to the camera, shared as a public Facebook Story.',
       vi: 'Một lần thử nói chuyện trước máy quay, chia sẻ bằng một Story Facebook công khai.',
+    },
+  },
+  {
+    id: 'soict-hackathon',
+    date: '2023-10-29',
+    displayDate: '28–29 OCT 2023',
+    kind: 'photo', source: 'LinkedIn',
+    sourceUrl: 'https://www.linkedin.com/in/leduy-it/overlay/Honor/490253241/treasury/',
+    image: '/images/life/linkedin-soict-finalists-2023.jpeg',
+    imageAlt: 'Finalists at the SoICT Hackathon 2023 closing event, shared in Duy’s LinkedIn award gallery',
+    attachments: [{ image: '/images/life/linkedin-soict-certificate-2023.jpeg', alt: 'SoICT Hackathon 2023 certificate awarded to Le Van Duy' }],
+    title: { en: 'A hackathon weekend', vi: 'Một cuối tuần hackathon' },
+    summary: {
+      en: 'The closing photo and my certificate from SoICT Hackathon 2023. Third prize in the Naver Vietnamese Handwritten Recognition track. Group photo: SoICT, HUST; saved from my LinkedIn award gallery.',
+      vi: 'Ảnh chung kết và chứng nhận SoICT Hackathon 2023. Giải ba track nhận dạng chữ viết tay tiếng Việt của Naver. Ảnh tập thể: SoICT, HUST; lưu từ mục giải thưởng trên LinkedIn của mình.',
     },
   },
   {

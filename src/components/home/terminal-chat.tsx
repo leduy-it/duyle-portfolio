@@ -1,11 +1,15 @@
 'use client'
 
+import { createPortal } from 'react-dom'
+import { ChatReplyText, ChatReplyCards } from '@/components/chat/rich-message'
+import { readChatSession, saveChatSession } from '@/lib/chat/session'
+import './terminal-window.css'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale } from '@/lib/i18n'
 import { chatResponseError, chatErrorMessage } from '@/lib/chat/errors'
 import { consumeChatStream } from '@/lib/chat/stream'
-import { CHAT_HANDOFF_EVENT, consumeChatHandoff } from '@/lib/chat/handoff'
+import { chatRequestTurns, CHAT_HANDOFF_EVENT, consumeChatHandoff } from '@/lib/chat/handoff'
 // Try the new locale-aware export; fall back to the legacy export if the data agent hasn't landed yet.
 import { CANNED_RESPONSES } from '@/data/terminal-suggestions'
 import { MagneticButton } from './magnetic-button'
@@ -66,6 +70,7 @@ export function TerminalChat() {
   const [windowState, setWindowState] = useState<WindowState>('open')
   const [drag, setDrag] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [hydrated, setHydrated] = useState(false)
+  const windowRef = useRef<HTMLDivElement>(null)
   const [inputFocused, setInputFocused] = useState(false)
   const [view, setView] = useState<View>('chat')
   const [compose, setCompose] = useState<ComposeState>({
@@ -121,7 +126,8 @@ export function TerminalChat() {
       if (savedPos) {
         const pos = JSON.parse(savedPos) as { x: number; y: number }
         if (typeof pos.x === 'number' && typeof pos.y === 'number') {
-          setDrag(pos)
+          // Restore only modest offsets; old desktop drags must not hide the mobile chat.
+          setDrag({x:Math.max(-32,Math.min(32,pos.x)),y:Math.max(-32,Math.min(32,pos.y))})
         }
       }
       const savedState = localStorage.getItem(LS_STATE_KEY)
@@ -130,6 +136,12 @@ export function TerminalChat() {
       }
     } catch {
       // ignore
+    }
+    const session = readChatSession()
+    if (session && (session.messages.length || session.draft)) {
+      hasHandoffRef.current = true
+      setMessages(session.messages.map(turn => ({time: TIMESTAMP, text: turn.content, isUser: turn.role === 'user'})))
+      setInput(session.draft)
     }
     setHydrated(true)
   }, [])
@@ -171,6 +183,32 @@ export function TerminalChat() {
     window.addEventListener(CHAT_HANDOFF_EVENT, receive)
     return () => window.removeEventListener(CHAT_HANDOFF_EVENT, receive)
   }, [hydrated])
+
+  function persistChat() {
+    const firstUser = messages.findIndex(message => message.isUser)
+    if (firstUser < 0 && !input.trim()) return
+    saveChatSession({ messages: firstUser < 0 ? [] : messages.slice(firstUser).filter(m => !m.streaming && m.text.trim()).map(m => ({role: m.isUser ? 'user' : 'assistant',content: m.text})), draft: input })
+  }
+  useEffect(() => { if (hydrated && !busy) persistChat() }, [messages, input, hydrated, busy]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Maximize in a portal: ancestor transforms must not constrain a fixed window.
+  useEffect(() => {
+    if (windowState !== 'maximized') return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const restore = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !document.querySelector('dialog[open]')) setWindowState('open')
+      if (event.key === 'Tab' && windowRef.current) {
+        const focusable = Array.from(windowRef.current.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href]')).filter(el => el.getClientRects().length)
+        const first = focusable[0], last = focusable.at(-1)
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }
+    }
+    terminalInputRef.current?.focus({preventScroll:true})
+    document.addEventListener('keydown', restore)
+    return () => { document.body.style.overflow = previous; document.removeEventListener('keydown',restore) }
+  }, [windowState])
 
   // Persist drag position and window state
   useEffect(() => {
@@ -218,9 +256,13 @@ export function TerminalChat() {
     function onMove(e: MouseEvent) {
       if (!dragRef.current) return
       isDraggingRef.current = true
-      setDrag({
-        x: dragRef.current.baseX + (e.clientX - dragRef.current.startX),
-        y: dragRef.current.baseY + (e.clientY - dragRef.current.startY),
+      const rect = windowRef.current?.getBoundingClientRect()
+      const x = dragRef.current.baseX + (e.clientX - dragRef.current.startX)
+      const y = dragRef.current.baseY + (e.clientY - dragRef.current.startY)
+      setDrag(current => {
+        if (!rect) return {x,y}
+        const left = rect.left-current.x, top=rect.top-current.y
+        return {x:Math.max(8-left,Math.min(innerWidth-8-rect.width-left,x)), y:Math.max(8-top,Math.min(innerHeight-8-rect.height-top,y))}
       })
     }
     function onUp() {
@@ -228,15 +270,19 @@ export function TerminalChat() {
       isDraggingRef.current = false
       document.body.style.userSelect = ''
     }
+    const resize = () => setDrag({x:0,y:0})
+    window.addEventListener('resize',resize)
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
     return () => {
+      window.removeEventListener('resize',resize)
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
   }, [])
 
   function startDrag(e: React.MouseEvent) {
+    if (windowState === 'maximized') return
     // Don't start drag on buttons
     if ((e.target as HTMLElement).closest('button')) return
     dragRef.current = {
@@ -250,6 +296,8 @@ export function TerminalChat() {
 
   function resetPosition() {
     setDrag({ x: 0, y: 0 })
+    setWindowState('open')
+    if (windowRef.current) { windowRef.current.style.width = ''; windowRef.current.style.height = '' }
   }
 
   function handleGreenClick(e: React.MouseEvent) {
@@ -311,7 +359,7 @@ export function TerminalChat() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history.slice(-14), stream: true }),
+        body: JSON.stringify({ messages: chatRequestTurns(history), stream: true }),
         signal: chatRequest.current.signal,
       })
 
@@ -438,6 +486,13 @@ export function TerminalChat() {
     }
   }
 
+  const [deliveryAvailable, setDeliveryAvailable] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (view !== 'compose') return
+    let active = true
+    fetch('/api/contact', {cache:'no-store'}).then(res=>res.json()).then(data=>{if(active)setDeliveryAvailable(data.available === true)}).catch(()=>{if(active)setDeliveryAvailable(false)})
+    return () => {active=false}
+  }, [view])
   const [deliveryError, setDeliveryError] = useState('')
 
   async function sendContact() {
@@ -516,9 +571,9 @@ export function TerminalChat() {
   const maximizedContainerStyle: React.CSSProperties = {
     ...baseContainerStyle,
     position: 'fixed',
-    width: 'min(960px, calc(100vw - 32px))',
-    height: 'min(720px, 80vh)',
-    top: '96px',
+    width: 'calc(100vw - 32px)',
+    height: 'calc(100dvh - 32px)',
+    top: '16px',
     left: '50%',
     transform: reducedMotion ? 'translateX(-50%)' : 'translateX(-50%)',
     transition: reducedMotion ? 'none' : 'all 240ms var(--ease-out-quart)',
@@ -554,7 +609,7 @@ export function TerminalChat() {
       }
     : {}
 
-  return (
+  const content = (
     <>
       <AnimatePresence>
         {isMaximized && (
@@ -577,7 +632,7 @@ export function TerminalChat() {
         animate={{ opacity: 1, scale: 1 }}
         transition={mountTransition}
       >
-        <div className={containerClass} style={containerStyle} {...containerA11y}>
+        <div ref={windowRef} data-terminal-window data-window-state={windowState} data-maximized={isMaximized} className={`${containerClass} terminal-window`} style={containerStyle} {...containerA11y}>
           {/* Title bar — draggable */}
           <div
             onMouseDown={startDrag}
@@ -644,20 +699,21 @@ export function TerminalChat() {
               />
               {busy ? t('chat.statusBusy') : t('chat.statusIdle')}
             </span>
+            <button type="button" onClick={resetPosition} className="terminal-restore" aria-label={locale === 'vi' ? 'Về kích thước ban đầu' : 'Reset window size'} title={locale === 'vi' ? 'Thu gọn về ban đầu' : 'Restore compact window'}>↙</button>
           </div>
 
           <AnimatePresence mode="wait">
             {(windowState === 'open' || windowState === 'maximized') && view === 'chat' && (
               <motion.div
                 key="chat-view"
-                className={isMaximized ? 'flex flex-1 flex-col' : 'flex flex-col'}
+                className={isMaximized ? 'flex min-h-0 flex-1 flex-col' : 'flex min-h-0 flex-1 flex-col'}
                 initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
                 transition={viewTransition}
               >
                 <div
-                  className={`flex flex-col gap-3 overflow-y-auto px-4 py-4 font-mono text-sm ${isMaximized ? 'flex-1' : 'min-h-[340px] max-h-[520px]'}`}
+                  className={`flex flex-col gap-3 overflow-y-auto px-4 py-4 font-mono text-sm terminal-log min-h-0 flex-1`}
                 >
                   <AnimatePresence initial={!reducedMotion}>
                     {messages.map((msg, i) => {
@@ -696,7 +752,7 @@ export function TerminalChat() {
                                 </>
                               ) : (
                                 <>
-                                  {msg.text}
+                                  <ChatReplyText text={msg.text} onNavigate={persistChat} />
                                   {msg.streaming && (
                                     <span className="ml-1 inline-block h-3 w-1.5 animate-pulse align-middle bg-[rgb(var(--accent))]" />
                                   )}
@@ -704,6 +760,7 @@ export function TerminalChat() {
                               )}
                             </p>
                           )}
+                          {!msg.isUser && !isStatus && <ChatReplyCards text={msg.text} question={messages.slice(0,i).reverse().find(m => m.isUser)?.text} vi={locale === 'vi'} streaming={msg.streaming} onNavigate={persistChat} />}
                           {isAgentReply && (
                             <div className="mt-1.5 ml-[5.5rem] flex items-center gap-2 text-[10px] font-mono text-[rgb(var(--text-muted))]">
                               <span aria-hidden>↗</span>
@@ -985,7 +1042,7 @@ export function TerminalChat() {
                 )}
 
                 <p className="font-mono text-[10px] leading-relaxed text-[rgb(var(--text-muted))]">
-                  {t('compose.confirmNote')}
+                  {deliveryAvailable === false ? (locale === 'vi' ? 'Gửi trực tiếp chưa được cấu hình. Mở ứng dụng email với bản nháp này để gửi đến Duy.' : 'Direct delivery is not configured. Open your email app with this draft to send it to Duy.') : t('compose.confirmNote')}
                 </p>
 
                 {/* Refine instruction (optional) — guides the next LLM polish pass */}
@@ -1022,14 +1079,14 @@ export function TerminalChat() {
                   >
                     {t('compose.refine')}
                   </MagneticButton>
-                  <MagneticButton
+                  {deliveryAvailable === false ? <a className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))]" href={`mailto:levduyit@gmail.com?subject=${encodeURIComponent(compose.subject)}&body=${encodeURIComponent(compose.body)}`}>{locale === 'vi' ? 'Mở ứng dụng email ↗' : 'Open email app ↗'}</a> : <MagneticButton
                     onClick={sendContact}
-                    disabled={!compose.email.trim() || compose.composing || compose.sending}
+                    disabled={deliveryAvailable !== true || !compose.email.trim() || compose.composing || compose.sending}
                     pull={5}
                     className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))] transition-all duration-200 ease-[var(--ease-out-quart)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {compose.sending ? 'Sending...' : t('compose.send')}
-                  </MagneticButton>
+                  </MagneticButton>}
                   <MagneticButton
                     onClick={() => {
                       setView('chat')
@@ -1093,4 +1150,5 @@ export function TerminalChat() {
       </motion.div>
     </>
   )
+  return hydrated && isMaximized ? createPortal(content, document.body) : content
 }

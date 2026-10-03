@@ -5,3 +5,13 @@ skills-lock.json
 docs/qa/
 
 reference/checkouts/
+
+# Local credentials, private runtime data and task artifacts never enter a deploy.
+.env*
+!.env.example
+.codex/
+.codex-spawn/
+.omc/
+tasks/
+data/
+test-results/

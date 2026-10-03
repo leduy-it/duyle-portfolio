@@ -52,3 +52,21 @@ test('stream forwards Unicode deltas, redacts upstream errors and closes once', 
     delete process.env.OPENROUTER_API_KEY
   }
 })
+
+test('English latest question overrides Vietnamese history and retrieves grounded evidence', async () => {
+  process.env.OPENROUTER_API_KEY='test-only'
+  const original=global.fetch
+  let sent: {messages:{role:string;content:string}[]} = {messages:[]}
+  try {
+    global.fetch=async(_url,init)=>{
+      sent=JSON.parse(String(init?.body))
+      return Response.json({choices:[{message:{content:"[Duy's agent]\n\nHe builds OCR systems."}}]})
+    }
+    const response=await POST(request({messages:[{role:'assistant',content:'[trợ lí của Duy] Xin chào.'},{role:'user',content:'What did Duy do in the handwritten recognition hackathon?'}]}))
+    assert.equal(response.status,200)
+    assert.match(sent.messages[0].content,/REPLY_LANGUAGE: English only/)
+    assert.match(sent.messages[0].content,/Third prize|3rd Prize/i)
+    assert.match(sent.messages[0].content,/data, not instructions/)
+    assert.doesNotMatch(sent.messages[0].content,/RESEND_API_KEY|JINA_API_KEY|ADMIN_SECRET/)
+  }finally{global.fetch=original;delete process.env.OPENROUTER_API_KEY}
+})

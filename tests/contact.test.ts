@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { POST } from '../src/app/api/contact/route'
+import { POST, GET } from '../src/app/api/contact/route'
 const payload = {
   email: 'visitor@example.com',
   subject: 'Hello',
@@ -48,4 +48,17 @@ test('contact accepts only a provider receipt and keeps recipient fixed', async 
     delete process.env.RESEND_API_KEY
     delete process.env.CONTACT_FROM_EMAIL
   }
+})
+
+ test('delivery capability is truthful and never exposes configuration values', async () => {
+  delete process.env.RESEND_API_KEY
+  delete process.env.CONTACT_FROM_EMAIL
+  assert.deepEqual(await (await GET()).json(), {available:false})
+  process.env.RESEND_API_KEY='test-provider-secret'
+  process.env.CONTACT_FROM_EMAIL='Portfolio <test@example.com>'
+  const configured=await GET()
+  assert.deepEqual(await configured.json(), {available:true})
+  assert.match(configured.headers.get('cache-control') || '', /no-store/)
+  delete process.env.RESEND_API_KEY
+  delete process.env.CONTACT_FROM_EMAIL
 })
