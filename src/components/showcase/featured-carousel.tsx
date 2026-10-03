@@ -2,7 +2,8 @@
 
 import { entrancePose,settledPose,nextMotionSeed,motionPattern } from '@/components/motion/entrance-patterns'
 import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion, useInView, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion, useInView } from 'motion/react'
+import { useHomeMotionPreferences } from '@/components/home/home-motion'
 import { useLocale } from '@/lib/i18n'
 import dynamic from 'next/dynamic'
 
@@ -20,7 +21,7 @@ export function FeaturedCarousel({ items, label, cinema = false }: {
   const vi = locale === 'vi'
   const root = useRef<HTMLElement>(null)
   const visible = useInView(root, { amount: 0.2 })
-  const reduced = useReducedMotion()
+  const { prefersReducedMotion: reduced } = useHomeMotionPreferences()
   const [transitionSeed,setTransitionSeed]=useState(0)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
