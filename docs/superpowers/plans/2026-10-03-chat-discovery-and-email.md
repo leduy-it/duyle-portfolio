@@ -28,7 +28,7 @@
 - [x] T11 — Photo requests show multiple actual portrait/media cards with large previews. Reuse owned public assets and avoid confusing an organizer group photo with a confirmed individual portrait.
 - [x] T12 — Responsive terminal: near-full-screen maximize, outside click/Escape restore, explicit compact/reset control, user resize with safe viewport bounds, preserved conversation across every size. Verify small phones and desktop.
 - [x] T13 — Crawl additional public owner social/profile facts where accessible; record source and acquisition date. Do not infer private facts or turn reposts into authored work. Record access limits rather than claiming complete synchronization.
-- [ ] T14 — Deploy reviewed changes to the linked Vercel project and verify stable alias, chat language/RAG, assets and delivery capability. Update this checklist with concrete evidence and any unresolved external configuration.
+- [x] T14 — Deploy reviewed changes to the linked Vercel project and verify stable alias, chat language/RAG, assets and delivery capability. Update this checklist with concrete evidence and any unresolved external configuration.
 
 ## Review focus
 
@@ -62,3 +62,12 @@
 - Production JINA_API_KEY configured as Vercel Secret on portfolio-leduy. No new paid subscription or top-up created.
 
 - Deployment attempt1 failed: unanchored data/ exclusion also excluded src/data. Fixed exclusions to root-only /data/, /tasks/, /test-results/; stable production alias remained on previous healthy deployment.
+
+- T14: complete — production deployment dpl_MSQ6VyMgF9gYKnP3wmbdCTdxkyJp READY; alias leduy.vercel.app explicitly assigned. Source commits81c5656/0270bcf pushed to origin/main. Stable alias / and /life200; both new LinkedIn assets200; live chat200 with X-Retrieval hybrid and English text despite Vietnamese history; curated Vietnamese appearance reply200; production photo cards render and Life→Resume chat preserves unsent draft. GET /api/contact200 reports available:false as expected. No email test sent.
+
+## Continuing content updates
+
+1. Add owned, public photo/video assets to public/images/life or public/videos/life and add dated source metadata in src/data/life-stories.ts. Keep post date distinct from photo capture date. Professional notes may be added to src/data/social-knowledge.ts with acquisition date and public URL.
+2. Run npm run chat:index; unchanged documents reuse existing vectors. Never commit an API key. Any changed document not reindexed automatically falls back to lexical evidence until its hash matches.
+3. Run npm test, relevant Playwright cases, typecheck/lint/build, then deploy to the linked portfolio-leduy project and verify leduy.vercel.app.
+4. Append newly requested improvements here with acceptance checks, status and real verification evidence. T6 remains open until a provider is configured and its live send is explicitly authorized; mail-app fallback is already available.
