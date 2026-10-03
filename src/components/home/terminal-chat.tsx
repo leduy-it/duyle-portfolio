@@ -490,11 +490,12 @@ export function TerminalChat() {
     }
   }
 
+  const [emailAvailable,setEmailAvailable]=useState<boolean | null>(null)
   const [deliveryAvailable, setDeliveryAvailable] = useState<boolean | null>(null)
   useEffect(() => {
     if (view !== 'compose') return
     let active = true
-    fetch('/api/contact', {cache:'no-store'}).then(res=>res.json()).then(data=>{if(active)setDeliveryAvailable(data.available === true)}).catch(()=>{if(active)setDeliveryAvailable(false)})
+    fetch('/api/contact', {cache:'no-store'}).then(res=>res.json()).then(data=>{if(active){setDeliveryAvailable(data.available === true);setEmailAvailable(data.deliveryAvailable === true)}}).catch(()=>{if(active){setDeliveryAvailable(false);setEmailAvailable(false)}})
     return () => {active=false}
   }, [view])
   const [deliveryError, setDeliveryError] = useState('')
@@ -1053,7 +1054,7 @@ export function TerminalChat() {
                 )}
 
                 <p className="font-mono text-[10px] leading-relaxed text-[rgb(var(--text-muted))]">
-                  {deliveryAvailable === false ? (locale === 'vi' ? 'Gửi trực tiếp chưa được cấu hình. Mở ứng dụng email với bản nháp này để gửi đến Duy.' : 'Direct delivery is not configured. Open your email app with this draft to send it to Duy.') : t('compose.confirmNote')}
+                  {emailAvailable === false ? (locale === 'vi' ? 'Tin nhắn sẽ được lưu vào hộp thư của Duy trên website. Gửi email chưa được cấu hình; bạn cũng có thể mở ứng dụng mail.' : 'Your message can be saved in Michael’s website inbox. Email delivery is not configured; you can also open your mail app.') : t('compose.confirmNote')}
                 </p>
 
                 {/* Refine instruction (optional) — guides the next LLM polish pass */}
@@ -1090,14 +1091,14 @@ export function TerminalChat() {
                   >
                     {t('compose.refine')}
                   </MagneticButton>
-                  {deliveryAvailable === false ? <a className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))]" href={`mailto:levduyit@gmail.com?subject=${encodeURIComponent(compose.subject)}&body=${encodeURIComponent(compose.body)}`}>{locale === 'vi' ? 'Mở ứng dụng email ↗' : 'Open email app ↗'}</a> : <MagneticButton
+                  {emailAvailable === false && <a data-track="contact:mailapp" onClick={() => trackAction('mailapp_open','contact:mailapp')} className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))]" href={`mailto:levduyit@gmail.com?subject=${encodeURIComponent(compose.subject)}&body=${encodeURIComponent(compose.body)}`}>{locale === 'vi' ? 'Mở ứng dụng email ↗' : 'Open email app ↗'}</a>}<MagneticButton
                     data-track="contact:send" onClick={sendContact}
                     disabled={deliveryAvailable !== true || !compose.email.trim() || compose.composing || compose.sending}
                     pull={5}
                     className="rounded-full bg-[rgb(var(--accent))] px-4 py-1.5 text-[11px] font-mono text-[rgb(var(--surface-card))] transition-all duration-200 ease-[var(--ease-out-quart)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {compose.sending ? 'Sending...' : t('compose.send')}
-                  </MagneticButton>}
+                  </MagneticButton>
                   <MagneticButton
                     onClick={() => {
                       setView('chat')
