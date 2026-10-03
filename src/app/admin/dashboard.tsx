@@ -1,5 +1,7 @@
 'use client'
 
+import { formatEventTime as fmtTs } from '@/lib/tracking/presentation'
+
 import { ConversationBrowser } from './conversation-browser'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -14,29 +16,6 @@ const RANGES: { key: RangeKey; label: string }[] = [
   { key: '30d', label: '30 days' },
   { key: 'all', label: 'all history' },
 ]
-
-function fmtTs(ts: string): string {
-  const d = new Date(ts)
-  if (Number.isNaN(d.getTime())) return ts
-  return d.toLocaleString(undefined, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
-
-function fmtRelative(ts: string): string {
-  const d = new Date(ts).getTime()
-  if (!Number.isFinite(d)) return ts
-  const diff = Date.now() - d
-  if (diff < 60_000) return `${Math.max(1, Math.floor(diff / 1000))}s ago`
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
-  return `${Math.floor(diff / 86_400_000)}d ago`
-}
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -293,7 +272,7 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
             <span>tracking</span>
           </h1>
           <p className="text-xs text-[rgb(var(--text-muted))] mt-1">
-            owner-only · {summary.totalEventsAllTime.toLocaleString()} recorded events ·{' '}
+            owner-only · {summary.totalEventsAllTime.toLocaleString('en-US')} recorded events ·{' '}
             {storageKind}
           </p>
         </div>
@@ -327,7 +306,7 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
       </header>
 
       <p className="mb-5 text-[11px] leading-relaxed text-[rgb(var(--text-muted))]">
-        Recorded events are kept without an automatic age or count limit. Daily charts use UTC. Countries are approximate; direct
+        Recorded events are kept without an automatic age or count limit. Daily charts use UTC; event timestamps use Vietnam time (UTC+7). Countries are approximate; direct
         traffic has no referrer header. Visitors are estimates based on a hashed network address and
         browser signature: shared networks can merge people, and changing networks can split them.
         Owner visits are excluded when “log my own visits” is off. DNT and detected bots are excluded.
@@ -397,16 +376,16 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-            <StatCard label="pageviews" value={totals.pageviews.toLocaleString()} />
-            <StatCard label="estimated visitors" value={totals.uniqueVisitors.toLocaleString()} />
-            <StatCard label="sessions" value={totals.sessions.toLocaleString()} />
+            <StatCard label="pageviews" value={totals.pageviews.toLocaleString('en-US')} />
+            <StatCard label="estimated visitors" value={totals.uniqueVisitors.toLocaleString('en-US')} />
+            <StatCard label="sessions" value={totals.sessions.toLocaleString('en-US')} />
             <StatCard
               label="pages / session"
               value={totals.avgPagesPerSession.toFixed(2)}
               sub="avg in range"
             />
-            <StatCard label="today views" value={totals.todayPageviews.toLocaleString()} />
-            <StatCard label="today uniques" value={totals.todayUniques.toLocaleString()} />
+            <StatCard label="today views" value={totals.todayPageviews.toLocaleString('en-US')} />
+            <StatCard label="today uniques" value={totals.todayUniques.toLocaleString('en-US')} />
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-6">
@@ -427,10 +406,10 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <StatCard label="life story views" value={summary.life.storyViews.toLocaleString()} />
-            <StatCard label="video plays" value={summary.life.videoPlays.toLocaleString()} />
-            <StatCard label="video completions" value={summary.life.videoCompletions.toLocaleString()} />
-            <StatCard label="photo post clicks" value={summary.life.sourceClicks.toLocaleString()} />
+            <StatCard label="life story views" value={summary.life.storyViews.toLocaleString('en-US')} />
+            <StatCard label="video plays" value={summary.life.videoPlays.toLocaleString('en-US')} />
+            <StatCard label="video completions" value={summary.life.videoCompletions.toLocaleString('en-US')} />
+            <StatCard label="photo post clicks" value={summary.life.sourceClicks.toLocaleString('en-US')} />
           </div>
           <div className="grid lg:grid-cols-2 gap-4 mb-6">
             <Section title="traffic sources · pageviews">
@@ -479,7 +458,7 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
                         {p.uniques}
                       </td>
                       <td className="py-1.5 text-right text-[rgb(var(--text-muted))]">
-                        {fmtRelative(p.lastSeen)}
+                        {fmtTs(p.lastSeen)}
                       </td>
                     </tr>
                   ))}
@@ -617,7 +596,7 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
           </table>
         </div>
         <div className="mt-4 flex items-center justify-between text-xs">
-          <span>Page {eventPage.page} · {eventPage.total.toLocaleString()} total records</span>
+          <span>Page {eventPage.page} · {eventPage.total.toLocaleString('en-US')} total records</span>
           <div className="flex gap-2">
             <button type="button" disabled={eventPage.page <= 1} onClick={() => void fetchEventPage(eventPage.page - 1, eventPage.anchor)} className="rounded border px-3 py-1.5 disabled:opacity-40" style={{ borderColor: 'rgb(var(--border-muted))' }}>Previous</button>
             <button type="button" disabled={!eventPage.hasNext} onClick={() => void fetchEventPage(eventPage.page + 1, eventPage.anchor)} className="rounded border px-3 py-1.5 disabled:opacity-40" style={{ borderColor: 'rgb(var(--border-muted))' }}>Next</button>

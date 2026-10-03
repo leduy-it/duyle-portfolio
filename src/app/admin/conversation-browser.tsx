@@ -1,4 +1,5 @@
 'use client'
+import { formatEventTime } from '@/lib/tracking/presentation'
 import { useCallback, useEffect, useState } from 'react'
 import type { ConversationInfo, ConversationTurn } from '@/lib/tracking/conversations'
 import { ChatReplyCards, ChatReplyText } from '@/components/chat/rich-message'
@@ -56,7 +57,7 @@ export function ConversationBrowser() {
     {error && <p role="alert" className="text-xs text-[rgb(var(--terminal-red))] mb-3">{error}</p>}
     {selected ? <><p className="mb-3 break-all text-[11px]">Conversation {selected.id} · visitor {selected.visitorId} · session {selected.sessionId}</p>
       <div className="space-y-4">{turns.records.map(turn=><article key={turn.id} className="rounded border border-[rgb(var(--border-muted))] p-3 text-xs">
-        <header className="flex flex-wrap justify-between gap-2 text-[10px] text-[rgb(var(--text-muted))]"><time>{new Date(turn.ts).toLocaleString()}</time><span>{turn.mode} · {turn.status} · {turn.path} · {turn.model || '—'}</span></header>
+        <header className="flex flex-wrap justify-between gap-2 text-[10px] text-[rgb(var(--text-muted))]"><time>{formatEventTime(turn.ts)}</time><span>{turn.mode} · {turn.status} · {turn.path} · {turn.model || '—'}</span></header>
         {turn.email && <p className="mt-3 break-all">From: {turn.email} · {turn.subject}</p>}
         <h3 className="mt-3 text-[rgb(var(--accent))]">Visitor</h3><p className="whitespace-pre-wrap break-words leading-relaxed mt-1">{turn.user}</p>
         {turn.assistant && <><h3 className="mt-3 text-[rgb(var(--accent))]">Assistant</h3><div className="mt-1 whitespace-pre-wrap break-words leading-relaxed"><ChatReplyText text={turn.assistant} /></div><ChatReplyCards text={turn.assistant} question={turn.user} vi={/[àáạảãâầấậẩẫăằắặẳẵđ]/i.test(turn.user)} /></>}
@@ -64,7 +65,7 @@ export function ConversationBrowser() {
         {turn.error && <p className="mt-3 text-[rgb(var(--terminal-red))]">{turn.error}</p>}
         {turn.providerId && <p className="mt-2 break-all text-[10px]">Provider acceptance receipt: {turn.providerId}. Inbox arrival is not confirmed here.</p>}
       </article>)}</div></> : <div className="space-y-2">{conversations.records.map(info=><button type="button" key={info.id} disabled={busy} onClick={()=>void select(info)} className="w-full text-left rounded border border-[rgb(var(--border-muted))] p-3 hover:border-[rgb(var(--accent))]">
-        <span className="flex justify-between gap-2 text-[10px] text-[rgb(var(--text-muted))]"><time>{new Date(info.updatedAt).toLocaleString()}</time><span>{info.visitorId.slice(0,8)}</span></span><p className="mt-2 text-xs break-words">{info.preview}</p>
+        <span className="flex justify-between gap-2 text-[10px] text-[rgb(var(--text-muted))]"><time>{formatEventTime(info.updatedAt)}</time><span>{info.visitorId.slice(0,8)}</span></span><p className="mt-2 text-xs break-words">{info.preview}</p>
       </button>)}</div>}
     {!page.records.length && !error && <p className="text-xs py-5 text-[rgb(var(--text-muted))]">No recorded conversations yet. Earlier chats were not saved.</p>}
     <footer className="mt-4 flex justify-between items-center gap-3 text-xs"><span>Page {page.page} · {page.total} records</span><div className="flex gap-2"><button disabled={busy || page.page<=1} onClick={()=>void move(page.page-1)} className="border rounded px-3 py-2 disabled:opacity-40">Previous</button><button disabled={busy || !page.hasNext} onClick={()=>void move(page.page+1)} className="border rounded px-3 py-2 disabled:opacity-40">Next</button></div></footer>
