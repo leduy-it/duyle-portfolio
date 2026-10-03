@@ -1,5 +1,6 @@
 'use client'
 
+import { ConversationBrowser } from './conversation-browser'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Summary, RangeKey } from '@/lib/tracking/aggregate'
@@ -548,6 +549,7 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
         </>
       )}
 
+      <ConversationBrowser />
       <Section
         title="event history"
         right={<span className="text-[10px] text-[rgb(var(--text-muted))]">50 records per page · newest first</span>}
