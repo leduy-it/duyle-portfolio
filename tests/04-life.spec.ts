@@ -36,3 +36,16 @@ test('life timeline remains readable on a narrow screen with reduced motion', as
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375)
   await expect(page.locator('img[alt="Black-and-white portrait of Duy holding a leaf"]')).toBeVisible()
 })
+
+test('playing a local story emits a media event without counting another pageview', async ({ page }) => {
+  const actions: { kind?: string; targetId?: string }[] = []
+  await page.addInitScript(() => Object.defineProperty(navigator, 'doNotTrack', { configurable: true, value: '0' }))
+  await page.route('**/api/track', async route => {
+    const body = route.request().postDataJSON()
+    if (body.kind) actions.push({ kind: body.kind, targetId: body.targetId })
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' })
+  })
+  await page.goto('/life')
+  await page.locator('#camera-on video').click()
+  await expect.poll(() => actions.some(action => action.kind === 'life_video_play' && action.targetId === 'camera-on')).toBe(true)
+})

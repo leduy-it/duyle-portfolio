@@ -414,7 +414,7 @@ export function AdminDashboard({ initialSummary, initialEventPage, storageKind }
             <StatCard label="life story views" value={summary.life.storyViews.toLocaleString()} />
             <StatCard label="video plays" value={summary.life.videoPlays.toLocaleString()} />
             <StatCard label="video completions" value={summary.life.videoCompletions.toLocaleString()} />
-            <StatCard label="original post clicks" value={summary.life.sourceClicks.toLocaleString()} />
+            <StatCard label="photo post clicks" value={summary.life.sourceClicks.toLocaleString()} />
           </div>
           <div className="grid lg:grid-cols-2 gap-4 mb-6">
             <Section title="traffic sources · pageviews">
