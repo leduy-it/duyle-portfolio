@@ -65,13 +65,8 @@ export function VisitorTracker() {
       const {targetId,details} = actionTarget(target)
       trackAction('ui_click',targetId,details)
     }
-    const doubleClicked = (event: MouseEvent) => {
-      const target = event.target instanceof Element ? event.target.closest('[data-track]') : null
-      if (target && target.getAttribute('data-track')?.startsWith('pet:')) trackAction('chat_open','pet:double-click-chat')
-    }
     document.addEventListener('click',clicked,true)
-    document.addEventListener('dblclick',doubleClicked,true)
-    return () => { document.removeEventListener('click',clicked,true); document.removeEventListener('dblclick',doubleClicked,true) }
+    return () => { document.removeEventListener('click',clicked,true) }
   },[pathname])
   return null
 }

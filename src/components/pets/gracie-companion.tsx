@@ -4,6 +4,8 @@ import { ChatReplyText, ChatReplyCards } from '@/components/chat/rich-message'
 import { readChatSession, saveChatSession } from '@/lib/chat/session'
 import { CompanionIcon } from './companion-icon'
 import Link from 'next/link'
+import { chatTrackingPayload, trackingHeaders } from '@/lib/tracking/chat-client'
+import { trackAction } from '@/lib/tracking/action-client'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useLocale } from '@/lib/i18n'
@@ -116,6 +118,7 @@ export function GracieCompanion() {
   }, [open, busy, dragPose, visible, prefersReducedMotion])
 
   function fullChat() {
+    trackAction('chat_open','pet:full-chat')
     const latest = !open && !busy ? readChatSession() : null
     const draft = latest?.draft ?? (busy ? pendingText.current : input)
     const history = latest?.messages ?? (busy ? beforeRequest.current : turnsRef.current)
@@ -149,6 +152,7 @@ export function GracieCompanion() {
     }
     lastClick.current = now
     if (!open && !busy) { const latest = readChatSession(); if (latest) { updateTurns(latest.messages); setInput(latest.draft) } }
+    if (!open) trackAction('chat_open','pet:quick-chat')
     setOpen((value) => !value)
     if (!busy) setPose('greeting')
   }
@@ -170,8 +174,8 @@ export function GracieCompanion() {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: chatRequestTurns(history), stream: true }),
+        headers: trackingHeaders(),
+        body: JSON.stringify({ ...chatTrackingPayload(), messages: chatRequestTurns(history), stream: true }),
         signal: controller.current.signal,
       })
       if (!response.ok) throw await chatResponseError(response)
@@ -242,7 +246,7 @@ export function GracieCompanion() {
                 launcher.current?.focus()
               }}
               aria-label={vi ? 'Đóng chat' : 'Close chat'}
-              className="gracie-close"
+              data-track="pet:close-chat" className="gracie-close"
             >
               ×
             </button>
@@ -305,6 +309,7 @@ export function GracieCompanion() {
               {error}
             </p>
           )}
+          <p className="px-4 text-[10px] leading-relaxed opacity-70" data-chat-storage-notice>{vi ? 'Hội thoại được lưu để Duy xem lại. Đừng gửi thông tin nhạy cảm.' : 'Conversations are saved for Michael to review. Please avoid sensitive information.'}</p>
           <form
             className="gracie-form"
             onSubmit={(event) => {
@@ -332,7 +337,7 @@ export function GracieCompanion() {
               placeholder={vi ? 'Nói gì vui vui đi…' : 'Say something interesting…'}
             />
             <button
-              type="submit"
+              data-track="pet:send-chat" type="submit"
               disabled={busy || !input.trim()}
               aria-label={vi ? 'Gửi tin nhắn' : 'Send message'}
             >
@@ -352,7 +357,7 @@ export function GracieCompanion() {
       <div className="gracie-launcher-row">
         <button
           type="button"
-          className="gracie-hide"
+          data-track="pet:hide" className="gracie-hide"
           onClick={() => {
             setOpen(false)
             setVisible(false)
@@ -374,7 +379,7 @@ export function GracieCompanion() {
         <button
           ref={launcher}
           type="button"
-          className="gracie-launcher"
+          data-track="pet:launcher" className="gracie-launcher"
           onClick={activate}
           onPointerDown={(event) => {
             if (event.button !== 0) return

@@ -223,7 +223,7 @@ export function PetWorld() {
               <button type="button" onClick={() => visit("habitat")}>
                 {l("Enter your world", "Vào thế giới của bạn")} <span>↗</span>
               </button>
-              <button type="button" onClick={() => visit("arena")}>
+              <button type="button" data-track="pet:visit-arena" onClick={() => visit("arena")}>
                 {l("Explore Wildwood", "Khám phá Wildwood")} <span>✦</span>
               </button>
             </div>
@@ -477,7 +477,7 @@ export function PetWorld() {
                   </span>
                 </div>
                 <div className="district-gates">
-                  <button onClick={() => visit("hatchery")}>
+                  <button data-track="pet:visit-hatchery" onClick={() => visit("hatchery")}>
                     <span>01 / NURSERY</span>
                     <strong>{l("The greenhouse", "Nhà kính")}</strong>
                     <small>
@@ -485,14 +485,14 @@ export function PetWorld() {
                       ↗
                     </small>
                   </button>
-                  <button onClick={() => visit("factory")}>
+                  <button data-track="pet:visit-factory" onClick={() => visit("factory")}>
                     <span>02 / WORKSHOP</span>
                     <strong>{l("Production floor", "Xưởng sản xuất")}</strong>
                     <small>
                       {l("Your crew is at work", "Đội pet đang làm việc")} ↗
                     </small>
                   </button>
-                  <button onClick={() => visit("arena")}>
+                  <button data-track="pet:visit-arena" onClick={() => visit("arena")}>
                     <span>03 / EXPEDITION</span>
                     <strong>{l("Into the wild", "Ra ngoài phiêu lưu")}</strong>
                     <small>
@@ -847,7 +847,7 @@ export function PetWorld() {
               </p>
               <button
                 type="button"
-                className="pet-button resident-cheer"
+                data-track="pet:cheer" className="pet-button resident-cheer"
                 disabled={locked}
                 onClick={cheer}
               >
