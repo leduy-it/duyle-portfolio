@@ -11,7 +11,7 @@ const RANGES: { key: RangeKey; label: string }[] = [
   { key: '24h', label: 'last 24h' },
   { key: '7d', label: '7 days' },
   { key: '30d', label: '30 days' },
-  { key: 'all', label: 'retained history' },
+  { key: 'all', label: 'all history' },
 ]
 
 function fmtTs(ts: string): string {
@@ -57,7 +57,7 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
   )
 }
 
-function BarChart({ data }: { data: { date: string; views: number; uniques: number }[] }) {
+function BarChart({ data, label = 'pageviews per day', secondaryLabel = 'uniques' }: { data: { date: string; views: number; uniques: number }[]; label?: string; secondaryLabel?: string }) {
   const max = Math.max(1, ...data.map((d) => d.views))
   const w = 720
   const h = 160
@@ -72,7 +72,7 @@ function BarChart({ data }: { data: { date: string; views: number; uniques: numb
       <svg
         viewBox={`0 0 ${w} ${h}`}
         role="img"
-        aria-label="pageviews per day"
+        aria-label={label}
         className="w-full h-40 min-w-[480px]"
       >
         <line
@@ -99,7 +99,7 @@ function BarChart({ data }: { data: { date: string; views: number; uniques: numb
                 opacity={0.85}
                 rx={1.5}
               >
-                <title>{`${d.date} — ${d.views} views, ${d.uniques} uniques`}</title>
+                <title>{`${d.date} — ${d.views} ${label}, ${d.uniques} ${secondaryLabel}`}</title>
               </rect>
             </g>
           )
@@ -130,6 +130,17 @@ function BarChart({ data }: { data: { date: string; views: number; uniques: numb
       </svg>
     </div>
   )
+}
+
+function HorizontalBars({ data }: { data: { label: string; count: number }[] }) {
+  const max = Math.max(1, ...data.map(item => item.count))
+  return <div className="space-y-3 text-xs">
+    {data.length === 0 && <p className="text-[rgb(var(--text-muted))]">No events in this range yet.</p>}
+    {data.map(item => <div key={item.label}>
+      <div className="mb-1 flex justify-between gap-3"><span className="break-all">{item.label}</span><strong>{item.count}</strong></div>
+      <div className="h-2 rounded bg-[rgb(var(--border-muted)/0.35)]"><div className="h-2 rounded bg-[rgb(var(--accent))]" style={{ width: `${100 * item.count / max}%` }} /></div>
+    </div>)}
+  </div>
 }
 
 function Section({
@@ -163,13 +174,13 @@ function Section({
 interface Props {
   storageKind: string
   initialSummary: Summary
-  initialEvents: TrackEvent[]
+  initialEventPage: { events: TrackEvent[]; total: number; page: number; hasNext: boolean; anchor: number }
 }
 
-export function AdminDashboard({ initialSummary, initialEvents, storageKind }: Props) {
+export function AdminDashboard({ initialSummary, initialEventPage, storageKind }: Props) {
   const router = useRouter()
   const [summary, setSummary] = useState<Summary>(initialSummary)
-  const [events, setEvents] = useState<TrackEvent[]>(initialEvents)
+  const [eventPage, setEventPage] = useState(initialEventPage)
   const [range, setRange] = useState<RangeKey>(initialSummary.range)
   const [pathFilter, setPathFilter] = useState(initialSummary.pathContains || '')
   const [loading, setLoading] = useState(false)
@@ -210,6 +221,16 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
     }
   }, [])
 
+  const fetchEventPage = useCallback(async (page: number, anchor?: number) => {
+    try {
+      const res = await fetch(`/api/admin/events?page=${page}${anchor === undefined ? '' : `&anchor=${anchor}`}`, { cache: 'no-store' })
+      if (!res.ok) throw new Error('Could not load event history.')
+      setEventPage(await res.json())
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : 'Could not load event history.')
+    }
+  }, [])
+
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current)
     debounceRef.current = window.setTimeout(() => {
@@ -224,38 +245,14 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
     const id = window.setInterval(async () => {
       if (document.hidden) return
       try {
-        const res = await fetch('/api/admin/events?limit=50', {
-          cache: 'no-store',
-        })
-        if (!res.ok) return
-        const data = (await res.json()) as { events: TrackEvent[] }
-        setEvents(data.events)
+        if (eventPage.page === 1) void fetchEventPage(1)
         void fetchSummary(range, pathFilter)
       } catch {
         /* ignore */
       }
     }, 10_000)
     return () => window.clearInterval(id)
-  }, [fetchSummary, range, pathFilter])
-
-  const onClear = useCallback(async () => {
-    const typed =
-      typeof window !== 'undefined'
-        ? window.prompt('Type "delete" to wipe all tracking data:')
-        : null
-    if (typed !== 'delete') return
-    const res = await fetch('/api/admin/clear', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ confirm: 'delete' }),
-    })
-    if (!res.ok) {
-      setErr('clear failed')
-      return
-    }
-    void fetchSummary(range, pathFilter)
-    setEvents([])
-  }, [fetchSummary, range, pathFilter])
+  }, [fetchSummary, fetchEventPage, eventPage.page, range, pathFilter])
 
   const onLogout = useCallback(async () => {
     await fetch('/api/admin/logout', { method: 'POST' })
@@ -278,7 +275,8 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
 
   const onRefresh = useCallback(() => {
     void fetchSummary(range, pathFilter)
-  }, [fetchSummary, range, pathFilter])
+    void fetchEventPage(eventPage.page, eventPage.page === 1 ? undefined : eventPage.anchor)
+  }, [fetchSummary, fetchEventPage, eventPage.page, eventPage.anchor, range, pathFilter])
 
   const browserCounts = useMemo(() => summary.browsers, [summary.browsers])
   const osCounts = useMemo(() => summary.os, [summary.os])
@@ -293,7 +291,7 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
             <span>tracking</span>
           </h1>
           <p className="text-xs text-[rgb(var(--text-muted))] mt-1">
-            owner-only · {summary.totalEventsAllTime.toLocaleString()} retained events ·{' '}
+            owner-only · {summary.totalEventsAllTime.toLocaleString()} recorded events ·{' '}
             {storageKind}
           </p>
         </div>
@@ -317,14 +315,6 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
           </button>
           <button
             type="button"
-            onClick={onClear}
-            className="rounded-md border px-3 py-1.5 text-xs text-[rgb(var(--terminal-red))] hover:border-[rgb(var(--terminal-red))] transition-colors"
-            style={{ borderColor: 'rgb(var(--border-muted))' }}
-          >
-            clear data
-          </button>
-          <button
-            type="button"
             onClick={onLogout}
             className="rounded-md border px-3 py-1.5 text-xs hover:border-[rgb(var(--accent))] transition-colors"
             style={{ borderColor: 'rgb(var(--border-muted))' }}
@@ -335,7 +325,7 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
       </header>
 
       <p className="mb-5 text-[11px] leading-relaxed text-[rgb(var(--text-muted))]">
-        Last 90 days, up to 10,000 events. Daily charts use UTC. Countries are approximate; direct
+        Recorded events are kept without an automatic age or count limit. Daily charts use UTC. Countries are approximate; direct
         traffic has no referrer header. Visitors are estimates based on a hashed network address and
         browser signature: shared networks can merge people, and changing networks can split them.
         Owner visits are excluded when “log my own visits” is off. DNT and detected bots are excluded.
@@ -343,7 +333,7 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
       </p>
       <div className="mb-6 rounded-lg border border-[rgb(var(--border))] p-4 text-xs leading-6">
         <strong>Recorded history starts: {insights.firstRecorded ? fmtTs(insights.firstRecorded) : 'Waiting for first visit'}</strong>
-        <p>Earlier visits were not collected. This is retained history, not lifetime traffic.</p>
+        <p>Earlier visits were not collected. This is recorded history, not lifetime traffic.</p>
         <p>Latest recorded visit: {insights.lastRecorded ? fmtTs(insights.lastRecorded) : '—'} · totals refresh every 10 seconds.</p>
       </div>
       <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -419,6 +409,33 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
               <BarChart data={summary.perDay} />
             </Section>
           </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <StatCard label="life story views" value={summary.life.storyViews.toLocaleString()} />
+            <StatCard label="video plays" value={summary.life.videoPlays.toLocaleString()} />
+            <StatCard label="video completions" value={summary.life.videoCompletions.toLocaleString()} />
+            <StatCard label="original post clicks" value={summary.life.sourceClicks.toLocaleString()} />
+          </div>
+          <div className="grid lg:grid-cols-2 gap-4 mb-6">
+            <Section title="traffic sources · pageviews">
+              <HorizontalBars data={summary.socialSources} />
+            </Section>
+            <Section title="life content · engagement">
+              <HorizontalBars data={summary.life.topContent.map(item => ({ label: item.id, count: item.views + item.plays }))} />
+            </Section>
+          </div>
+          <div className="mb-6">
+            <Section title="life content activity per day">
+              <BarChart data={summary.life.perDay.map(day => ({ date: day.date, views: day.views + day.plays, uniques: day.completions }))} label="life actions" secondaryLabel="video completions" />
+              <p className="mt-1 text-[11px] text-[rgb(var(--text-muted))]">Bars show story views plus video plays; video completions are listed above.</p>
+            </Section>
+          </div>
+          <Section title="share links · tagged campaigns">
+            <div className="grid gap-2 text-xs sm:grid-cols-3">
+              {(['instagram', 'facebook', 'linkedin'] as const).map(source => <a key={source} className="break-all underline text-[rgb(var(--accent))]" href={`/life?utm_source=${source}&utm_medium=social&utm_campaign=life`} target="_blank" rel="noopener noreferrer">/life · {source} ↗</a>)}
+            </div>
+            <p className="mt-2 text-[11px] text-[rgb(var(--text-muted))]">Copy the destination URL for each network. Source totals use these tags when present, otherwise the browser referrer.</p>
+          </Section>
 
           <div className="grid lg:grid-cols-2 gap-4 mb-6">
             <Section title="top pages">
@@ -517,8 +534,8 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
       )}
 
       <Section
-        title="live activity"
-        right={<span className="text-[10px] text-[rgb(var(--text-muted))]">refresh · 10s</span>}
+        title="event history"
+        right={<span className="text-[10px] text-[rgb(var(--text-muted))]">50 records per page · newest first</span>}
       >
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -526,6 +543,7 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
               <tr>
                 <th className="text-left font-normal py-1 pr-3">time</th>
                 <th className="text-left font-normal py-1 pr-3">path</th>
+                <th className="text-left font-normal py-1 pr-3">event / content</th>
                 <th className="text-left font-normal py-1 pr-3">visitor</th>
                 <th className="text-left font-normal py-1 pr-3">geo</th>
                 <th className="text-left font-normal py-1 pr-3">browser</th>
@@ -533,14 +551,14 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
               </tr>
             </thead>
             <tbody>
-              {events.length === 0 && (
+              {eventPage.events.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-4 text-[rgb(var(--text-muted))]">
-                    waiting for visitors…
+                  <td colSpan={7} className="text-center py-4 text-[rgb(var(--text-muted))]">
+                    no records on this page
                   </td>
                 </tr>
               )}
-              {events.map((e, i) => {
+              {eventPage.events.map((e, i) => {
                 const ua = parseUA(e.userAgent)
                 return (
                   <tr
@@ -554,6 +572,7 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
                     <td className="py-1.5 pr-3 truncate max-w-[200px]" title={e.path}>
                       {e.path}
                     </td>
+                    <td className="py-1.5 pr-3 whitespace-nowrap">{e.kind || 'pageview'}{e.targetId ? ` · ${e.targetId}` : ''}</td>
                     <td className="py-1.5 pr-3 font-mono text-[rgb(var(--text-muted))]">
                       {e.visitorId.slice(0, 8)}
                     </td>
@@ -574,6 +593,13 @@ export function AdminDashboard({ initialSummary, initialEvents, storageKind }: P
               })}
             </tbody>
           </table>
+        </div>
+        <div className="mt-4 flex items-center justify-between text-xs">
+          <span>Page {eventPage.page} · {eventPage.total.toLocaleString()} total records</span>
+          <div className="flex gap-2">
+            <button type="button" disabled={eventPage.page <= 1} onClick={() => void fetchEventPage(eventPage.page - 1, eventPage.anchor)} className="rounded border px-3 py-1.5 disabled:opacity-40" style={{ borderColor: 'rgb(var(--border-muted))' }}>Previous</button>
+            <button type="button" disabled={!eventPage.hasNext} onClick={() => void fetchEventPage(eventPage.page + 1, eventPage.anchor)} className="rounded border px-3 py-1.5 disabled:opacity-40" style={{ borderColor: 'rgb(var(--border-muted))' }}>Next</button>
+          </div>
         </div>
       </Section>
     </div>

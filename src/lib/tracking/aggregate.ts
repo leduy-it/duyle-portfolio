@@ -25,6 +25,15 @@ export interface Summary {
   countries: { country: string; count: number }[]
   browsers: { browser: string; count: number }[]
   os: { os: string; count: number }[]
+  socialSources: { label: string; count: number }[]
+  life: {
+    storyViews: number
+    videoPlays: number
+    videoCompletions: number
+    sourceClicks: number
+    perDay: { date: string; views: number; plays: number; completions: number }[]
+    topContent: { id: string; views: number; plays: number; completions: number; clicks: number }[]
+  }
   range: RangeKey
   pathContains: string | null
   totalEventsAllTime: number
@@ -59,6 +68,15 @@ function refHost(ref: string | null): string {
   }
 }
 
+function trafficSource(e: TrackEvent): string {
+  if (e.source) return e.source.toLowerCase()
+  const host = refHost(e.referrer)
+  if (/instagram\.com$/.test(host)) return 'instagram'
+  if (/facebook\.com$/.test(host) || host === 'fb.com' || host === 'm.facebook.com') return 'facebook'
+  if (/linkedin\.com$/.test(host) || host === 'lnkd.in') return 'linkedin'
+  return host === '(direct)' ? 'direct / untagged' : host
+}
+
 function topN<T extends { count: number }>(arr: T[], n: number): T[] {
   return [...arr].sort((a, b) => b.count - a.count).slice(0, n)
 }
@@ -79,13 +97,34 @@ export async function buildSummary(opts: { range: RangeKey; pathContains?: strin
   const startMs = rangeStart(range)
   const now = Date.now()
 
-  const filtered: TrackEvent[] = []
+  const selected: TrackEvent[] = []
   for (const e of all) {
     const t = Date.parse(e.ts)
     if (!Number.isFinite(t)) continue
     if (t < startMs) continue
     if (pathContains && !e.path.toLowerCase().includes(pathContains.toLowerCase())) continue
-    filtered.push(e)
+    selected.push(e)
+  }
+  const filtered = selected.filter(e => !e.kind || e.kind === 'pageview')
+  const actions = selected.filter(e => e.kind && e.kind !== 'pageview')
+
+  const content = new Map<string, { views: number; plays: number; completions: number; clicks: number }>()
+  const lifeDays = new Map<string, { views: number; plays: number; completions: number }>()
+  for (const e of actions) {
+    if (!e.targetId) continue
+    const item = content.get(e.targetId) || { views: 0, plays: 0, completions: 0, clicks: 0 }
+    const day = lifeDays.get(dayKey(e.ts)) || { views: 0, plays: 0, completions: 0 }
+    if (e.kind === 'life_story_view') { item.views++; day.views++ }
+    if (e.kind === 'life_video_play') { item.plays++; day.plays++ }
+    if (e.kind === 'life_video_complete') { item.completions++; day.completions++ }
+    if (e.kind === 'life_source_click') item.clicks++
+    content.set(e.targetId, item)
+    lifeDays.set(dayKey(e.ts), day)
+  }
+  const sourceMap = new Map<string, number>()
+  for (const e of filtered) {
+    const source = trafficSource(e)
+    sourceMap.set(source, (sourceMap.get(source) || 0) + 1)
   }
 
   const todayKey = new Date().toISOString().slice(0, 10)
@@ -215,20 +254,17 @@ export async function buildSummary(opts: { range: RangeKey; pathContains?: strin
     countries,
     browsers,
     os,
+    socialSources: topN([...sourceMap].map(([label, count]) => ({ label, count })), 12),
+    life: {
+      storyViews: actions.filter(e => e.kind === 'life_story_view').length,
+      videoPlays: actions.filter(e => e.kind === 'life_video_play').length,
+      videoCompletions: actions.filter(e => e.kind === 'life_video_complete').length,
+      sourceClicks: actions.filter(e => e.kind === 'life_source_click').length,
+      perDay: [...lifeDays].sort(([a], [b]) => a.localeCompare(b)).map(([date, counts]) => ({ date, ...counts })),
+      topContent: [...content].map(([id, counts]) => ({ id, ...counts })).sort((a, b) => b.views + b.plays - a.views - a.plays).slice(0, 25),
+    },
     range,
     pathContains: pathContains || null,
     totalEventsAllTime: all.length,
   }
-}
-
-export async function recentEvents(limit: number, before?: string | null): Promise<TrackEvent[]> {
-  const all = await readActiveEvents()
-  let pool = all
-  if (before) {
-    const beforeMs = Date.parse(before)
-    if (Number.isFinite(beforeMs)) {
-      pool = all.filter((e) => Date.parse(e.ts) < beforeMs)
-    }
-  }
-  return pool.slice(-limit).reverse()
 }

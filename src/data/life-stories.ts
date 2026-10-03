@@ -18,9 +18,12 @@ export const lifeStories: LifeStory[] = [
     id: 'camera-on',
     date: '2026-10-03',
     displayDate: '03 OCT 2026',
-    kind: 'external-video',
+    kind: 'video',
     source: 'Facebook',
     sourceUrl: 'https://www.facebook.com/stories/2285337778144852/UzpfSVNDOjEwODA0NTQwMjQ4ODI2MTU=?view_single=false',
+    image: '/images/life/facebook-camera-2026.jpg',
+    imageAlt: 'Duy speaking to camera at his desk',
+    video: '/videos/life/facebook-camera-2026.mp4',
     title: { en: 'Camera on, one take', vi: 'Bật máy quay, nói một lần' },
     summary: {
       en: 'A small experiment in talking to the camera, shared as a public Facebook Story.',
@@ -71,5 +74,68 @@ export const lifeStories: LifeStory[] = [
       en: 'A moment beside the water, with mountains beyond the shore.',
       vi: 'Một khoảnh khắc bên mặt nước, với núi ở phía xa.',
     },
+  },
+]
+
+export type LifeHighlight = {
+  id: string
+  date: string
+  source: 'Facebook' | 'Instagram'
+  sourceUrl: string
+  video: string
+  poster: string
+  title: { en: string; vi: string }
+}
+
+/** Short videos saved locally with their original audio tracks. */
+export const lifeHighlights: LifeHighlight[] = [
+  {
+    id: 'fb-camera-2026', date: '2026-10-03', source: 'Facebook',
+    sourceUrl: lifeStories[0].sourceUrl,
+    video: '/videos/life/facebook-camera-2026.mp4',
+    poster: '/images/life/facebook-camera-2026.jpg',
+    title: { en: 'Camera on', vi: 'Bật máy quay' },
+  },
+  {
+    id: 'ig-sunset-2023', date: '2023-08-08', source: 'Instagram',
+    sourceUrl: 'https://www.instagram.com/stories/highlights/18053458963681358/',
+    video: '/videos/life/instagram-sunset-2023.mp4',
+    poster: '/images/life/instagram-sunset-2023.jpg',
+    title: { en: 'Come home', vi: 'Trở về' },
+  },
+  {
+    id: 'ig-film-2023', date: '2023-04-18', source: 'Instagram',
+    sourceUrl: 'https://www.instagram.com/stories/highlights/17997459247819270/',
+    video: '/videos/life/instagram-film-2023.mp4',
+    poster: '/images/life/instagram-film-2023.jpg',
+    title: { en: 'Behind the camera', vi: 'Sau ống kính' },
+  },
+  {
+    id: 'ig-camera-2023', date: '2023-04-15', source: 'Instagram',
+    sourceUrl: 'https://www.instagram.com/stories/highlights/17997459247819270/',
+    video: '/videos/life/instagram-camera-2023.mp4',
+    poster: '/images/life/instagram-camera-2023.jpg',
+    title: { en: 'Through the lens', vi: 'Qua ống kính' },
+  },
+  {
+    id: 'ig-desk-2023', date: '2023-03-17', source: 'Instagram',
+    sourceUrl: 'https://www.instagram.com/stories/highlights/17963331088933710/',
+    video: '/videos/life/instagram-desk-2023.mp4',
+    poster: '/images/life/instagram-desk-2023.jpg',
+    title: { en: 'End of the day', vi: 'Cuối ngày' },
+  },
+  {
+    id: 'ig-architecture-2023', date: '2023-01-07', source: 'Instagram',
+    sourceUrl: 'https://www.instagram.com/stories/highlights/17988188236725595/',
+    video: '/videos/life/instagram-architecture-2023.mp4',
+    poster: '/images/life/instagram-architecture-2023.jpg',
+    title: { en: 'Look up', vi: 'Nhìn lên' },
+  },
+  {
+    id: 'ig-city-2022', date: '2022-12-13', source: 'Instagram',
+    sourceUrl: 'https://www.instagram.com/stories/highlights/17988188236725595/',
+    video: '/videos/life/instagram-city-2022.mp4',
+    poster: '/images/life/instagram-city-2022.jpg',
+    title: { en: 'A view of the city', vi: 'Một góc thành phố' },
   },
 ]

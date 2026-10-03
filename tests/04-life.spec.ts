@@ -15,9 +15,12 @@ test('life timeline is separate from research and links to original posts', asyn
   await expect(page.getByText('03 JUL 2022')).toBeVisible()
   await expect(page.getByText('22 MAR 2021')).toBeVisible()
   await expect(page.getByText('03 FEB 2021')).toBeVisible()
-  await expect(page.locator('a[href*="facebook.com/stories/"]').first()).toBeVisible()
+  await expect(page.locator('a[href*="facebook.com/stories/"]')).toHaveCount(0)
   await expect(page.locator('a[href*="instagram.com/leduy.py/p/"]')).toHaveCount(3)
   await expect(page.locator('img[alt*="Duy"]')).toHaveCount(5)
+  await expect(page.locator('#camera-on video[src="/videos/life/facebook-camera-2026.mp4"]')).toHaveCount(1)
+  await expect(page.locator('[data-highlight]')).toHaveCount(7)
+  await expect(page.locator('[data-highlight] video')).toHaveCount(7)
 
   await page.locator('#desk-evening').scrollIntoViewIfNeeded()
   await expect.poll(() => page.locator('#desk-evening img[alt*="Duy"]').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)

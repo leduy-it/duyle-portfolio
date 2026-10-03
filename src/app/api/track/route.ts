@@ -4,6 +4,7 @@ import { sameOrigin } from '@/lib/server/redis'
 import { isBotUA } from '@/lib/tracking/bot-filter'
 import { appendEvent, getSalt, hashIdentity, rateLimitOk, TrackEvent } from '@/lib/tracking/store'
 import { isAdminRequest } from '@/lib/tracking/admin-auth'
+import { lifeHighlights, lifeStories } from '@/data/life-stories'
 
 export const runtime = 'nodejs'
 
@@ -11,6 +12,8 @@ const SESSION_COOKIE = 'pf_sid'
 const SESSION_TTL = 60 * 30
 
 interface IncomingPing {
+  kind?: unknown
+  targetId?: unknown
   path?: unknown
   referrer?: unknown
   screenWidth?: unknown
@@ -21,6 +24,9 @@ interface IncomingPing {
   campaign?: unknown
   ts?: unknown
 }
+
+const lifeIds = new Set([...lifeStories, ...lifeHighlights].map(item => item.id))
+const lifeActions = new Set(['life_story_view', 'life_video_play', 'life_video_complete', 'life_source_click'])
 
 function clientIp(req: NextRequest): string {
   const fwd = req.headers.get('x-forwarded-for')
@@ -78,6 +84,11 @@ export async function POST(req: NextRequest) {
 
     const path = safePath(body.path)
     if (!path) return NextResponse.json({ error: 'bad path' }, { status: 400 })
+    const kind = body.kind == null || body.kind === 'pageview' ? 'pageview' : body.kind
+    if (typeof kind !== 'string' || (kind !== 'pageview' && !lifeActions.has(kind)))
+      return NextResponse.json({ error: 'bad event kind' }, { status: 400 })
+    if (kind !== 'pageview' && (path !== '/life' || typeof body.targetId !== 'string' || !lifeIds.has(body.targetId)))
+      return NextResponse.json({ error: 'bad event target' }, { status: 400 })
 
     let referrer: string | null = null
     try {
@@ -115,6 +126,8 @@ export async function POST(req: NextRequest) {
     const campaignTag = (value: unknown) => typeof value === 'string'
       ? value.replace(/[^a-zA-Z0-9_. -]/g, '').slice(0, 80) || null : null
     const evt: TrackEvent = {
+      kind: kind as TrackEvent['kind'],
+      targetId: kind === 'pageview' ? null : body.targetId as string,
       city: geo('x-vercel-ip-city'),
       region: geo('x-vercel-ip-country-region'),
       timezone: geo('x-vercel-ip-timezone'),

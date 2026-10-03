@@ -3,8 +3,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { useRef } from 'react'
-import { lifeStories, type LifeStory } from '@/data/life-stories'
+import { useEffect, useRef } from 'react'
+import { lifeHighlights, lifeStories, type LifeHighlight, type LifeStory } from '@/data/life-stories'
+import { trackLifeAction } from '@/lib/tracking/life-client'
 import { useLocale } from '@/lib/i18n'
 import styles from './life-page.module.css'
 
@@ -19,7 +20,11 @@ const words = {
     indexBody: 'Photos and short moments, newest first. The original posts are always one click away.',
     watch: 'Watch on Facebook',
     source: 'Open original post',
-    storyNote: 'Facebook Stories are temporary. The link may expire.',
+    storyNote: 'Saved here with its original sound.',
+    highlights: 'THE HIGHLIGHTS',
+    highlightsTitle: 'A few moments that stayed.',
+    highlightsBody: 'Short videos from Facebook and Instagram, saved here with their original sound. Swipe to explore.',
+    sound: 'Sound on',
     social: 'More in the moment',
     socialBody: 'Follow along where the days happen first.',
     back: 'Back to the portfolio',
@@ -35,7 +40,11 @@ const words = {
     indexBody: 'Ảnh và khoảnh khắc ngắn, mới nhất ở trên. Mỗi bài đều dẫn về bài đăng gốc.',
     watch: 'Xem trên Facebook',
     source: 'Mở bài đăng gốc',
-    storyNote: 'Facebook Story chỉ hiển thị tạm thời. Liên kết có thể hết hạn.',
+    storyNote: 'Đã lưu ở đây cùng âm thanh gốc.',
+    highlights: 'HIGHLIGHT',
+    highlightsTitle: 'Vài khoảnh khắc còn ở lại.',
+    highlightsBody: 'Video ngắn từ Facebook và Instagram, lưu cùng âm thanh gốc. Vuốt để xem tiếp.',
+    sound: 'Bật tiếng',
     social: 'Theo dõi những ngày tiếp theo',
     socialBody: 'Gặp nhau ở nơi những khoảnh khắc xuất hiện đầu tiên.',
     back: 'Về trang portfolio',
@@ -56,9 +65,10 @@ function SlicedMedia({ story }: { story: LifeStory }) {
 
   return (
     <div ref={ref} className={styles.photoStage}>
+      <div className={styles.photoBackdrop} style={{ backgroundImage: `url(${story.image})` }} aria-hidden="true" />
       <div className={styles.photoFull}>
         {story.kind === 'video' && story.video ? (
-          <video className={styles.localVideo} src={story.video} poster={story.image} controls playsInline preload="metadata" aria-label={story.imageAlt} />
+          <video className={styles.localVideo} src={story.video} poster={story.image} controls playsInline preload="metadata" aria-label={story.imageAlt} onPlay={() => trackLifeAction('life_video_play', story.id)} onEnded={() => trackLifeAction('life_video_complete', story.id)} />
         ) : (
           <Image src={story.image} alt={story.imageAlt} fill sizes="(max-width: 780px) 100vw, 58vw" />
         )}
@@ -80,8 +90,21 @@ function SlicedMedia({ story }: { story: LifeStory }) {
 
 function StoryRow({ story, index, locale }: { story: LifeStory; index: number; locale: 'en' | 'vi' }) {
   const copy = words[locale]
+  const rowRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const node = rowRef.current
+    if (!node) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        trackLifeAction('life_story_view', story.id)
+        observer.disconnect()
+      }
+    }, { threshold: 0.35 })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [story.id])
   return (
-    <article className={styles.storyRow} data-life-entry id={story.id}>
+    <article ref={rowRef} className={styles.storyRow} data-life-entry id={story.id}>
       <div className={styles.railCell}>
         <span className={styles.railNumber}>{String(index + 1).padStart(2, '0')}</span>
         <span className={styles.railDot} aria-hidden="true" />
@@ -103,11 +126,30 @@ function StoryRow({ story, index, locale }: { story: LifeStory; index: number; l
           </a>
         )}
         <div className={styles.storyFooter}>
-          <a href={story.sourceUrl} target="_blank" rel="noopener noreferrer">
-            {story.kind === 'external-video' ? copy.watch : copy.source} <span aria-hidden="true">↗</span>
-          </a>
+          {story.kind === 'video' ? <small>{copy.storyNote}</small> : (
+            <a href={story.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackLifeAction('life_source_click', story.id)}>
+              {story.kind === 'external-video' ? copy.watch : copy.source} <span aria-hidden="true">↗</span>
+            </a>
+          )}
           {story.kind === 'external-video' && <small>{copy.storyNote}</small>}
         </div>
+      </div>
+    </article>
+  )
+}
+
+function HighlightCard({ item, locale }: { item: LifeHighlight; locale: 'en' | 'vi' }) {
+  return (
+    <article className={styles.highlightCard} data-highlight id={item.id}>
+      <div className={styles.highlightMedia}>
+        <video src={item.video} poster={item.poster} controls playsInline preload="none"
+          aria-label={`${item.title[locale]} — ${item.source}`}
+          onPlay={() => trackLifeAction('life_video_play', item.id)}
+          onEnded={() => trackLifeAction('life_video_complete', item.id)} />
+      </div>
+      <div className={styles.highlightInfo}>
+        <span>{item.source} / {item.date}</span>
+        <h3>{item.title[locale]}</h3>
       </div>
     </article>
   )
@@ -120,6 +162,7 @@ export function LifePage() {
   return (
     <div className={styles.lifePage}>
       <section className={styles.hero} aria-labelledby="life-title">
+        <div className={styles.heroBackdrop} aria-hidden="true" />
         <div className={styles.heroImage}>
           <Image src="/images/life/instagram-leaf-portrait-2021.jpg" alt="Duy holding a leaf in a black-and-white portrait" fill priority sizes="(max-width: 780px) 100vw, 50vw" />
         </div>
@@ -141,6 +184,18 @@ export function LifePage() {
         </div>
         <div className={styles.timeline}>
           {lifeStories.map((story, index) => <StoryRow story={story} index={index} locale={locale} key={story.id} />)}
+        </div>
+      </section>
+
+      <section className={styles.highlightsSection} aria-labelledby="highlights-title">
+        <div className={styles.highlightsIntro}>
+          <p className={styles.eyebrow}>{copy.highlights}</p>
+          <h2 id="highlights-title">{copy.highlightsTitle}</h2>
+          <p>{copy.highlightsBody}</p>
+          <span className={styles.soundLabel}>♫ {copy.sound}</span>
+        </div>
+        <div className={styles.highlightTrack}>
+          {lifeHighlights.map(item => <HighlightCard item={item} locale={locale} key={item.id} />)}
         </div>
       </section>
 

@@ -4,8 +4,6 @@ import crypto from 'node:crypto'
 import { redisConfigured, redisCommand, allowRequest } from '@/lib/server/redis'
 
 const REDIS_KEY = `duyportfolio:${process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'}:tracking:v1`
-const RETENTION_DAYS = 90
-export const MAX_RETAINED_EVENTS = 10_000
 export function trackingStorageKind() {
   return redisConfigured()
     ? 'redis'
@@ -24,6 +22,8 @@ const SALT_FILE = path.join(DATA_DIR, '.salt')
 const MAX_FILE_BYTES = 50 * 1024 * 1024
 
 export interface TrackEvent {
+  kind?: 'pageview' | 'life_story_view' | 'life_video_play' | 'life_video_complete' | 'life_source_click'
+  targetId?: string | null
   ts: string
   path: string
   referrer: string | null
@@ -99,12 +99,10 @@ export async function appendEvent(evt: TrackEvent): Promise<void> {
   if (redisConfigured()) {
     await redisCommand([
       'EVAL',
-      "redis.call('RPUSH',KEYS[1],ARGV[1]); redis.call('LTRIM',KEYS[1],-tonumber(ARGV[2]),-1); redis.call('EXPIRE',KEYS[1],ARGV[3]); return 1",
+      "redis.call('RPUSH',KEYS[1],ARGV[1]); redis.call('PERSIST',KEYS[1]); return 1",
       1,
       REDIS_KEY,
       JSON.stringify(evt),
-      MAX_RETAINED_EVENTS,
-      RETENTION_DAYS * 86400,
     ])
     return
   }
@@ -116,23 +114,22 @@ export async function appendEvent(evt: TrackEvent): Promise<void> {
 export async function readActiveEvents(): Promise<TrackEvent[]> {
   requireDurableInProduction()
   let lines: string[]
-  if (redisConfigured()) lines = await redisCommand<string[]>(['LRANGE', REDIS_KEY, 0, -1])
-  else {
-    try {
-      lines = (await fs.readFile(ACTIVE_FILE, 'utf8')).split('\n')
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
-      throw error
-    }
+  if (redisConfigured()) {
+    await redisCommand(['PERSIST', REDIS_KEY])
+    lines = await redisCommand<string[]>(['LRANGE', REDIS_KEY, 0, -1])
   }
-  const cutoff = Date.now() - RETENTION_DAYS * 86400_000
+  else {
+    await ensureDir()
+    const files = (await fs.readdir(DATA_DIR)).filter(name => name === 'tracking.jsonl' || /^tracking-.*\.jsonl$/.test(name)).sort()
+    lines = (await Promise.all(files.map(name => fs.readFile(path.join(DATA_DIR, name), 'utf8')))).flatMap(content => content.split('\n'))
+  }
   const events: TrackEvent[] = []
   for (const line of lines) {
     try {
       const e = JSON.parse(line)
       if (
         typeof e.ts === 'string' &&
-        Date.parse(e.ts) >= cutoff &&
+        Number.isFinite(Date.parse(e.ts)) &&
         typeof e.path === 'string' &&
         typeof e.visitorId === 'string' &&
         typeof e.sessionId === 'string'
@@ -145,29 +142,26 @@ export async function readActiveEvents(): Promise<TrackEvent[]> {
   return events.sort((a, b) => a.ts.localeCompare(b.ts))
 }
 
-export async function clearActive(): Promise<void> {
+export async function readEventPage(page: number, pageSize = 50, anchor?: number): Promise<{ events: TrackEvent[]; total: number; page: number; hasNext: boolean; anchor: number }> {
   requireDurableInProduction()
+  const safePage = Math.max(1, Math.floor(page))
+  const safeSize = Math.min(50, Math.max(1, Math.floor(pageSize)))
   if (redisConfigured()) {
-    await redisCommand([
-      'EVAL',
-      "if redis.call('EXISTS',KEYS[1])==1 then redis.call('RENAME',KEYS[1],KEYS[2]); redis.call('EXPIRE',KEYS[2],604800) end; return 1",
-      2,
-      REDIS_KEY,
-      `${REDIS_KEY}:archive:${Date.now()}`,
-    ])
-    return
+    await redisCommand(['PERSIST', REDIS_KEY])
+    const total = Number(await redisCommand<number>(['LLEN', REDIS_KEY]))
+    const snapshotTotal = anchor === undefined ? total : Math.min(total, Math.max(0, Math.floor(anchor)))
+    const newestOffset = (safePage - 1) * safeSize
+    if (newestOffset >= snapshotTotal) return { events: [], total: snapshotTotal, page: safePage, hasNext: false, anchor: snapshotTotal }
+    const start = Math.max(0, snapshotTotal - newestOffset - safeSize)
+    const end = snapshotTotal - newestOffset - 1
+    const raw = await redisCommand<string[]>(['LRANGE', REDIS_KEY, start, end])
+    const events = raw.flatMap(line => { try { return [JSON.parse(line) as TrackEvent] } catch { return [] } }).reverse()
+    return { events, total: snapshotTotal, page: safePage, hasNext: newestOffset + safeSize < snapshotTotal, anchor: snapshotTotal }
   }
-  await ensureDir()
-  try {
-    const stat = await fs.stat(ACTIVE_FILE)
-    if (stat.size > 0) {
-      const stamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '-').slice(0, 19)
-      await fs.rename(ACTIVE_FILE, path.join(DATA_DIR, `tracking-${stamp}.jsonl`))
-    }
-  } catch {
-    /* nothing to clear */
-  }
-  await fs.writeFile(ACTIVE_FILE, '', 'utf8')
+  const all = await readActiveEvents()
+  const total = anchor === undefined ? all.length : Math.min(all.length, Math.max(0, Math.floor(anchor)))
+  const newestOffset = (safePage - 1) * safeSize
+  return { events: all.slice(Math.max(0, total - newestOffset - safeSize), total - newestOffset).reverse(), total, page: safePage, hasNext: newestOffset + safeSize < total, anchor: total }
 }
 
 export async function rateLimitOk(visitorId: string) {

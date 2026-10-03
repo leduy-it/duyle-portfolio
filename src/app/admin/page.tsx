@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { isAdminRequest } from '@/lib/tracking/admin-auth'
-import { buildSummary, recentEvents } from '@/lib/tracking/aggregate'
+import { buildSummary } from '@/lib/tracking/aggregate'
 import { AdminDashboard } from './dashboard'
-import { trackingStorageKind } from '@/lib/tracking/store'
+import { readEventPage, trackingStorageKind } from '@/lib/tracking/store'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -18,7 +18,7 @@ export default async function AdminPage() {
   if (!(await isAdminRequest())) {
     notFound()
   }
-  const result = await Promise.all([buildSummary({ range: '7d' }), recentEvents(50)]).catch(
+  const result = await Promise.all([buildSummary({ range: '7d' }), readEventPage(1, 50)]).catch(
     () => null
   )
   if (!result) {
@@ -42,7 +42,7 @@ export default async function AdminPage() {
   return (
     <AdminDashboard
       initialSummary={result[0]}
-      initialEvents={result[1]}
+      initialEventPage={result[1]}
       storageKind={trackingStorageKind()}
     />
   )
