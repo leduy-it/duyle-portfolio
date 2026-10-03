@@ -1,7 +1,7 @@
 'use client'
 
 import {useEffect,useRef,useState} from 'react'
-import {useReducedMotion} from 'motion/react'
+import {useHomeMotionPreferences} from '@/components/home/home-motion'
 import {useTheme} from 'next-themes'
 import * as THREE from 'three'
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js'
@@ -15,7 +15,7 @@ export default function ThreeCover({cinema=false,variant=0,jupiter=false,paused=
   const ref=useRef<HTMLCanvasElement>(null)
   const pausedRef=useRef(paused)
   useEffect(()=>{pausedRef.current=paused},[paused])
-  const reduced=useReducedMotion()
+  const {prefersReducedMotion:reduced}=useHomeMotionPreferences()
   const {resolvedTheme}=useTheme()
   const [ready,setReady]=useState(false)
   useEffect(()=>{
