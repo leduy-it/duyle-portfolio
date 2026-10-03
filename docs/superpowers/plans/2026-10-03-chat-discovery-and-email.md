@@ -18,7 +18,7 @@
   Files: `src/lib/chat/session.ts`, terminal and companion components, `tests/05-chat-discovery.spec.ts`.
 - [x] T5 — Replace pet toggle/hide symbols with a polished shared icon, preserve visibility preference and keyboard labels. Verify desktop/mobile and disabled-motion behavior.
   Files: `src/components/pets/companion-icon.tsx`, `companion-toggle.tsx`, `gracie-companion.tsx`, `gracie.css`.
-- [ ] T6 — Fix production email delivery. Confirm provider configuration, use free provider only, keep recipient fixed, preserve draft on failure, distinguish provider acceptance from delivery. Add a read-only delivery-capability response so an unconfigured deployment does not present a broken Send button. Production currently lacks `RESEND_API_KEY` and `CONTACT_FROM_EMAIL`; configuration choice and one test-email authorization are pending.
+- [ ] T6 — Fix production email delivery. Confirm provider configuration, use free provider only, keep recipient fixed, preserve draft on failure, distinguish provider acceptance from delivery. Add a read-only delivery-capability response so an unconfigured deployment does not present a broken Send button. Production currently lacks `RESEND_API_KEY` and `CONTACT_FROM_EMAIL`; a verified sender account and private provider key are pending; the owner has authorized the delivery fix and test.
   Files: `src/app/api/contact/route.ts`, terminal compose UI, `.env.example`, `tests/contact.test.ts`.
 - [x] T7 — Review changed paths; run meaningful unit/browser tests, typecheck/lint/build. Check public site behavior after deployment if requested. Record exact completed/pending tasks and evidence below.
 
@@ -71,3 +71,74 @@
 2. Run npm run chat:index; unchanged documents reuse existing vectors. Never commit an API key. Any changed document not reindexed automatically falls back to lexical evidence until its hash matches.
 3. Run npm test, relevant Playwright cases, typecheck/lint/build, then deploy to the linked portfolio-leduy project and verify leduy.vercel.app.
 4. Append newly requested improvements here with acceptance checks, status and real verification evidence. T6 remains open until a provider is configured and its live send is explicitly authorized; mail-app fallback is already available.
+
+## Follow-up requirements (2026-10-03)
+
+- [x] T15 — English identity uses Michael Le; Vietnamese uses Duy. Preserve legal names, URLs and source captions. Update chatbot alias/language instructions and English UI.
+- [x] T16 — Mature restrained motion: remove home scanning line and pointer drift; avoid stacked entrances and perpetual glow. Respect reduced motion and foreground visibility.
+- [x] T17 — Cinema and Research showcase actual multiple catalog entries, advance every 30 foreground seconds, with manual previous/next and pause controls; pause on hover/focus/hidden/offscreen. Share accessible carousel logic and remove unused decorative WebGL heroes. Verify navigation/mobile/reduced-motion/timing.
+- [x] T18 — Web-grounded chat using existing Jina free token allowance, no paid search plugin or subscription. Search for general/current/explicit lookup questions, preserve owner RAG, bound quota/cache/timeout, render verified citation links in both chat surfaces, disclose unavailable search honestly.
+- [ ] T19 — Add requested Facebook HUST portrait/first-year caption, hackathon laptop story and additional reachable owned posts to Life and chat knowledge. Store media locally with dates and provenance; no guessing or restricted unrelated content. Record exact access blockers.
+- [x] T20 — Reindex changed public knowledge, run relevant checks, deploy and verify stable alias. T6 remains open for email provider configuration.
+
+### Source acquisition follow-up
+
+- Telegram @leduyAI public avatar downloaded to public/images/profile/telegram-leduyai-2026.jpg (320x320), immutable snapshot. Public display name Le Duy.
+- Requested Facebook HUST photo fbid1892719761129975:29Oct2023,1536x2048; playful first-year caption, not education proof. Friends audience unchanged; owner specifically requested publication here.
+- Facebook black-shirt MacBook portrait fbid1823820731353212:30Jun2023, downloaded. This is an end-of-semester post, NOT verified as the October hackathon story.
+- All14 currently visible highlight cards inspected: Báo8, #myday5, ##myluv1. Inventory in src/data/facebook-highlights.ts. Two originals downloaded (puppy and stream); twelve videos show MediaSource playback without a downloadable source. Browser download failed; public yt-dlp redirects to Facebook login / unsupported URL. No cookies exported or sent to a downloader service. Requested original exports from owner. Exact story dates are unavailable; not inferred from relative ages.
+- Hackathon laptop STORY not found in the14pinned cards; remains open pending an exact story link or original export.
+
+## Media and cover follow-up (2026-10-04)
+
+- [x] T21 — Embed downloaded media directly in Life: 13/14 Facebook cards have saved media; all 8 Instagram highlighted cards; recent scenery stories. Keep exact dates and distinguish crossposted IG media from native FB originals. Unknown dates remain unknown; no autoplay; preload none; clamp media to source resolution. Add playable chat cards and refresh passage embeddings.
+- Superseded T22 — Keep effects on both Cinema and Research covers, smaller and in pixel style. Retain carousel/manual controls and 30 foreground seconds. Native 2D canvas, eight frames per second; pause offscreen/hidden, static for reduced motion; preserve content readability on mobile.
+- [x] T23 — Verify source snapshot, unit/browser checks, local visuals and stable production alias after deploy. Preserve unrelated main-thread WIP.
+- [ ] T24 — Acquire remaining café highlight original and unresolved native FB audio/date metadata when Meta export becomes downloadable.
+
+Media package at /home/duyle/Downloads/leduy-social-assets-2026-10-04 contains 19 downloaded videos, 5 photos and 9 extracted covers (including the newly selected 2023-12-21 side-profile story). One FB mirror video downloaded natively at 1200x720. FB export still preparing; café is the only pinned card without saved media. Forest story has matching IG photo only, without native FB music.
+
+
+## Active delivery checklist — owner corrections, 2026-10-04
+
+Work through this list sequentially; retain it across context compaction. Completion requires source evidence, browser verification and a production receipt.
+
+- [x] T25 — Blog and Cinema covers: large original wormhole / reel models on the LEFT; introductory text on the right; full bleed background; no grey image gutters or repeated featured post/movie above the real list.
+- [x] T26 — Three meaningful 3D variants per page, with smooth transitions. Research: original knot, textured Earth, alternate knot. Cinema: beveled metal reel, paired reels, fixed projector. Keep axle stable; fixed projector beam; dispose resources, pause offscreen/hidden and render statically for reduced motion. Next changes the cover, not a duplicated article/movie.
+- [x] T27 — Shared motion polish: restrained route transitions, coordinated symmetric card entrances, short bounded stagger and soft hover; preserve reduced motion and keyboard navigation.
+- [x] T28 — Experience: subtle terminal chrome, lighter background and typography, calm card motion, preserve all experience content.
+- [x] T29 — Life: place The Timeline first after the cover, then saved FB/IG collections; keep archive shortcuts. Include the owner-confirmed black-shirt laptop image as a 2023 highlight. Exact highlighted-story day is unknown; the separate original post date stays 2023-06-30. Preserve saved media, source provenance and the pending cafe original.
+- [x] T30 — Refresh chatbot media index, test revised covers/navigation/Life, integrate only guarded scoped changes and deploy; verify stable alias and save production screenshots. Report pending source acquisition honestly.
+
+Previous interim pixel deployment: dpl_Am8UoKk7A83xRsXg5vJwL6jrBBKa, READY. Owner rejected the pixel replacement; T22 is superseded by T25/T26. The embedded 18-video archive is already in that deployment. Do not mark T24 done until the missing cafe source is actually obtained.
+
+Local verification for T25–T29: lint/typecheck/build passed (38 routes); 56 unit tests passed; 12 Life/chat/cover browser checks passed, followed by the cross-platform navigation check (1 passed). Scene/Experience layouts inspected in Chrome. Production verification remains T30.
+
+## Latest Life correction — 2026-10-04
+
+- [x] T31 — Put The Timeline before highlights and Facebook collections; keep the cover and chronological entries. Verify section order on production.
+- [x] T32 — Locate and save the owner-requested archived story showing Duy using a computer in side profile. This is outside highlights: add to the timeline only after identifying the original asset; retain its verified date and source.
+
+T32 source acquired: Facebook archive card 576897117958045, created 2023-12-21T16:37:48. Matching Instagram archive bucket 18039501280627830; downloaded observed video/audio streams, muxed without re-encoding and decoded fully. 15 seconds, 720x1280, original AAC stereo, 416007 bytes. Added `laptop-side-2023` to timeline only; no highlight classification. Frame cover derived from video. Original Facebook stream still has no direct download option.
+
+## Quality corrections — 2026-10-04
+
+- [x] T33 — Sharpen mobile 3D: device DPR up to 3 with a pixel budget, camera fits the full model across aspect ratios, no scene blur, verify 375px and 390px phones.
+- [x] T34 — Replace bare orbit rings with a shaded planet and atmosphere; rebuild Cinema as beveled metal film reels with real openings, film ribbon and projector. Keep three distinct covers, model left and 30-second/manual browsing.
+- [x] T35 — Add varied entrances: assemble from different directions, symmetric left/right, depth fade; choose fresh patterns per navigation/cover change, keep bounded stagger and reduced motion.
+
+## Latest verified release — 2026-10-04
+
+T15–T18, T20, T23 and T30–T35 verified through source/unit/browser checks and production receipts. T17 follows the owner correction: Next changes distinct cover compositions, with the real research/film lists below. Seven browser checks cover 30-second foreground timing, hover/manual pause, 375px/390px layouts, six sharp model variants, game opening and cross-platform navigation. 70 unit checks passed; lint/typecheck/build passed with 39 routes.
+
+T19 remains partially open: the HUST portrait and owner-confirmed black-shirt highlighted portrait are saved, but the exact October hackathon story is not independently identified. T24 remains open for the cafe original and native FB audio/date metadata. T6 remains open for provider sender verification and real inbox arrival.
+
+Tracking is deployed separately from mail delivery: full submitted turns and errors, pet/buttons, contact funnel, private owner pages of 50, per-session history, charts and JSON export. Production Redis records survive redeployment; no automatic trim or expiry. Respect DNT/owner exclusions; no reconstruction of previously uncollected chat. See docs/portfolio-improvement-tasks.md and the dated Downloads release receipts.
+
+- [x] T36 — Arcade: actual Cassini Jupiter surface, Three.js lighting, richer star background, mobile framing and 27 functional games.
+- [x] T37 — Context-aware recent Vietnamese banter with dated sources, English replies stay English, serious topics stay serious.
+- [x] T38 — Durable complete submitted conversations, private admin review, button/pet events, contact funnel, session journeys, charts, pages of 50 and export; preserve old data.
+- [x] T39 — Durable contact inbox and free Brevo/Resend send adapters, truthful stored/accepted/error states, idempotency. Production sender/key and actual inbox arrival remain T6 / MAIL-2.
+- [x] T40 — Focused commits on feat/portfolio-observability; guarded canonical integration, production deploy and receipts.
+
+Final deployment: dpl_4ewVzgNohR6htMYGdt29hWi3Ysev, READY, https://leduy.vercel.app. Production receipt: /home/duyle/Downloads/leduy-social-assets-2026-10-04/production-premium-and-tracking.json. All six phone scene variants now render at full DPR 3 independent of animated parent scale; 375px has no horizontal overflow. Persisted transcript from the previous deployment survives. Unauthenticated admin API returns 404. Contact inbox is available; external email delivery remains unconfigured and is not claimed successful.
