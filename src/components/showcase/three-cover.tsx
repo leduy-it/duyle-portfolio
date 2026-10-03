@@ -50,7 +50,8 @@ export default function ThreeCover({cinema=false,variant=0,jupiter=false,paused=
     let frame=0,disposed=false,intersecting=true,previous=0,seconds=0
     const draw=()=>{if(!disposed)renderer.render(scene,camera)}
     const resize=()=>{
-      const {width,height}=canvas.getBoundingClientRect()
+      // Layout dimensions stay stable while the parent scales during an entrance.
+      const width=canvas.clientWidth,height=canvas.clientHeight
       if(!width || !height || disposed) return
       const ratio=coverPixelRatio(window.devicePixelRatio || 1,width,height)
       renderer.setPixelRatio(ratio);renderer.setSize(width,height,false);stars.setDpr(ratio)
