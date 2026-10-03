@@ -11,8 +11,10 @@ import {cinemaScene} from './cinema-scene'
 import {jupiterScene} from './jupiter-scene'
 import {createStarfield} from './starfield'
 
-export default function ThreeCover({cinema=false,variant=0,jupiter=false}:{cinema?:boolean;variant?:number;jupiter?:boolean}) {
+export default function ThreeCover({cinema=false,variant=0,jupiter=false,paused=false}:{cinema?:boolean;variant?:number;jupiter?:boolean;paused?:boolean}) {
   const ref=useRef<HTMLCanvasElement>(null)
+  const pausedRef=useRef(paused)
+  useEffect(()=>{pausedRef.current=paused},[paused])
   const reduced=useReducedMotion()
   const {resolvedTheme}=useTheme()
   const [ready,setReady]=useState(false)
@@ -58,7 +60,7 @@ export default function ThreeCover({cinema=false,variant=0,jupiter=false}:{cinem
     }
     const animate=(now:number)=>{
       if(disposed) return
-      if(intersecting && !document.hidden) {
+      if(intersecting && !document.hidden && !pausedRef.current) {
         seconds+=previous ? Math.min(.05,(now-previous)/1000) : 0
         model.update(seconds)
         stars.points.rotation.y=Math.sin(seconds*.04)*.025

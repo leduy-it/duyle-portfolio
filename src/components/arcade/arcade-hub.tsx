@@ -96,7 +96,7 @@ export function ArcadeHub({initialGame}: {initialGame?:string}) {
             <a className="arcade-hero-action" href="#games">{vi ? 'Chọn một trò' : 'Pick a game'} <span>↘</span></a>
           </div>
           <div className="arcade-hero-scene" aria-hidden="true" data-arcade-jupiter>
-            <JupiterCover jupiter />
+            <JupiterCover jupiter paused={!!active} />
             <div className="arcade-scene-meta"><span>05 / JUPITER</span><span>{vi ? 'Một chút xa khỏi thường ngày' : 'A little farther from ordinary'}</span></div>
           </div>
         </div>
