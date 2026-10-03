@@ -20,6 +20,7 @@ export const I18N_STRINGS = {
     'nav.about': 'About Me',
     'nav.experience': 'Experience',
     'nav.blog': 'Blog Research',
+    'nav.life': 'Life',
     'nav.cinema': 'Cinema',
     'nav.resume': 'Resume',
 
@@ -134,6 +135,7 @@ export const I18N_STRINGS = {
     'nav.about': 'Giới thiệu',
     'nav.experience': 'Kinh nghiệm',
     'nav.blog': 'Blog Nghiên cứu',
+    'nav.life': 'Đời thường',
     'nav.cinema': 'Điện ảnh',
     'nav.resume': 'CV',
 

@@ -36,6 +36,7 @@ export function Header() {
     { label: t('nav.about'), href: '/' },
     { label: t('nav.experience'), href: '/experience' },
     { label: t('nav.blog'), href: '/blog' },
+    { label: t('nav.life'), href: '/life' },
     { label: t('nav.cinema'), href: '/movie' },
     { label: 'Pets', href: '/pets' },
     { label: 'Arcade', href: '/arcade' },

@@ -38,6 +38,7 @@ next-env.d.ts
 
 # playwright captures
 /scripts/captures/
+/test-results/
 
 # design docs (screenshots, not needed in repo)
 /docs/design/screenshots/
