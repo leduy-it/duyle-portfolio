@@ -12,6 +12,6 @@ reference/checkouts/
 .codex/
 .codex-spawn/
 .omc/
-tasks/
-data/
-test-results/
+/tasks/
+/data/
+/test-results/

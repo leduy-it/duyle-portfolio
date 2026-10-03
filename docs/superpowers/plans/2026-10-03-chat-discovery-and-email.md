@@ -60,3 +60,5 @@
 
 - T7: complete — npm test50/50, relevant Playwright9/9, lint0 errors, typecheck0 errors, next build38 pages succeeded. Reviewed source and new files; no independent reviewer (side-thread restriction).
 - Production JINA_API_KEY configured as Vercel Secret on portfolio-leduy. No new paid subscription or top-up created.
+
+- Deployment attempt1 failed: unanchored data/ exclusion also excluded src/data. Fixed exclusions to root-only /data/, /tasks/, /test-results/; stable production alias remained on previous healthy deployment.
