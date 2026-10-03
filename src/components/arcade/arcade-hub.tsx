@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useLocale } from '@/lib/i18n'
@@ -8,6 +9,8 @@ import { usePetSave } from '@/lib/pets/pet-save-provider'
 import { petAppearance } from '@/lib/pets/appearance'
 import { arcadeGames, type ArcadeCategory, type ArcadeGame } from '@/data/arcade-games'
 import './arcade.css'
+
+const JupiterCover=dynamic(()=>import('@/components/showcase/three-cover'),{ssr:false})
 
 const filters: { id: ArcadeCategory; en: string; vi: string }[] = [
   { id: 'all', en: 'Everything', vi: 'Tất cả' },
@@ -76,7 +79,7 @@ export function ArcadeHub({initialGame}: {initialGame?:string}) {
         <Link href="/pets">{vi ? '← Về Pocket World' : '← Back to Pocket World'}</Link>
       </nav>
       <section className="arcade-hero">
-        <div className="arcade-hero-noise" aria-hidden="true" />
+        <div className="arcade-hero-sky" aria-hidden="true" />
         <div className="arcade-hero-inner">
           <div className="arcade-hero-copy">
             <p className="arcade-kicker"><span className="arcade-live" /> THE PLAYROOM <span>№ 001 — OPEN</span></p>
@@ -88,19 +91,12 @@ export function ArcadeHub({initialGame}: {initialGame?:string}) {
             </p>
             <a className="arcade-hero-action" href="#games">{vi ? 'Chọn một trò' : 'Pick a game'} <span>↘</span></a>
           </div>
-          <div className="arcade-hero-scene" aria-hidden="true">
-            <div className="arcade-scene-orbit orbit-one" />
-            <div className="arcade-scene-orbit orbit-two" />
-            <div className="arcade-scene-ground" />
-            <div className="arcade-scene-sun" />
-            <div className="arcade-scene-flight flight-one">✧</div>
-            <div className="arcade-scene-flight flight-two">✦</div>
-            <span className="arcade-scene-label label-one">MOSSWING / 01</span>
-            <span className="arcade-scene-label label-two">SANDLINE / 02</span>
-            <span className="arcade-scene-coordinate">33° 06′ 12″ · PLAY FOREVER</span>
+          <div className="arcade-hero-scene" aria-hidden="true" data-arcade-jupiter>
+            <JupiterCover jupiter />
+            <div className="arcade-scene-meta"><span>05 / JUPITER</span><span>{vi ? 'Một chút xa khỏi thường ngày' : 'A little farther from ordinary'}</span></div>
           </div>
         </div>
-        <div className="arcade-hero-foot"><span>{arcadeGames.length.toString().padStart(2, '0')} {vi ? 'THẾ GIỚI ĐỂ CHƠI' : 'WORLDS TO PLAY'}</span><span>{vi ? 'Không cần đăng nhập' : 'No account needed'} ↗</span></div>
+        <div className="arcade-hero-foot"><span>{arcadeGames.length.toString().padStart(2, '0')} {vi ? 'THẾ GIỚI ĐỂ CHƠI' : 'WORLDS TO PLAY'}</span><span>{vi ? 'Không cần đăng nhập' : 'No account needed'} ↗</span><a href="/textures/credits.json" target="_blank" rel="noopener noreferrer" aria-label="Space imagery credits">NASA · Solar System Scope ↗</a></div>
       </section>
 
       <section className="arcade-catalog" id="games">

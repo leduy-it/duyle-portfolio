@@ -9,8 +9,11 @@ export function researchScene(resources: SceneResources, variant: number, light:
     // Retain the original wireframe knot; a faint shaded body makes its depth legible.
     resources.mesh(geometry, new THREE.MeshPhysicalMaterial({color:accent,metalness:.25,roughness:.3,transparent:true,opacity:light ? .12 : .16,depthWrite:false,clearcoat:.4}),root)
     resources.mesh(geometry, new THREE.MeshBasicMaterial({color:accent,wireframe:true,transparent:true,opacity:light ? .8 : .78}),root)
+    const position=geometry.getAttribute('position')
+    let radius=0
+    for(let i=0;i<position.count;i++) radius=Math.max(radius,Math.hypot(position.getX(i),position.getY(i),position.getZ(i)))
     root.rotation.set(.3, -.2, 0)
-    return {root,radius:1.72,update:seconds=>{root.rotation.x=.3+seconds*.045;root.rotation.y=-.2+seconds*.075}}
+    return {root,radius:radius*1.03,update:seconds=>{root.rotation.x=.3+seconds*.045;root.rotation.y=-.2+seconds*.075}}
   }
 
   const world = new THREE.Group()
