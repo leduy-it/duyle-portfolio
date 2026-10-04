@@ -60,3 +60,7 @@ The first email production probe exposed a server relay failure (502), while bro
 READY deployment dpl_8GU7KtMSR7Pn2LwCYDPCAC6PdDPY is live at https://leduy.vercel.app. All 11 film detail routes, movie gallery and owner pixel favicon variants return 200; anonymous conversation access remains 404. The actual browser contact flow returned 200 relay_required, 200 FormSubmit success=true, then 200 submitted on the nonce-bound portfolio acknowledgement. The exact synthetic test turn is durably stored in production Redis with model=formsubmit-browser, submissionReportedBy=browser, a submission reference, an attempt marker, cleared nonce and no invented provider message ID. No browser exceptions occurred. Actual Gmail arrival is still awaiting owner activation/confirmation (MAIL-3).
 
 Receipt: /home/duyle/Downloads/leduy-social-assets-2026-10-04/production-threads-mail-cinema-icons.json. Browser mail receipt: production-browser-contact-relay.json; screenshot: production-contact-received.png. Every separable follow-up has a focused commit on feat/portfolio-observability; canonical main HEAD and index are preserved.
+
+## Favicon correction requested by owner
+
+- [x] BRAND-2 Replace the previous pixel portrait favicon with the existing camera portrait from the homepage (/images/profile/duy-camera.png). Keep the original square image for browser PNG; derive touch/ICO sizes. No changes to page images or other features. Production receipt is verified separately.
