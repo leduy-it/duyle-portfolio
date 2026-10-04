@@ -3,8 +3,9 @@ test('relay submission confirmation replaces configuration error without claimin
   let calls=0
   await page.route('**/api/contact',async route=>{
     if(route.request().method()==='GET')await route.fulfill({json:{available:true,deliveryAvailable:true,inboxAvailable:true}})
-    else{calls++;await route.fulfill({json:{ok:true,status:'submitted'}})}
+    else{calls++;const data=route.request().postDataJSON();await route.fulfill({json:data.action==='relay-ack'?{ok:true,status:'submitted'}:{ok:true,status:'relay_required',relayNonce:'browser-verification'}})}
   })
+  await page.route('https://formsubmit.co/ajax/**',async route=>route.fulfill({json:{success:'true'}}))
   await page.route('**/api/chat',async route=>route.fulfill({json:{reply:'Contact relay browser verification only.'}}))
   await page.goto('/')
   await page.getByRole('button',{name:/Send to (Michael|Duy)/}).first().click()
@@ -12,6 +13,6 @@ test('relay submission confirmation replaces configuration error without claimin
   const send=page.locator('[data-track="contact:send"]')
   await expect(send).toBeEnabled();await send.click()
   await expect(page.getByText('Your message has been received. Michael can reply using the email you provided.',{exact:true})).toBeVisible()
-  expect(calls).toBe(1)
+  expect(calls).toBe(2)
   await expect(page.getByText('Email delivery is not configured yet',{exact:false})).toHaveCount(0)
 })

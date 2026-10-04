@@ -1,6 +1,6 @@
 # Email delivery setup
 
-Production currently has durable Redis storage, but no sending-provider credentials. Contact submissions are saved in the private admin inbox even before email delivery is configured. The public confirmation explicitly distinguishes this from an email being sent.
+Production has durable Redis storage and uses the key-free FormSubmit browser relay by default. Optional Resend/Brevo credentials are absent. Contact submissions are saved in the private admin inbox even before email delivery is configured. The public confirmation explicitly distinguishes this from an email being sent.
 
 ## Free provider choices
 
@@ -27,3 +27,14 @@ The relay does not expose a provider idempotency mechanism. Before a relay attem
 Owner setup requests were acknowledged by the relay on 2026-10-04. Owner activation/inbox confirmation is still pending; no actual email arrival is claimed.
 
 Primary sources: https://formsubmit.co/ and https://formsubmit.co/ajax-documentation and https://formsubmit.co/documentation.
+
+## Production correction: browser AJAX dispatch
+
+A production Vercel server request returned 502 while a real browser request from https://leduy.vercel.app received HTTP 200 with success=true. The FormSubmit docs describe browser AJAX and cross-origin support. Dispatch now follows that supported browser flow:
+
+1. POST the contact to the portfolio server; persist text, email, subject, start marker and a one-use nonce before responding with relay_required.
+2. Browser POSTs once to the fixed FormSubmit recipient with the canonical form URL.
+3. On explicit success, browser records relay-ack with the same request/body and nonce. Server binds it to the existing visitor/contact, marks submissionReportedBy=browser and clears the nonce.
+4. Missing acknowledgement remains an uncertain attempt in the durable inbox. Reopening/retrying the same request never automatically sends another relay request.
+
+This browser report is not a provider message ID or proof of inbox delivery. Admin labels it accordingly. Brevo/Resend still use the verified server-provider receipt path. No keys are exposed and no older saved messages are resent.

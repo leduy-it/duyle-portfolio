@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return fail('invalid_request', 400)
   }
   if (!data || typeof data !== 'object') return fail('invalid_request', 400)
-  const { email, subject, message, requestId, website, conversationId } = data
+  const { email, subject, message, requestId, website, conversationId, action, relayNonce } = data
   if (
     typeof email !== 'string' ||
     email.length > 254 ||
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     !/^[a-f0-9-]{36}$/i.test(requestId)
   )
     return fail('invalid_fields', 400)
-  if (website) return fail('invalid_request', 400)
+  if (website || action!==undefined && action!=='relay-ack') return fail('invalid_request', 400)
   let turn:ConversationTurn | undefined
   let lockKey=''
   let lockToken=''
@@ -59,14 +59,28 @@ export async function POST(request: Request) {
     const prior=await readTurn(turn.conversationId,requestId)
     if(prior && (prior.user!==message.trim() || prior.email!==email.trim() || prior.subject!==subject.trim())) return fail('request_conflict',409)
     if(prior?.providerId || prior?.submissionId) return NextResponse.json({ok:true,status:prior.submissionId ? 'submitted' : 'accepted'})
+    if(action==='relay-ack') {
+      if(!prior || prior.model!=='formsubmit-browser' || typeof relayNonce!=='string' || prior.relayNonce!==relayNonce) return fail('invalid_relay_ack',409)
+      // A browser acknowledgement is observable evidence, not trusted inbox-delivery proof.
+      turn={...prior,status:'complete',error:undefined,submissionId:`browser-${requestId}`,submissionReportedBy:'browser',relayNonce:undefined,finishedAt:new Date().toISOString()}
+      await saveTurn(turn)
+      if(context) await appendEvent({...context,ts:new Date().toISOString(),kind:'contact_accepted',targetId:'contact:send',eventId:`${turn.conversationId}:${requestId}:contact_accepted`,details:{requestId,status:'browser_submitted',conversationId:turn.conversationId,turnId:requestId}})
+      return NextResponse.json({ok:true,status:'submitted'})
+    }
     // This relay has no provider idempotency key. Never repeat an uncertain attempt.
-    if(prior?.model==='formsubmit' && prior.deliveryAttemptedAt) return NextResponse.json({ok:true,status:'stored',delivery:'uncertain'},{status:202})
+    if(['formsubmit','formsubmit-browser'].includes(prior?.model || '') && prior?.deliveryAttemptedAt) return NextResponse.json({ok:true,status:'stored',delivery:'uncertain'},{status:202})
     turn={...turn,ts:prior?.ts || turn.ts,email:email.trim(),subject:subject.trim()}
     await saveTurn(turn)
     const event=async(kind:'contact_submitted'|'contact_accepted'|'contact_failed',status:string) => {
       if(context) await appendEvent({...context,ts:new Date().toISOString(),kind,targetId:'contact:send',eventId:`${turn!.conversationId}:${requestId}:${kind}`,details:{requestId,status,conversationId:turn!.conversationId,turnId:requestId}})
     }
     await event('contact_submitted','submitted')
+    if(emailConfiguration().provider==='formsubmit') {
+      // The relay's documented AJAX flow runs in the browser. Persist before releasing the one-use dispatch.
+      turn={...turn,model:'formsubmit-browser',relayNonce:randomUUID(),deliveryAttemptedAt:new Date().toISOString()}
+      await saveTurn(turn)
+      return NextResponse.json({ok:true,status:'relay_required',relayNonce:turn.relayNonce})
+    }
     if(!emailConfiguration().available) {
       turn={...turn,status:'error',error:'delivery_unconfigured',finishedAt:new Date().toISOString()}
       await saveTurn(turn);await event('contact_failed','delivery_unconfigured')

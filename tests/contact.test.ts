@@ -121,31 +121,46 @@ test('free FormSubmit relay accepts only an explicit acknowledgement and fixes r
   }finally{process.env=env;global.fetch=fetch}
 })
 
-test('FormSubmit contact persists acknowledgements and never repeats an uncertain attempt',async()=>{
+test('browser relay saves before dispatch, binds acknowledgements and never repeats uncertain attempts',async()=>{
   const env={...process.env},fetch=global.fetch
   const {promises:fs}=await import('node:fs')
   const read=fs.readFile,append=fs.appendFile,mkdir=fs.mkdir
-  let journal='',calls=0
-  const relayRequest=(body:unknown)=>{const request=req(body);request.headers.set('x-forwarded-for','192.0.2.173');return request}
+  let journal=''
+  const relayRequest=(body:Record<string,unknown>)=>{const request=req(body);request.headers.set('x-forwarded-for',String(body.requestId));return request}
   try{
     for(const key of ['RESEND_API_KEY','BREVO_API_KEY','KV_REST_API_URL','KV_REST_API_TOKEN','UPSTASH_REDIS_REST_URL','UPSTASH_REDIS_REST_TOKEN'])delete process.env[key]
     Object.assign(process.env,{NODE_ENV:'development',TRACKING_SALT:'test-salt',CONTACT_PROVIDER:'formsubmit'})
     fs.mkdir=(async()=>undefined) as typeof fs.mkdir
     fs.readFile=(async()=>journal) as unknown as typeof fs.readFile
     fs.appendFile=(async(file,data)=>{if(String(file).includes('conversations'))journal+=data}) as typeof fs.appendFile
-    global.fetch=async()=>{calls++;return Response.json({success:'true'})}
+    global.fetch=async()=>{throw Error('Vercel must not call the browser relay')}
     const body={...payload,requestId:crypto.randomUUID()}
+    const dispatch=await (await POST(relayRequest(body))).json()
+    assert.equal(dispatch.status,'relay_required');assert.ok(dispatch.relayNonce)
+    assert.equal((await POST(relayRequest({...body,action:'relay-ack',relayNonce:'wrong'}))).status,409)
+    assert.deepEqual(await (await POST(relayRequest({...body,action:'relay-ack',relayNonce:dispatch.relayNonce}))).json(),{ok:true,status:'submitted'})
     assert.deepEqual(await (await POST(relayRequest(body))).json(),{ok:true,status:'submitted'})
-    assert.deepEqual(await (await POST(relayRequest(body))).json(),{ok:true,status:'submitted'})
-    assert.equal(calls,1)
     const saved=journal.trim().split('\n').map(line=>JSON.parse(line)).at(-1)
-    assert.ok(saved.submissionId);assert.ok(saved.deliveryAttemptedAt);assert.equal(saved.providerId,undefined)
-    global.fetch=async()=>{calls++;throw Error('timed out after sending')}
+    assert.ok(saved.submissionId);assert.ok(saved.deliveryAttemptedAt);assert.equal(saved.providerId,undefined);assert.equal(saved.submissionReportedBy,'browser');assert.equal(saved.relayNonce,undefined)
     const uncertain={...payload,requestId:crypto.randomUUID()}
-    assert.equal((await POST(relayRequest(uncertain))).status,502)
+    assert.equal((await (await POST(relayRequest(uncertain))).json()).status,'relay_required')
     const retry=await POST(relayRequest(uncertain))
     assert.equal(retry.status,202)
     assert.deepEqual(await retry.json(),{ok:true,status:'stored',delivery:'uncertain'})
-    assert.equal(calls,2)
   }finally{process.env=env;global.fetch=fetch;fs.readFile=read;fs.appendFile=append;fs.mkdir=mkdir}
+})
+
+test('browser dispatch records a relay acknowledgement once and degrades to the durable inbox on uncertainty',async()=>{
+  const {submitBrowserRelay}=await import('../src/lib/contact/relay')
+  const fetch=global.fetch;let calls=0
+  try{
+    global.fetch=async(url,init)=>{
+      calls++;const body=JSON.parse(String(init?.body))
+      if(calls===1){assert.equal(url,'https://formsubmit.co/ajax/levduyit@gmail.com');assert.equal(body.email,payload.email);return Response.json({success:'true'})}
+      assert.equal(url,'/api/contact');assert.equal(body.action,'relay-ack');assert.equal(body.relayNonce,'one-use');return Response.json({status:'submitted'})
+    }
+    assert.equal(await submitBrowserRelay('one-use',payload,{'Content-Type':'application/json'}),'submitted');assert.equal(calls,2)
+    global.fetch=async()=>{calls++;throw Error('network uncertainty')}
+    assert.equal(await submitBrowserRelay('one-use',payload,{}),'stored');assert.equal(calls,3)
+  }finally{global.fetch=fetch}
 })

@@ -1,5 +1,7 @@
 'use client'
 
+import { submitBrowserRelay } from '@/lib/contact/relay'
+
 import { trackAction } from '@/lib/tracking/action-client'
 import { chatTrackingPayload, trackingHeaders } from '@/lib/tracking/chat-client'
 import { createPortal } from 'react-dom'
@@ -516,21 +518,13 @@ export function TerminalChat() {
       deliveryAttempt.current = { fingerprint, id: crypto.randomUUID() }
     setCompose((prev) => ({ ...prev, sending: true, error: null }))
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: trackingHeaders(),
-        body: JSON.stringify({
-          ...chatTrackingPayload(),
-          email: compose.email.trim(),
-          subject: compose.subject,
-          message: compose.body,
-          requestId: deliveryAttempt.current.id,
-        }),
-        signal: AbortSignal.timeout(18_000),
-      })
-      const data = await res.json()
-      if (!res.ok || !['accepted','submitted','stored'].includes(data.status)) throw new Error(data.error || 'delivery_failed')
-      setDeliveryStatus(data.status)
+      const headers=trackingHeaders()
+      const submission={email:compose.email.trim(),subject:compose.subject.trim(),message:compose.body.trim(),requestId:deliveryAttempt.current.id,...chatTrackingPayload()}
+      const res=await fetch('/api/contact', {method:'POST',headers,body:JSON.stringify(submission),signal:AbortSignal.timeout(18_000)})
+      const data=await res.json()
+      if(!res.ok || !['accepted','submitted','stored','relay_required'].includes(data.status))throw new Error(data.error || 'delivery_failed')
+      const status=data.status==='relay_required' && typeof data.relayNonce==='string' ? await submitBrowserRelay(data.relayNonce,submission,headers) : data.status
+      setDeliveryStatus(status)
       setView('sent')
     } catch (error) {
       const code = error instanceof Error ? error.message : ''
