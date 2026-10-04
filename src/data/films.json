@@ -43,7 +43,11 @@
     ],
     "lesson": "Some projects you build are bigger than you. The discipline is in choosing carefully which of those calls you answer, and showing up honest when you do.",
     "lesson_vi": "Có những dự án bạn xây dựng lớn hơn chính bạn. Kỷ luật nằm ở chỗ chọn cẩn thận lời gọi nào bạn đáp — và thành thật khi bước vào.",
-    "tags": ["sci-fi", "denis-villeneuve", "anticipated"],
+    "tags": [
+      "sci-fi",
+      "denis-villeneuve",
+      "anticipated"
+    ],
     "image": "https://image.tmdb.org/t/p/original/aTyvZpciTb9Y9wfdcwD3eVDj93E.jpg",
     "alt": "Dune: Part Three (2026) official poster",
     "alt_vi": "Poster chính thức Dune: Phần Ba (2026)"
@@ -92,7 +96,11 @@
     ],
     "lesson": "Building powerful things forces moral debt. The only honest answer is to keep paying attention long after the demo is over.",
     "lesson_vi": "Xây dựng những thứ mạnh mẽ tạo ra nợ đạo đức. Câu trả lời thành thật duy nhất là tiếp tục chú ý — lâu sau khi demo đã kết thúc.",
-    "tags": ["historical", "nolan", "moral-weight"],
+    "tags": [
+      "historical",
+      "nolan",
+      "moral-weight"
+    ],
     "image": "https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
     "alt": "Oppenheimer (2023) poster",
     "alt_vi": "Poster phim Oppenheimer (2023)"
@@ -141,7 +149,11 @@
     ],
     "lesson": "Big systems and human softness aren't opposites. The best engineering keeps both true at the same time, and never abandons one for the other.",
     "lesson_vi": "Hệ thống lớn và sự mềm mỏng của con người không phải đối lập. Kỹ thuật tốt nhất giữ cả hai cùng thật — và không bao giờ bỏ cái này vì cái kia.",
-    "tags": ["sci-fi", "space", "nolan"],
+    "tags": [
+      "sci-fi",
+      "space",
+      "nolan"
+    ],
     "image": "https://image.tmdb.org/t/p/original/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
     "alt": "Interstellar (2014) poster",
     "alt_vi": "Poster phim Interstellar (2014)"
@@ -190,7 +202,11 @@
     ],
     "lesson": "Slow can be powerful. Don't confuse speed with depth, and don't apologise for asking the audience to wait.",
     "lesson_vi": "Chậm có thể mạnh. Đừng nhầm tốc độ với chiều sâu — và đừng xin lỗi vì đã yêu cầu khán giả chờ.",
-    "tags": ["sci-fi", "villeneuve", "deakins"],
+    "tags": [
+      "sci-fi",
+      "villeneuve",
+      "deakins"
+    ],
     "image": "https://image.tmdb.org/t/p/original/aMpyrCizvSdc0UIMblJ1srVgAEF.jpg",
     "alt": "Blade Runner 2049 poster",
     "alt_vi": "Poster phim Blade Runner 2049"
@@ -239,7 +255,11 @@
     ],
     "lesson": "If you build agents, build for cooperation, not commands. The intelligences worth talking to are the ones willing to be changed by you.",
     "lesson_vi": "Nếu bạn xây agent, hãy xây để hợp tác — không phải ra lệnh. Những intelligence đáng trò chuyện là những thứ sẵn sàng bị thay đổi bởi bạn.",
-    "tags": ["sci-fi", "linguistics", "villeneuve"],
+    "tags": [
+      "sci-fi",
+      "linguistics",
+      "villeneuve"
+    ],
     "image": "https://image.tmdb.org/t/p/original/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg",
     "alt": "Arrival (2016) poster — the heptapod shell hovering over a Montana field",
     "alt_vi": "Poster Cuộc Đổ Bộ Bí Ẩn (2016) — vỏ tàu Heptapod lơ lửng trên cánh đồng Montana"
@@ -251,7 +271,7 @@
     "year": "2026",
     "runtime": "2h 36m",
     "runtime_vi": "2 giờ 36 phút",
-    "letterboxdRating": "IMDb 8.4",
+    "letterboxdRating": "IMDb reference",
     "tagline": "first contact, but the contact is engineering",
     "tagline_vi": "tiếp xúc đầu tiên — nhưng điểm giao là kỹ thuật",
     "story": "An astronaut wakes up alone, with the wrong memories, in a ship that should not exist — and the only way home is through pure problem-solving. The story lives by curiosity, friendship across species, and the joy of small wins inside a very large emergency. The film keeps that joy, and it lands.",
@@ -288,10 +308,14 @@
     ],
     "lesson": "Curiosity is engineering's emotional core. Lose it and you're just executing tickets. Keep it and even bad days have a small win in them.",
     "lesson_vi": "Sự tò mò là lõi cảm xúc của kỹ thuật. Mất nó đi thì bạn chỉ đang thực thi ticket. Giữ nó lại — ngay cả những ngày tệ nhất cũng có một chiến thắng nhỏ ở đâu đó.",
-    "tags": ["sci-fi", "engineering", "andy-weir"],
-    "image": "/images/films/project-hail-mary.jpg",
-    "alt": "Project Hail Mary book cover (Andy Weir)",
-    "alt_vi": "Bìa sách Project Hail Mary (Andy Weir)"
+    "tags": [
+      "sci-fi",
+      "engineering",
+      "andy-weir"
+    ],
+    "image": "/images/films/project-hail-mary-2026-poster.jpg",
+    "alt": "Project Hail Mary (2026) theatrical film poster — Ryan Gosling in a red spacesuit",
+    "alt_vi": "Poster phim Project Hail Mary (2026) — Ryan Gosling trong bộ đồ du hành đỏ"
   },
   {
     "title": "Peaky Blinders",
@@ -337,7 +361,11 @@
     ],
     "lesson": "Strategy without restraint is theater. Strategy with restraint becomes a quiet kind of power — at work, at home, and in the rooms where you don't speak first.",
     "lesson_vi": "Chiến lược không có kiềm chế là màn trình diễn. Chiến lược có kiềm chế trở thành một loại quyền lực thầm lặng — ở nơi làm việc, ở nhà, và trong những căn phòng bạn không lên tiếng trước.",
-    "tags": ["drama", "peaky-blinders", "tommy-shelby"],
+    "tags": [
+      "drama",
+      "peaky-blinders",
+      "tommy-shelby"
+    ],
     "image": "https://image.tmdb.org/t/p/original/vUUqzWa2LnHIVqkaKVlVGkVcZIW.jpg",
     "alt": "Peaky Blinders poster — Thomas Shelby and family",
     "alt_vi": "Poster Peaky Blinders — Thomas Shelby và gia đình"
@@ -386,7 +414,11 @@
     ],
     "lesson": "When the dashboard says 'all quiet' and the cost is invisible, look closer. The most dangerous metric is the one that doesn't move while everything underneath it does.",
     "lesson_vi": "Khi dashboard báo 'tất cả yên tĩnh' mà cái giá vô hình — hãy nhìn gần hơn. Chỉ số nguy hiểm nhất là thứ không di chuyển trong khi mọi thứ bên dưới nó đang chuyển động.",
-    "tags": ["war", "anti-war", "remarque"],
+    "tags": [
+      "war",
+      "anti-war",
+      "remarque"
+    ],
     "image": "https://image.tmdb.org/t/p/original/hYqOjJ7Gh1fbqXrxlIao1g8ZehF.jpg",
     "alt": "All Quiet on the Western Front (2022) poster",
     "alt_vi": "Poster phim Phía Tây không có gì lạ (2022)"
