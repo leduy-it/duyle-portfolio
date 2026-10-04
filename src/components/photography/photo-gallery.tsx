@@ -4,6 +4,7 @@ import { useLocale } from '@/lib/i18n'
 import PhotoCard from './photo-card'
 
 interface FilmData {
+  imdbUrl: string
   title: string
   title_vi?: string
   slug: string

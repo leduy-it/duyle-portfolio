@@ -26,6 +26,7 @@ interface PerspectiveVi {
 }
 
 interface FilmData {
+  imdbUrl: string
   title: string
   title_vi?: string
   slug: string
@@ -157,7 +158,8 @@ export function FilmDetailView({ film }: Props) {
                 fill
                 className="object-cover"
                 onLoad={() => setIsImageLoaded(true)}
-                sizes="280px"
+                sizes="(max-width: 768px) calc(100vw - 48px), 280px"
+                quality={90}
                 priority
               />
             </motion.div>
@@ -193,6 +195,10 @@ export function FilmDetailView({ film }: Props) {
               <span className="rounded-sm border border-[rgb(var(--accent))] px-2 py-0.5 text-[rgb(var(--accent))]">
                 {film.letterboxdRating}
               </span>
+            </motion.div>
+            <motion.div className="mb-5 flex flex-wrap gap-3 font-mono text-xs" variants={detailItemVariants}>
+              <a href={film.imdbUrl} target="_blank" rel="noopener noreferrer" data-track={`cinema:imdb:${film.slug}`} className="rounded-full border border-[rgb(var(--accent))] px-4 py-2 text-[rgb(var(--accent))] hover:bg-[rgb(var(--accent)/0.08)]">IMDb ↗</a>
+              <a href={`${film.imdbUrl}#watchoptions`} target="_blank" rel="noopener noreferrer" data-track={`cinema:watch:${film.slug}`} className="rounded-full border border-[rgb(var(--border))] px-4 py-2 text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--accent))]">{locale === 'vi' ? 'Nơi xem ↗' : 'Watch options ↗'}</a>
             </motion.div>
             <motion.p className="mb-3 italic text-[rgb(var(--accent))]" variants={detailItemVariants}>
               {tagline}

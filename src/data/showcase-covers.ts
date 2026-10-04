@@ -70,7 +70,7 @@ export const CINEMA_EN: CoverCopy[] = [
   {
     eyebrow: 'cinema · pinned',
     title: 'A small wall of films I cannot un-see',
-    body: 'Eight movies that lodged themselves in the way I think about pacing, restraint, and the cost of saying too much. They do not need rewatching to keep working — they keep humming in the background while I write code.',
+    body: 'Films and series that lodged themselves in the way I think about pacing, restraint, and the cost of saying too much. They do not need rewatching to keep working — they keep humming in the background while I write code.',
   },
   {
     eyebrow: 'cinema',
@@ -84,7 +84,7 @@ export const CINEMA_EN: CoverCopy[] = [
   },
   {
     eyebrow: 'cinema',
-    title: 'Eight rooms I keep walking back into',
+    title: 'Rooms I keep walking back into',
     body: 'Each of these films is less a story I remember and more a room I keep entering — the light, the sound, the silence between cuts. Engineering would be lonelier without them.',
   },
 ]
@@ -93,7 +93,7 @@ export const CINEMA_VI: CoverCopy[] = [
   {
     eyebrow: 'điện ảnh · ghim',
     title: 'Một bức tường nhỏ gồm những bộ phim tôi không thể un-see',
-    body: 'Tám bộ phim đã cắm rễ vào cách tôi nghĩ về nhịp điệu, sự kiềm chế, và cái giá của việc nói quá nhiều. Chúng không cần xem lại để tiếp tục hoạt động — chúng cứ ngân nga trong đầu trong khi tôi viết code.',
+    body: 'Những bộ phim đã cắm rễ vào cách tôi nghĩ về nhịp điệu, sự kiềm chế, và cái giá của việc nói quá nhiều. Chúng không cần xem lại để tiếp tục hoạt động — chúng cứ ngân nga trong đầu trong khi tôi viết code.',
   },
   {
     eyebrow: 'điện ảnh',
@@ -107,7 +107,7 @@ export const CINEMA_VI: CoverCopy[] = [
   },
   {
     eyebrow: 'điện ảnh',
-    title: 'Tám căn phòng tôi cứ bước vào lại',
+    title: 'Những căn phòng tôi cứ bước vào lại',
     body: 'Mỗi bộ phim này ít là một câu chuyện tôi nhớ mà hơn là một căn phòng tôi cứ bước vào — ánh sáng, âm thanh, sự im lặng giữa các cú cắt. Làm kỹ thuật sẽ cô đơn hơn nếu thiếu chúng.',
   },
 ]

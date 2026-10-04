@@ -6,7 +6,7 @@
     "year": "2026",
     "runtime": "TBC",
     "runtime_vi": "Chưa rõ",
-    "letterboxdRating": "IMDb 8.5",
+    "letterboxdRating": "Anticipated",
     "tagline": "the desert finally answers",
     "tagline_vi": "sa mạc rốt cuộc lên tiếng",
     "story": "Some films arrive like weather, and this one already feels like the pressure dropping before a storm. I keep imagining the sound of sand as an operating system: ancient, indifferent, exact. Anticipation is its own kind of pilgrimage. The desert has a way of making patience feel earned.",
@@ -50,7 +50,9 @@
     ],
     "image": "https://image.tmdb.org/t/p/original/aTyvZpciTb9Y9wfdcwD3eVDj93E.jpg",
     "alt": "Dune: Part Three (2026) official poster",
-    "alt_vi": "Poster chính thức Dune: Phần Ba (2026)"
+    "alt_vi": "Poster chính thức Dune: Phần Ba (2026)",
+    "imdbUrl": "https://www.imdb.com/title/tt31378509/",
+    "kind": "film"
   },
   {
     "title": "Oppenheimer",
@@ -103,7 +105,9 @@
     ],
     "image": "https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
     "alt": "Oppenheimer (2023) poster",
-    "alt_vi": "Poster phim Oppenheimer (2023)"
+    "alt_vi": "Poster phim Oppenheimer (2023)",
+    "imdbUrl": "https://www.imdb.com/title/tt15398776/",
+    "kind": "film"
   },
   {
     "title": "Interstellar",
@@ -156,7 +160,9 @@
     ],
     "image": "https://image.tmdb.org/t/p/original/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
     "alt": "Interstellar (2014) poster",
-    "alt_vi": "Poster phim Interstellar (2014)"
+    "alt_vi": "Poster phim Interstellar (2014)",
+    "imdbUrl": "https://www.imdb.com/title/tt0816692/",
+    "kind": "film"
   },
   {
     "title": "Blade Runner 2049",
@@ -209,7 +215,9 @@
     ],
     "image": "https://image.tmdb.org/t/p/original/aMpyrCizvSdc0UIMblJ1srVgAEF.jpg",
     "alt": "Blade Runner 2049 poster",
-    "alt_vi": "Poster phim Blade Runner 2049"
+    "alt_vi": "Poster phim Blade Runner 2049",
+    "imdbUrl": "https://www.imdb.com/title/tt1856101/",
+    "kind": "film"
   },
   {
     "title": "Arrival",
@@ -262,7 +270,9 @@
     ],
     "image": "https://image.tmdb.org/t/p/original/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg",
     "alt": "Arrival (2016) poster — the heptapod shell hovering over a Montana field",
-    "alt_vi": "Poster Cuộc Đổ Bộ Bí Ẩn (2016) — vỏ tàu Heptapod lơ lửng trên cánh đồng Montana"
+    "alt_vi": "Poster Cuộc Đổ Bộ Bí Ẩn (2016) — vỏ tàu Heptapod lơ lửng trên cánh đồng Montana",
+    "imdbUrl": "https://www.imdb.com/title/tt2543164/",
+    "kind": "film"
   },
   {
     "title": "Project Hail Mary",
@@ -315,7 +325,9 @@
     ],
     "image": "/images/films/project-hail-mary-2026-poster.jpg",
     "alt": "Project Hail Mary (2026) theatrical film poster — Ryan Gosling in a red spacesuit",
-    "alt_vi": "Poster phim Project Hail Mary (2026) — Ryan Gosling trong bộ đồ du hành đỏ"
+    "alt_vi": "Poster phim Project Hail Mary (2026) — Ryan Gosling trong bộ đồ du hành đỏ",
+    "imdbUrl": "https://www.imdb.com/title/tt12042730/",
+    "kind": "film"
   },
   {
     "title": "Peaky Blinders",
@@ -368,7 +380,9 @@
     ],
     "image": "https://image.tmdb.org/t/p/original/vUUqzWa2LnHIVqkaKVlVGkVcZIW.jpg",
     "alt": "Peaky Blinders poster — Thomas Shelby and family",
-    "alt_vi": "Poster Peaky Blinders — Thomas Shelby và gia đình"
+    "alt_vi": "Poster Peaky Blinders — Thomas Shelby và gia đình",
+    "imdbUrl": "https://www.imdb.com/title/tt2442560/",
+    "kind": "series"
   },
   {
     "title": "All Quiet on the Western Front",
@@ -421,7 +435,9 @@
     ],
     "image": "https://image.tmdb.org/t/p/original/hYqOjJ7Gh1fbqXrxlIao1g8ZehF.jpg",
     "alt": "All Quiet on the Western Front (2022) poster",
-    "alt_vi": "Poster phim Phía Tây không có gì lạ (2022)"
+    "alt_vi": "Poster phim Phía Tây không có gì lạ (2022)",
+    "imdbUrl": "https://www.imdb.com/title/tt1016150/",
+    "kind": "film"
   },
   {
     "title": "House of the Dragon",
@@ -448,7 +464,9 @@
     "perspectives_vi": [],
     "alt": "House of the Dragon official poster",
     "alt_vi": "Poster House of the Dragon",
-    "image": "/images/films/house-of-the-dragon-poster.jpg"
+    "image": "/images/films/house-of-the-dragon-poster.jpg",
+    "imdbUrl": "https://www.imdb.com/title/tt11198330/",
+    "kind": "series"
   },
   {
     "title": "Spider-Man: Into the Spider-Verse",
@@ -475,7 +493,9 @@
     "perspectives_vi": [],
     "alt": "Spider-Man: Into the Spider-Verse official poster",
     "alt_vi": "Poster Spider-Man: Into the Spider-Verse",
-    "image": "/images/films/spider-man-into-the-spider-verse-poster.jpg"
+    "image": "/images/films/spider-man-into-the-spider-verse-poster.jpg",
+    "imdbUrl": "https://www.imdb.com/title/tt4633694/",
+    "kind": "film"
   },
   {
     "title": "Schindler’s List",
@@ -502,6 +522,8 @@
     "perspectives_vi": [],
     "alt": "Schindler’s List official poster",
     "alt_vi": "Poster Schindler’s List",
-    "image": "/images/films/schindlers-list-poster.jpg"
+    "image": "/images/films/schindlers-list-poster.jpg",
+    "imdbUrl": "https://www.imdb.com/title/tt0108052/",
+    "kind": "film"
   }
 ]

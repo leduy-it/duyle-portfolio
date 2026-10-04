@@ -13,6 +13,7 @@ import {
 } from './gallery-reveal'
 
 interface FilmData {
+  imdbUrl: string
   title: string
   title_vi?: string
   slug: string
@@ -54,15 +55,15 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
       delay={(index % 3) * .055}
       index={index}
     >
-      <Link href={href} className="group block h-full">
+      <div className="group h-full">
         <motion.div
           className="flex h-full flex-col overflow-hidden rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface-card))] transition-[border-color,box-shadow] duration-300 hover:border-[rgb(var(--accent))] hover:shadow-lg"
           initial={false}
           whileHover={prefersReducedMotion ? undefined : 'hover'}
           whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
         >
-          <div
-            className="relative aspect-[2/3] overflow-hidden border-b border-[rgb(var(--border))] bg-[rgb(var(--surface-page))]"
+          <Link href={href} aria-label={title}
+            className="relative block aspect-[2/3] overflow-hidden border-b border-[rgb(var(--border))] bg-[rgb(var(--surface-page))]"
             style={{ viewTransitionName: `cinema-${film.slug}` }}
           >
             <motion.div
@@ -93,7 +94,8 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
                 }}
               >
                 <Image
-                  src={film.image.replace('/t/p/original/', '/t/p/w500/')}
+                  src={film.image}
+                  quality={90}
                   alt={alt}
                   fill
                   className="object-cover object-center"
@@ -120,7 +122,7 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
                 }
               />
             ) : null}
-          </div>
+          </Link>
 
           <article className="flex flex-1 flex-col p-5">
             <div className="mb-3 flex items-start justify-between gap-3">
@@ -129,7 +131,7 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
                   {film.director}
                 </p>
                 <h3 className="mt-1 text-xl font-semibold text-[rgb(var(--text-primary))] transition-colors duration-200 group-hover:text-[rgb(var(--accent))]">
-                  {title}
+                  <Link href={href}>{title}</Link>
                 </h3>
               </div>
               <span
@@ -165,13 +167,17 @@ export default function PhotoCard({ film, index }: PhotoCardProps) {
                   </span>
                 ))}
               </div>
-              <span className="font-mono text-[10px] text-[rgb(var(--accent))] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <Link href={href} className="font-mono text-[10px] text-[rgb(var(--accent))] hover:underline">
                 {t('cinema.viewNotes')}
-              </span>
+              </Link>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-[rgb(var(--border))] pt-3 font-mono text-[11px] text-[rgb(var(--text-muted))]">
+              <a href={film.imdbUrl} target="_blank" rel="noopener noreferrer" data-track={`cinema:imdb:${film.slug}`} aria-label={`${title} on IMDb`} className="hover:text-[rgb(var(--accent))]">IMDb ↗</a>
+              <a href={`${film.imdbUrl}#watchoptions`} target="_blank" rel="noopener noreferrer" data-track={`cinema:watch:${film.slug}`} className="hover:text-[rgb(var(--accent))]">{locale === 'vi' ? 'Nơi xem ↗' : 'Watch options ↗'}</a>
             </div>
           </article>
         </motion.div>
-      </Link>
+      </div>
     </GalleryReveal>
   )
 }
