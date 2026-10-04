@@ -449,5 +449,32 @@
     "alt": "House of the Dragon official poster",
     "alt_vi": "Poster House of the Dragon",
     "image": "/images/films/house-of-the-dragon-poster.jpg"
+  },
+  {
+    "title": "Spider-Man: Into the Spider-Verse",
+    "director": "Bob Persichetti, Peter Ramsey & Rodney Rothman",
+    "year": "2018",
+    "runtime": "117 min",
+    "runtime_vi": "117 phút",
+    "tagline": "a comic book that learned to move",
+    "tagline_vi": "một cuốn truyện tranh học cách chuyển động",
+    "story": "Miles Morales meets Spider-people from other dimensions while learning to become his own version of a hero. Halftone textures, expressive frame timing and bold color turn uncertainty into a visual language.",
+    "story_vi": "Miles Morales gặp những Người Nhện từ các chiều không gian khác khi học cách trở thành người hùng theo cách riêng. Họa tiết chấm truyện tranh, nhịp khung hình và màu sắc táo bạo biến sự chưa chắc chắn thành ngôn ngữ hình ảnh.",
+    "tags": [
+      "animation",
+      "marvel",
+      "visual-design"
+    ],
+    "lesson": "A distinctive voice grows through practice and the courage to begin.",
+    "lesson_vi": "Một tiếng nói riêng lớn lên từ luyện tập và sự can đảm bắt đầu.",
+    "slug": "spider-man-into-the-spider-verse",
+    "letterboxdRating": "IMDb reference",
+    "hook": "a comic book that learned to move",
+    "hook_vi": "một cuốn truyện tranh học cách chuyển động",
+    "perspectives": [],
+    "perspectives_vi": [],
+    "alt": "Spider-Man: Into the Spider-Verse official poster",
+    "alt_vi": "Poster Spider-Man: Into the Spider-Verse",
+    "image": "/images/films/spider-man-into-the-spider-verse-poster.jpg"
   }
 ]

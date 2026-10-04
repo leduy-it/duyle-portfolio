@@ -20,5 +20,16 @@
     "sha256": "f4ff2d4150cbfeb109c483134035d8c4f089b5753986ce7fbba64daf9166251a",
     "retrievedAt": "2026-10-04",
     "usage": "Original promotional poster; copyright remains with the rights holder."
+  },
+  {
+    "slug": "spider-man-into-the-spider-verse",
+    "file": "/images/films/spider-man-into-the-spider-verse-poster.jpg",
+    "sourceUrl": "https://cdn.marvel.com/content/2x/MilesPoster.jpg",
+    "credit": "Sony Pictures Animation / Marvel",
+    "width": 1700,
+    "height": 2520,
+    "sha256": "890bccf7feff470347d7357a52d169a46d5ba40676c700557205889702a9432c",
+    "retrievedAt": "2026-10-04",
+    "usage": "Original promotional poster; copyright remains with the rights holder."
   }
 ]
