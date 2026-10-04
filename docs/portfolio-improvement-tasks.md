@@ -37,7 +37,7 @@ Priority order is explicit: conversation workspace first. Preserve these tasks a
 - [x] FILM-3 Add Spider-Man: Into the Spider-Verse with an actual high-quality portrait poster.
 - [x] FILM-4 Add Schindler's List with an actual high-quality portrait poster.
 - [x] FILM-5 Verified IMDb reference and where-to-watch navigation for every title; preserve notes navigation and avoid nested interactive links. Refresh chatbot media knowledge after the film changes.
-- [ ] RELEASE-2 Focused commits per task, guarded integration, meaningful browser checks including fast thread switching/full-screen/mobile, production deployment and receipts.
+- [x] RELEASE-2 Focused commits per task, guarded integration, meaningful browser checks including fast thread switching/full-screen/mobile, production deployment and receipts.
 
 ## Browser identity — owner follow-up
 
@@ -54,3 +54,9 @@ Cinema now includes 11 films/series. Four original promotional posters are local
 Verification before the final release: 73 unit checks, lint, typecheck, production build (43 generated pages) and browser checks for full conversation workspace, all 11 IMDb links, notes navigation, no nested anchors, four loaded mobile posters at DPR 3, no horizontal overflow, favicon served-byte matching, and truthful submitted-email confirmation. Final release receipt will record the production deployment separately.
 
 The first email production probe exposed a server relay failure (502), while browser AJAX returned an explicit success acknowledgement. The follow-up preserves the private inbox first and uses one-use browser dispatch with a nonce-bound acknowledgement; admin clearly labels browser-reported evidence. MAIL-3 remains open for owner activation and confirmed Gmail arrival. This correction is separately committed; the failed probe is retained as evidence.
+
+## Final production receipt
+
+READY deployment dpl_8GU7KtMSR7Pn2LwCYDPCAC6PdDPY is live at https://leduy.vercel.app. All 11 film detail routes, movie gallery and owner pixel favicon variants return 200; anonymous conversation access remains 404. The actual browser contact flow returned 200 relay_required, 200 FormSubmit success=true, then 200 submitted on the nonce-bound portfolio acknowledgement. The exact synthetic test turn is durably stored in production Redis with model=formsubmit-browser, submissionReportedBy=browser, a submission reference, an attempt marker, cleared nonce and no invented provider message ID. No browser exceptions occurred. Actual Gmail arrival is still awaiting owner activation/confirmation (MAIL-3).
+
+Receipt: /home/duyle/Downloads/leduy-social-assets-2026-10-04/production-threads-mail-cinema-icons.json. Browser mail receipt: production-browser-contact-relay.json; screenshot: production-contact-received.png. Every separable follow-up has a focused commit on feat/portfolio-observability; canonical main HEAD and index are preserved.
