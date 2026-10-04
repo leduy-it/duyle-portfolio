@@ -34,6 +34,7 @@ export const chatCatalog: ChatCard[] = [
 ]
 
 const allowedLinks = new Set([
+  ...films.flatMap(film => [film.imdbUrl, `${film.imdbUrl}#watchoptions`]),
   ...chatCatalog.map(card => card.href), '/', '/#terminal-chat',
   'https://www.linkedin.com/in/leduy-it/', 'https://github.com/leduy-it',
   'https://www.instagram.com/leduy.py/', 'https://fb.com/duyekko', 'mailto:levduyit@gmail.com',
@@ -58,6 +59,8 @@ function normalized(value: string) {
 export function discoverCards(question: string): ChatCard[] {
   const query = normalized(question)
   if (/\b(portrait|portraits|face|handsome|dep trai|hinh cua|anh cua|picture of|pictures of|photos of|look like|show me duy)\b/.test(query)) return ['profile-portrait','life-leaf-portrait','life-outside','life-camera-on'].flatMap(id=>chatCatalog.filter(card=>card.id===id))
+  if (/\b(spider.?verse|spider man)\b/.test(query)) return chatCatalog.filter(card=>card.id==='movie-spider-man-into-the-spider-verse')
+  if (/\b(schindler)\b/.test(query)) return chatCatalog.filter(card=>card.id==='movie-schindlers-list')
   const exact = chatCatalog.filter(card => [card.title.en, card.title.vi, card.id.replace(/^(life|movie|game|work|blog)-/, '').replace(/-/g, ' ')]
     .some(title => normalized(title).length >= 6 && query.includes(normalized(title))))
   if (exact.length) return exact.slice(0, 4)
