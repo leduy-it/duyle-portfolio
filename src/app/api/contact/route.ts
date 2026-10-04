@@ -58,7 +58,9 @@ export async function POST(request: Request) {
     }
     const prior=await readTurn(turn.conversationId,requestId)
     if(prior && (prior.user!==message.trim() || prior.email!==email.trim() || prior.subject!==subject.trim())) return fail('request_conflict',409)
-    if(prior?.providerId) return NextResponse.json({ok:true,status:'accepted'})
+    if(prior?.providerId || prior?.submissionId) return NextResponse.json({ok:true,status:prior.submissionId ? 'submitted' : 'accepted'})
+    // This relay has no provider idempotency key. Never repeat an uncertain attempt.
+    if(prior?.model==='formsubmit' && prior.deliveryAttemptedAt) return NextResponse.json({ok:true,status:'stored',delivery:'uncertain'},{status:202})
     turn={...turn,ts:prior?.ts || turn.ts,email:email.trim(),subject:subject.trim()}
     await saveTurn(turn)
     const event=async(kind:'contact_submitted'|'contact_accepted'|'contact_failed',status:string) => {
@@ -73,10 +75,15 @@ export async function POST(request: Request) {
     const fingerprint=createHash('sha256').update(JSON.stringify([email.trim(),subject.trim(),message.trim()])).digest('hex').slice(0,24)
     const idempotencyKey=`portfolio-${requestId}-${fingerprint}`
     try {
+      if(emailConfiguration().provider==='formsubmit') {
+        turn={...turn,model:'formsubmit',deliveryAttemptedAt:new Date().toISOString()}
+        await saveTurn(turn)
+      }
       const receipt=await deliverEmail({email:email.trim(),subject:subject.trim(),message:message.trim(),idempotencyKey})
-      turn={...turn,status:'complete',providerId:receipt.id,model:receipt.provider,finishedAt:new Date().toISOString()}
-      await saveTurn(turn);await event('contact_accepted','accepted')
-      return NextResponse.json({ok:true,status:'accepted'})
+      const submitted=receipt.provider==='formsubmit'
+      turn={...turn,status:'complete',providerId:submitted ? undefined : receipt.id,submissionId:submitted ? receipt.id : undefined,model:receipt.provider,finishedAt:new Date().toISOString()}
+      await saveTurn(turn);await event('contact_accepted',submitted ? 'submitted' : 'accepted')
+      return NextResponse.json({ok:true,status:submitted ? 'submitted' : 'accepted'})
     } catch {
       turn={...turn,status:'error',error:'delivery_unavailable',finishedAt:new Date().toISOString()}
       await saveTurn(turn);await event('contact_failed','delivery_unavailable')

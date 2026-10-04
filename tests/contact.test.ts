@@ -55,6 +55,7 @@ test('contact accepts only a provider receipt and keeps recipient fixed', async 
  test('delivery capability is truthful and never exposes configuration values', async () => {
   delete process.env.RESEND_API_KEY
   delete process.env.CONTACT_FROM_EMAIL
+  process.env.CONTACT_PROVIDER='resend'
   assert.deepEqual(await (await GET()).json(), {available:false,deliveryAvailable:false,inboxAvailable:false})
   process.env.RESEND_API_KEY='test-provider-secret'
   process.env.CONTACT_FROM_EMAIL='Portfolio <test@example.com>'
@@ -72,7 +73,7 @@ test('unconfigured delivery saves full submission to owner inbox without claimin
   let journal=''
   try {
     for(const key of ['RESEND_API_KEY','CONTACT_FROM_EMAIL','BREVO_API_KEY','KV_REST_API_URL','KV_REST_API_TOKEN','UPSTASH_REDIS_REST_URL','UPSTASH_REDIS_REST_TOKEN']) delete process.env[key]
-    Object.assign(process.env,{NODE_ENV:'development',TRACKING_SALT:'test-salt'})
+    Object.assign(process.env,{NODE_ENV:'development',TRACKING_SALT:'test-salt',CONTACT_PROVIDER:'resend'})
     fs.mkdir=(async()=>undefined) as typeof fs.mkdir
     fs.readFile=(async()=>journal) as unknown as typeof fs.readFile
     fs.appendFile=(async(file,data)=>{if(String(file).includes('conversations'))journal+=data}) as typeof fs.appendFile
@@ -100,4 +101,51 @@ test('Brevo free adapter requires its receipt and uses verified sender and fixed
     }
     assert.deepEqual(await deliverEmail({...payload,idempotencyKey:'test-request'}),{id:'brevo-receipt',provider:'brevo'})
   }finally{process.env=env;global.fetch=fetch}
+})
+
+test('free FormSubmit relay accepts only an explicit acknowledgement and fixes recipient and reply-to',async()=>{
+  const env={...process.env},fetch=global.fetch
+  const {emailConfiguration,deliverEmail}=await import('../src/lib/contact/provider')
+  try{
+    for(const key of ['RESEND_API_KEY','BREVO_API_KEY','CONTACT_FROM_EMAIL'])delete process.env[key]
+    process.env.CONTACT_PROVIDER='formsubmit'
+    assert.equal(emailConfiguration().available,true)
+    global.fetch=async(url,init)=>{
+      assert.equal(String(url),'https://formsubmit.co/ajax/levduyit@gmail.com')
+      const data=JSON.parse(String(init?.body));assert.equal(data.email,payload.email);assert.equal(data._replyto,payload.email);assert.equal(data._url,'https://leduy.vercel.app/');assert.equal(data.message,payload.message)
+      return Response.json({success:'true',message:'The form was submitted successfully.'})
+    }
+    assert.deepEqual(await deliverEmail({...payload,idempotencyKey:'local-submission-id'}),{id:'local-submission-id',provider:'formsubmit',submission:true})
+    global.fetch=async()=>Response.json({success:'false',message:'private provider diagnostic'})
+    await assert.rejects(deliverEmail({...payload,idempotencyKey:'failed'}),/delivery_unavailable/)
+  }finally{process.env=env;global.fetch=fetch}
+})
+
+test('FormSubmit contact persists acknowledgements and never repeats an uncertain attempt',async()=>{
+  const env={...process.env},fetch=global.fetch
+  const {promises:fs}=await import('node:fs')
+  const read=fs.readFile,append=fs.appendFile,mkdir=fs.mkdir
+  let journal='',calls=0
+  const relayRequest=(body:unknown)=>{const request=req(body);request.headers.set('x-forwarded-for','192.0.2.173');return request}
+  try{
+    for(const key of ['RESEND_API_KEY','BREVO_API_KEY','KV_REST_API_URL','KV_REST_API_TOKEN','UPSTASH_REDIS_REST_URL','UPSTASH_REDIS_REST_TOKEN'])delete process.env[key]
+    Object.assign(process.env,{NODE_ENV:'development',TRACKING_SALT:'test-salt',CONTACT_PROVIDER:'formsubmit'})
+    fs.mkdir=(async()=>undefined) as typeof fs.mkdir
+    fs.readFile=(async()=>journal) as unknown as typeof fs.readFile
+    fs.appendFile=(async(file,data)=>{if(String(file).includes('conversations'))journal+=data}) as typeof fs.appendFile
+    global.fetch=async()=>{calls++;return Response.json({success:'true'})}
+    const body={...payload,requestId:crypto.randomUUID()}
+    assert.deepEqual(await (await POST(relayRequest(body))).json(),{ok:true,status:'submitted'})
+    assert.deepEqual(await (await POST(relayRequest(body))).json(),{ok:true,status:'submitted'})
+    assert.equal(calls,1)
+    const saved=journal.trim().split('\n').map(line=>JSON.parse(line)).at(-1)
+    assert.ok(saved.submissionId);assert.ok(saved.deliveryAttemptedAt);assert.equal(saved.providerId,undefined)
+    global.fetch=async()=>{calls++;throw Error('timed out after sending')}
+    const uncertain={...payload,requestId:crypto.randomUUID()}
+    assert.equal((await POST(relayRequest(uncertain))).status,502)
+    const retry=await POST(relayRequest(uncertain))
+    assert.equal(retry.status,202)
+    assert.deepEqual(await retry.json(),{ok:true,status:'stored',delivery:'uncertain'})
+    assert.equal(calls,2)
+  }finally{process.env=env;global.fetch=fetch;fs.readFile=read;fs.appendFile=append;fs.mkdir=mkdir}
 })

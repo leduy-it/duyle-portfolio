@@ -17,3 +17,13 @@ Sources checked 2026-10-04:
 - https://developers.brevo.com/reference/send-transac-email
 - https://resend.com/pricing
 - https://resend.com/docs/api-reference/emails/send-email
+
+## Key-free contact relay — 2026-10-04
+
+The default without Resend/Brevo credentials is FormSubmit's free AJAX relay, fixed to levduyit@gmail.com and the canonical https://leduy.vercel.app/ form URL. First setup requires the owner to click the activation email. The relay returns an acknowledgement, not a provider message ID or proof of inbox delivery. UI says received/submitted; admin stores a separate local submission reference. No older messages are sent automatically.
+
+The relay does not expose a provider idempotency mechanism. Before a relay attempt, persist its start marker; uncertain attempts are not automatically repeated under the same request ID. Redis still stores the contact body even on provider failure. Brevo/Resend remain available by setting CONTACT_PROVIDER explicitly.
+
+Owner setup requests were acknowledged by the relay on 2026-10-04. Owner activation/inbox confirmation is still pending; no actual email arrival is claimed.
+
+Primary sources: https://formsubmit.co/ and https://formsubmit.co/ajax-documentation and https://formsubmit.co/documentation.

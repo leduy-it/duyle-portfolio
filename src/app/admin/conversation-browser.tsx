@@ -89,6 +89,7 @@ export function ConversationBrowser(){
             <div className="conversation-user"><span className="conversation-speaker">visitor &gt;</span>{turn.email && <p className="conversation-contact">From: {turn.email} · {turn.subject}</p>}<p>{turn.user}</p></div>
             {turn.assistant && <div className="conversation-assistant"><span className="conversation-speaker">michael.py &gt; {turn.model && <small>{turn.model}</small>}</span><div className="conversation-reply"><ChatReplyText {...{text:turn.assistant,sources:turn.sources}} /></div><ChatReplyCards text={turn.assistant} question={turn.user} vi={false}/></div>}
             {turn.error && <p className="conversation-error">{turn.error}</p>}
+            {turn.submissionId && <p className="conversation-turn-meta">Form relay acknowledged submission · local reference: {turn.submissionId}. Owner email activation and inbox arrival require confirmation.</p>}
             {turn.providerId && <p className="conversation-turn-meta">Provider acceptance receipt: {turn.providerId}. Inbox arrival is not confirmed here.</p>}
           </article>)}
           {!turns.records.length && !error && <p className="conversation-empty">No turns recorded in this thread.</p>}

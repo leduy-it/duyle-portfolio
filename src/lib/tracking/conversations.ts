@@ -11,7 +11,7 @@ export interface ConversationTurn {
   id: string; conversationId: string; visitorId: string; sessionId: string; ts: string; finishedAt?: string
   mode: 'chat' | 'compose' | 'refine' | 'contact'; path: string; user: string; assistant: string
   status: TurnStatus; model?: string; error?: string; sources?: { title: string; url: string }[]
-  email?: string; subject?: string; providerId?: string
+  email?: string; subject?: string; providerId?: string; submissionId?: string; deliveryAttemptedAt?: string
 }
 export interface ConversationInfo { id: string; visitorId: string; sessionId: string; createdAt: string; updatedAt: string; preview: string }
 export const validRecordId = (id: unknown): id is string => typeof id === 'string' && /^[a-f0-9-]{36}$/i.test(id)

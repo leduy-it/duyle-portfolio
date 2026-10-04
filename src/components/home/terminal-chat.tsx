@@ -499,7 +499,7 @@ export function TerminalChat() {
     return () => {active=false}
   }, [view])
   const [deliveryError, setDeliveryError] = useState('')
-  const [deliveryStatus,setDeliveryStatus]=useState<'accepted'|'stored'>('accepted')
+  const [deliveryStatus,setDeliveryStatus]=useState<'accepted'|'submitted'|'stored'>('accepted')
 
   async function sendContact() {
     if (
@@ -529,7 +529,7 @@ export function TerminalChat() {
         signal: AbortSignal.timeout(18_000),
       })
       const data = await res.json()
-      if (!res.ok || !['accepted','stored'].includes(data.status)) throw new Error(data.error || 'delivery_failed')
+      if (!res.ok || !['accepted','submitted','stored'].includes(data.status)) throw new Error(data.error || 'delivery_failed')
       setDeliveryStatus(data.status)
       setView('sent')
     } catch (error) {
@@ -1124,7 +1124,7 @@ export function TerminalChat() {
                 transition={viewTransition}
               >
                 <p className="font-mono text-sm text-[rgb(var(--text-primary))]">
-                  {deliveryStatus === 'stored' ? (locale === 'vi' ? 'Tin nhắn đã được lưu vào hộp thư của Duy trên website. Email chưa gửi được; bạn có thể mở ứng dụng mail bên dưới.' : 'Your message is saved in Michael’s website inbox. Email delivery is not configured yet; you can also open your mail app below.') : t('compose.sentTitle')}
+                  {deliveryStatus === 'submitted' ? (locale === 'vi' ? 'Đã nhận tin nhắn của bạn. Duy có thể trả lời qua email bạn cung cấp.' : 'Your message has been received. Michael can reply using the email you provided.') : deliveryStatus === 'stored' ? (locale === 'vi' ? 'Tin nhắn đã được lưu vào hộp thư của Duy trên website. Bạn cũng có thể liên hệ trực tiếp qua email.' : 'Your message is saved in Michael’s website inbox. You can also contact him directly by email.') : t('compose.sentTitle')}
                   {deliveryStatus === 'stored' && <a className="block mt-3 underline text-[rgb(var(--accent))]" data-track="contact:mailapp" onClick={() => trackAction('mailapp_open','contact:mailapp')} href={`mailto:levduyit@gmail.com?subject=${encodeURIComponent(compose.subject)}&body=${encodeURIComponent(compose.body)}`}>{locale === 'vi' ? 'Mở ứng dụng email ↗' : 'Open email app ↗'}</a>}
                 </p>
                 <MagneticButton
