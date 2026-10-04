@@ -476,5 +476,32 @@
     "alt": "Spider-Man: Into the Spider-Verse official poster",
     "alt_vi": "Poster Spider-Man: Into the Spider-Verse",
     "image": "/images/films/spider-man-into-the-spider-verse-poster.jpg"
+  },
+  {
+    "title": "Schindler’s List",
+    "director": "Steven Spielberg",
+    "year": "1993",
+    "runtime": "196 min",
+    "runtime_vi": "196 phút",
+    "tagline": "a life saved is never an abstraction",
+    "tagline_vi": "mỗi sinh mạng được cứu đều là một con người cụ thể",
+    "story": "During the Holocaust, Oskar Schindler uses his factory to protect Jewish workers. The restrained monochrome imagery keeps attention on individual lives, complicity, and the difficult choice to act.",
+    "story_vi": "Trong cuộc diệt chủng Holocaust, Oskar Schindler dùng nhà máy để bảo vệ những công nhân Do Thái. Hình ảnh đen trắng tiết chế giữ sự chú ý vào từng sinh mạng, sự đồng lõa và lựa chọn khó khăn khi hành động.",
+    "tags": [
+      "history",
+      "spielberg",
+      "humanity"
+    ],
+    "lesson": "Responsibility becomes concrete in the lives a decision protects.",
+    "lesson_vi": "Trách nhiệm trở nên cụ thể qua những sinh mạng mà một quyết định bảo vệ.",
+    "slug": "schindlers-list",
+    "letterboxdRating": "IMDb reference",
+    "hook": "a life saved is never an abstraction",
+    "hook_vi": "mỗi sinh mạng được cứu đều là một con người cụ thể",
+    "perspectives": [],
+    "perspectives_vi": [],
+    "alt": "Schindler’s List official poster",
+    "alt_vi": "Poster Schindler’s List",
+    "image": "/images/films/schindlers-list-poster.jpg"
   }
 ]

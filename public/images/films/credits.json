@@ -31,5 +31,16 @@
     "sha256": "890bccf7feff470347d7357a52d169a46d5ba40676c700557205889702a9432c",
     "retrievedAt": "2026-10-04",
     "usage": "Original promotional poster; copyright remains with the rights holder."
+  },
+  {
+    "slug": "schindlers-list",
+    "file": "/images/films/schindlers-list-poster.jpg",
+    "sourceUrl": "https://image.tmdb.org/t/p/original/sF1U4EUQS8YHUYjNl3pMGNIQyr0.jpg",
+    "credit": "Universal Pictures; promotional poster archived by TMDB",
+    "width": 1000,
+    "height": 1500,
+    "sha256": "7fc9af3a128b6897b460a440284c02ef06c63c81e2fbbb5a5ef838b32cc699d3",
+    "retrievedAt": "2026-10-04",
+    "usage": "Original promotional poster; copyright remains with the rights holder."
   }
 ]
