@@ -422,5 +422,32 @@
     "image": "https://image.tmdb.org/t/p/original/hYqOjJ7Gh1fbqXrxlIao1g8ZehF.jpg",
     "alt": "All Quiet on the Western Front (2022) poster",
     "alt_vi": "Poster phim Phía Tây không có gì lạ (2022)"
+  },
+  {
+    "title": "House of the Dragon",
+    "director": "Ryan Condal & George R. R. Martin",
+    "year": "2022–",
+    "runtime": "TV series",
+    "runtime_vi": "Phim truyền hình",
+    "tagline": "inheritance, ambition, and the price of a throne",
+    "tagline_vi": "di sản, tham vọng và cái giá của ngai vàng",
+    "story": "A Targaryen succession crisis turns a royal family into rival factions. The attraction is the tension between private loyalty and public power, with dragons making every political decision consequential.",
+    "story_vi": "Khủng hoảng kế vị nhà Targaryen chia gia đình hoàng tộc thành các phe đối lập. Sức hút nằm ở giằng co giữa tình thân và quyền lực; những con rồng khiến mỗi quyết định chính trị đều mang hậu quả.",
+    "tags": [
+      "fantasy",
+      "hbo",
+      "tv-series"
+    ],
+    "lesson": "Power depends on the relationships that sustain it.",
+    "lesson_vi": "Quyền lực phụ thuộc vào những mối quan hệ duy trì nó.",
+    "slug": "house-of-the-dragon",
+    "letterboxdRating": "IMDb reference",
+    "hook": "inheritance, ambition, and the price of a throne",
+    "hook_vi": "di sản, tham vọng và cái giá của ngai vàng",
+    "perspectives": [],
+    "perspectives_vi": [],
+    "alt": "House of the Dragon official poster",
+    "alt_vi": "Poster House of the Dragon",
+    "image": "/images/films/house-of-the-dragon-poster.jpg"
   }
 ]

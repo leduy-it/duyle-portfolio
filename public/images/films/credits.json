@@ -9,5 +9,16 @@
     "sha256": "deb481508538b17b2524d43efc9dd7d920f594cf43f7dffff02e61d595c3197c",
     "retrievedAt": "2026-10-04",
     "usage": "Original promotional poster; copyright remains with the rights holder."
+  },
+  {
+    "slug": "house-of-the-dragon",
+    "file": "/images/films/house-of-the-dragon-poster.jpg",
+    "sourceUrl": "https://www.impawards.com/tv/posters/house_of_the_dragon_ver10_xxlg.jpg",
+    "credit": "HBO",
+    "width": 2025,
+    "height": 3000,
+    "sha256": "f4ff2d4150cbfeb109c483134035d8c4f089b5753986ce7fbba64daf9166251a",
+    "retrievedAt": "2026-10-04",
+    "usage": "Original promotional poster; copyright remains with the rights holder."
   }
 ]
