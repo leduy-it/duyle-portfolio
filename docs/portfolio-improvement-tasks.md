@@ -6,7 +6,7 @@ Each task gets a focused commit on `feat/portfolio-observability`; unrelated mai
 - [x] OBS-2 Capture button/link use, pet actions, chat/email opens and email funnel; owner charts and detailed session/event history. Respect DNT and owner exclusion.
 - [x] OBS-3 Owner conversation browser, 50-record pagination, full text/media references and export.
 - [x] MAIL-1 Durable website contact inbox, researched free Brevo/Resend adapters, idempotent sends and truthful stored/accepted/error states.
-- [ ] MAIL-2 Production provider API key, sender verification and actual inbox delivery test — awaiting owner account setup.
+- [x] MAIL-2 API-key-only setup replaced by the free FormSubmit path in MAIL-3. Actual Gmail arrival remains open in MAIL-3; Brevo/Resend remain optional alternatives.
 - [x] VOICE-1 Context-aware Vietnamese banter; preserve English replies and serious tone. Research current expressions without falsely dating old memes as 2026.
 - [x] VIS-1 Sharpen mobile Three.js, camera framing, metal cinema reels, textured Research planet, diverse restrained transitions.
 - [x] VIS-2 Real Jupiter surface from NASA, richer starfield and clear mobile Arcade composition; keep all games functional.
@@ -30,11 +30,25 @@ Each change is committed on feat/portfolio-observability. Source is integrated i
 
 Priority order is explicit: conversation workspace first. Preserve these tasks across turns.
 
-- [ ] CHAT-UI-1 ChatGPT-like persistent thread sidebar, terminal-style complete transcript, near-full-screen open/restore, media/source previews, chronology, older-message loading, per-thread export; retain private authentication and existing charts.
+- [x] CHAT-UI-1 ChatGPT-like persistent thread sidebar, terminal-style complete transcript, near-full-screen open/restore, media/source previews, chronology, older-message loading, per-thread export; retain private authentication and existing charts.
 - [ ] MAIL-3 Activate and verify a free FormSubmit contact relay without needing an API key; preserve durable inbox and truthful delivery states. Owner email activation/inbox confirmation may be required. Never resend older stored messages automatically.
-- [ ] FILM-1 Replace Project Hail Mary artwork with a high-resolution real 2026 film poster; verify source and local asset.
-- [ ] FILM-2 Add House of the Dragon with an actual high-quality portrait poster.
-- [ ] FILM-3 Add Spider-Man: Into the Spider-Verse with an actual high-quality portrait poster.
-- [ ] FILM-4 Add Schindler's List with an actual high-quality portrait poster.
-- [ ] FILM-5 Verified IMDb reference and where-to-watch navigation for every title; preserve notes navigation and avoid nested interactive links. Refresh chatbot media knowledge after the film changes.
+- [x] FILM-1 Replace Project Hail Mary artwork with a high-resolution real 2026 film poster; verify source and local asset.
+- [x] FILM-2 Add House of the Dragon with an actual high-quality portrait poster.
+- [x] FILM-3 Add Spider-Man: Into the Spider-Verse with an actual high-quality portrait poster.
+- [x] FILM-4 Add Schindler's List with an actual high-quality portrait poster.
+- [x] FILM-5 Verified IMDb reference and where-to-watch navigation for every title; preserve notes navigation and avoid nested interactive links. Refresh chatbot media knowledge after the film changes.
 - [ ] RELEASE-2 Focused commits per task, guarded integration, meaningful browser checks including fast thread switching/full-screen/mobile, production deployment and receipts.
+
+## Browser identity — owner follow-up
+
+- [x] BRAND-1 Use the owner’s existing pixel portrait for browser favicon, multi-size ICO and Apple touch icon; verify served bytes and metadata. Commit 59fcf77.
+
+## Current verification — 2026-10-04
+
+CHAT-UI-1 was deployed before the email/cinema follow-ups: dpl_7p1mfRqCBHHi6mC5YQP3XyZ3svu9, READY at https://leduy.vercel.app. A local authenticated browser test verifies full-size workspace, persistent sidebar, older turns, rapid switching, media/source rendering, Escape restore and mobile thread navigation. Existing charts/history remain intact. Production anonymous conversation access returns 404.
+
+The email adapter and UI are implemented and tested (ebdda9f); FormSubmit acknowledged the owner setup request. MAIL-3 stays open until the owner activates the form email and confirms actual Gmail arrival. No API key or paid service is required. An acknowledgement is recorded as a submission reference, never mislabelled as a provider message ID. Uncertain requests are not sent again.
+
+Cinema now includes 11 films/series. Four original promotional posters are local assets with dimensions, source and hashes in public/images/films/credits.json. Hail Mary is the 2026 film poster. Every title has a verified IMDb URL plus IMDb watch-options navigation; availability depends on region and provider. No streaming availability is asserted. New knowledge was indexed into 154 public documents; only exact curated IMDb destinations are enabled. New title notes do not claim a personal viewing history.
+
+Verification before the final release: 72 unit checks, lint, typecheck, production build (43 generated pages) and browser checks for full conversation workspace, all 11 IMDb links, notes navigation, no nested anchors, four loaded mobile posters at DPR 3, no horizontal overflow, favicon served-byte matching, and truthful submitted-email confirmation. Final release receipt will record the production deployment separately.
