@@ -1,5 +1,6 @@
 'use client'
 
+import { validChatSources, type ChatSource } from '@/lib/chat/sources'
 import { replyLanguage } from '@/lib/chat/language'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -7,19 +8,20 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { cardsFromReply, safeChatHref, type ChatCard } from '@/lib/chat/catalog'
 import './rich-message.css'
 
-export function ChatReplyText({ text, onNavigate }: { text: string; onNavigate?: (newTab?: boolean) => void }) {
+export function ChatReplyText({ text, sources, onNavigate }: { text: string; sources?: ChatSource[]; onNavigate?: (newTab?: boolean) => void }) {
+  const verified = validChatSources(sources)
   const clean = text.replace(/\[\[(?:card:)?[a-z0-9-]+\]\]/gi, '').replace(/\[\[[^\]]*$/, '')
   const pieces: ReactNode[] = []
   const pattern = /\[([^\]]+)\]\(([^)]+)\)/g
   let cursor = 0
   for (const match of clean.matchAll(pattern)) {
     pieces.push(clean.slice(cursor, match.index))
-    const href = safeChatHref(match[2])
+    const href = safeChatHref(match[2]) || verified.find(source => source.url === match[2])?.url
     pieces.push(href ? <Link className="chat-inline-link" href={href} key={match.index} onClick={() => onNavigate?.()}>{match[1]}</Link> : match[1])
     cursor = match.index! + match[0].length
   }
   pieces.push(clean.slice(cursor))
-  return <>{pieces}</>
+  return <>{pieces}{verified.length > 0 && <span className="mt-3 block space-y-1 border-t border-[rgb(var(--border))] pt-2 text-xs" data-web-sources>{verified.map((source,index) => <a key={source.url} className="chat-inline-link block" href={source.url} target="_blank" rel="noopener noreferrer">[{index + 1}] {source.title} ↗</a>)}</span>}</>
 }
 
 export function ChatReplyCards({ text, question, vi, onNavigate, streaming = false }: {
