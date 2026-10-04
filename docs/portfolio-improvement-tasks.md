@@ -25,3 +25,16 @@ Lint, typecheck, production build and unit tests pass. Two browser checks passed
 70 unit checks and seven cover/navigation browser checks passed on the production build. The final production release passes all six model variants at full DPR 3 on a 390px phone, the 375px overflow check, Jupiter/game launch, 27 game count, Timeline order, saved archived laptop story, local textures and attribution. No browser exceptions observed. Local owner admin screenshot uses isolated verification data. Release receipt and screenshots: /home/duyle/Downloads/leduy-social-assets-2026-10-04/production-premium-and-tracking.json.
 
 Each change is committed on feat/portfolio-observability. Source is integrated into the canonical working tree through hash guards without changing main HEAD or its index. Full deployment uses the reviewed snapshot including existing portfolio work. MAIL-2, the remaining cafe original and unresolved native FB metadata stay open; none are marked delivered/acquired.
+
+## Owner follow-up — 2026-10-04
+
+Priority order is explicit: conversation workspace first. Preserve these tasks across turns.
+
+- [ ] CHAT-UI-1 ChatGPT-like persistent thread sidebar, terminal-style complete transcript, near-full-screen open/restore, media/source previews, chronology, older-message loading, per-thread export; retain private authentication and existing charts.
+- [ ] MAIL-3 Activate and verify a free FormSubmit contact relay without needing an API key; preserve durable inbox and truthful delivery states. Owner email activation/inbox confirmation may be required. Never resend older stored messages automatically.
+- [ ] FILM-1 Replace Project Hail Mary artwork with a high-resolution real 2026 film poster; verify source and local asset.
+- [ ] FILM-2 Add House of the Dragon with an actual high-quality portrait poster.
+- [ ] FILM-3 Add Spider-Man: Into the Spider-Verse with an actual high-quality portrait poster.
+- [ ] FILM-4 Add Schindler's List with an actual high-quality portrait poster.
+- [ ] FILM-5 Verified IMDb reference and where-to-watch navigation for every title; preserve notes navigation and avoid nested interactive links. Refresh chatbot media knowledge after the film changes.
+- [ ] RELEASE-2 Focused commits per task, guarded integration, meaningful browser checks including fast thread switching/full-screen/mobile, production deployment and receipts.
