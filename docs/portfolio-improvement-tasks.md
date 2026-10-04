@@ -31,7 +31,7 @@ Each change is committed on feat/portfolio-observability. Source is integrated i
 Priority order is explicit: conversation workspace first. Preserve these tasks across turns.
 
 - [x] CHAT-UI-1 ChatGPT-like persistent thread sidebar, terminal-style complete transcript, near-full-screen open/restore, media/source previews, chronology, older-message loading, per-thread export; retain private authentication and existing charts.
-- [ ] MAIL-3 Activate and verify a free FormSubmit contact relay without needing an API key; preserve durable inbox and truthful delivery states. Owner email activation/inbox confirmation may be required. Never resend older stored messages automatically.
+- [x] MAIL-3 Activate and verify a free FormSubmit contact relay without needing an API key; preserve durable inbox and truthful delivery states. Owner email activation/inbox confirmation may be required. Never resend older stored messages automatically.
 - [x] FILM-1 Replace Project Hail Mary artwork with a high-resolution real 2026 film poster; verify source and local asset.
 - [x] FILM-2 Add House of the Dragon with an actual high-quality portrait poster.
 - [x] FILM-3 Add Spider-Man: Into the Spider-Verse with an actual high-quality portrait poster.
@@ -64,3 +64,9 @@ Receipt: /home/duyle/Downloads/leduy-social-assets-2026-10-04/production-threads
 ## Favicon correction requested by owner
 
 - [x] BRAND-2 Replace the previous pixel portrait favicon with the existing camera portrait from the homepage (/images/profile/duy-camera.png). Keep the original square image for browser PNG; derive touch/ICO sizes. No changes to page images or other features. Production receipt is verified separately.
+
+## Owner confirmation — 2026-10-04
+
+Owner supplied the actual FormSubmit email received at 14:56, with the exact synthetic production-browser verification body. MAIL-3 now has owner-confirmed Gmail delivery; the earlier pending statements remain historical test status. Current form readiness also returned compose HTTP 200 in 3.7 seconds and an enabled Send button after email entry. The owner's new report about inability to submit versus confusing receipt content awaits clarification; no new failure has been reproduced.
+
+BRAND-2 is deployed in dpl_8qMkeRzMksX2kPSoAkbsabEWjyhU at https://leduy.vercel.app. All three camera icon variants return 200 and match reviewed assets. Receipt: production-camera-favicon.json.

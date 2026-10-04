@@ -38,3 +38,7 @@ A production Vercel server request returned 502 while a real browser request fro
 4. Missing acknowledgement remains an uncertain attempt in the durable inbox. Reopening/retrying the same request never automatically sends another relay request.
 
 This browser report is not a provider message ID or proof of inbox delivery. Admin labels it accordingly. Brevo/Resend still use the verified server-provider receipt path. No keys are exposed and no older saved messages are resent.
+
+## Owner-confirmed Gmail arrival
+
+On 2026-10-04 the owner supplied the actual email from submissions@formsubmit.co received at 14:56. Its body exactly matches the synthetic production-browser verification. That test is now confirmed as received in Gmail, rather than only relay-acknowledged. The synthetic activation wording was test content, not a default appended to visitors' messages. No further activation is needed for this working form.
