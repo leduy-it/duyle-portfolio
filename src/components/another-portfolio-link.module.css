@@ -1,16 +1,29 @@
-.root { position: relative; flex: none; }
+.root {
+  display: none;
+  position: absolute;
+  right: 16px;
+  top: calc(100% + 6px);
+}
+
+@media (min-width: 1280px) {
+  .root { display: block; }
+}
+
+@media (min-width: 1536px) {
+  .root { top: 50%; transform: translateY(-50%); }
+}
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 7px 12px;
+  gap: 5px;
+  min-height: 28px;
+  padding: 4px 9px;
   border: 1px solid rgb(var(--text-muted) / .3);
   border-radius: 999px;
   background: rgb(var(--surface-card) / .35);
   color: rgb(var(--text-secondary));
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.4;
   white-space: nowrap;
@@ -24,7 +37,7 @@
 }
 
 .link:focus-visible { outline: 2px solid rgb(var(--accent) / .6); outline-offset: 3px; }
-.arrow { flex: none; color: rgb(var(--text-muted)); }
+.arrow { flex: none; width: 11px; height: 11px; color: rgb(var(--text-muted)); }
 .link:hover .arrow, .link:focus-visible .arrow { color: rgb(var(--accent)); }
 
 .tooltip {
@@ -50,6 +63,7 @@
 .description { margin: 0; color: rgb(var(--text-secondary)); font-size: 12px; font-weight: 400; line-height: 1.65; text-wrap: pretty; }
 .mobileCard { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgb(var(--border)); }
 .mobileDescription { max-width: 440px; margin-top: 14px; }
+.mobileCard .link > span { font-size: 11px; }
 
 @media (prefers-reduced-motion: reduce) {
   .link, .tooltip { transition: none; }

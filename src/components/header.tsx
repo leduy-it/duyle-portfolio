@@ -70,8 +70,8 @@ export function Header() {
         </Magnetic>
 
         {/* Desktop nav + controls */}
-        <div className="hidden xl:flex items-center gap-5 2xl:gap-8">
-          <nav className="flex gap-5 2xl:gap-7">
+        <div className="hidden xl:flex items-center gap-8">
+          <nav className="flex gap-7">
             {navLinks.map(({ label, href }) => {
               const isActive = isActivePath(pathname, href)
               return (
@@ -130,7 +130,6 @@ export function Header() {
                 </Link>
               </RippleButton>
             </Magnetic>
-            <AnotherPortfolioLink />
           </div>
         </div>
 
@@ -159,6 +158,8 @@ export function Header() {
           </button>
         </div>
       </div>
+
+      <AnotherPortfolioLink />
 
       {/* Mobile dropdown nav */}
       <AnimatePresence initial={false}>
