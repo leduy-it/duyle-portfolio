@@ -1,0 +1,57 @@
+.root { position: relative; flex: none; }
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid rgb(var(--text-muted) / .3);
+  border-radius: 999px;
+  background: rgb(var(--surface-card) / .35);
+  color: rgb(var(--text-secondary));
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: border-color 120ms ease-out, background-color 120ms ease-out, color 120ms ease-out;
+}
+
+.link:hover, .link:focus-visible {
+  border-color: rgb(var(--accent) / .5);
+  background: rgb(var(--accent) / .06);
+  color: rgb(var(--text-primary));
+}
+
+.link:focus-visible { outline: 2px solid rgb(var(--accent) / .6); outline-offset: 3px; }
+.arrow { flex: none; color: rgb(var(--text-muted)); }
+.link:hover .arrow, .link:focus-visible .arrow { color: rgb(var(--accent)); }
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1;
+  width: min(300px, calc(100vw - 32px));
+  padding: 16px 18px;
+  border: 1px solid rgb(var(--border));
+  border-radius: 12px;
+  background: rgb(var(--surface-card));
+  box-shadow: 0 12px 32px rgb(0 0 0 / .18);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 120ms ease-out, transform 120ms ease-out, visibility 120ms;
+}
+
+.tooltip::before { content: ''; position: absolute; inset: -11px 0 auto; height: 11px; }
+.tooltip[data-open='true'] { opacity: 1; visibility: visible; transform: translateY(0); }
+.title { margin: 0 0 7px; color: rgb(var(--text-primary)); font-size: 13px; font-weight: 600; line-height: 1.4; }
+.description { margin: 0; color: rgb(var(--text-secondary)); font-size: 12px; font-weight: 400; line-height: 1.65; text-wrap: pretty; }
+.mobileCard { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgb(var(--border)); }
+.mobileDescription { max-width: 440px; margin-top: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .link, .tooltip { transition: none; }
+  .tooltip { transform: none; }
+}

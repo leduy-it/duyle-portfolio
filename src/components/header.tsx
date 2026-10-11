@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import { CompanionToggle } from './pets/companion-toggle'
 import { LocaleToggle } from './locale-toggle'
+import { AnotherPortfolioLink } from './another-portfolio-link'
 import { useLocale } from '@/lib/i18n'
 import {
   Magnetic,
@@ -69,8 +70,8 @@ export function Header() {
         </Magnetic>
 
         {/* Desktop nav + controls */}
-        <div className="hidden xl:flex items-center gap-8">
-          <nav className="flex gap-7">
+        <div className="hidden xl:flex items-center gap-5 2xl:gap-8">
+          <nav className="flex gap-5 2xl:gap-7">
             {navLinks.map(({ label, href }) => {
               const isActive = isActivePath(pathname, href)
               return (
@@ -129,6 +130,7 @@ export function Header() {
                 </Link>
               </RippleButton>
             </Magnetic>
+            <AnotherPortfolioLink />
           </div>
         </div>
 
@@ -281,6 +283,7 @@ export function Header() {
                     </Link>
                   </RippleButton>
                 </Magnetic>
+                <AnotherPortfolioLink mobile />
               </motion.div>
             </motion.div>
           </motion.div>
